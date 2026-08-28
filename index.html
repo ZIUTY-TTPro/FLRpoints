@@ -96,13 +96,12 @@
         <!-- Główna treść (ukryta do czasu pobrania danych) -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
-            <!-- BILANS z kropką statusu -->
+            <!-- BILANS z kropką statusu (bez napisu "Online") -->
             <div class="bg-card border border-bordercolor rounded-2xl p-6 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
-                <!-- Wskaźnik statusu połączenia w prawym górnym rogu -->
-                <div class="absolute top-3 right-3 flex items-center gap-0.5 transform scale-100 origin-top-right">
-    <span class="text-[8px] font-bold uppercase tracking-wider text-zinc-500" style="font-size: 8px;">Online</span>
-    <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
-</div>
+                <!-- Wskaźnik statusu połączenia w prawym górnym rogu – tylko kropka -->
+                <div class="absolute top-3 right-3 flex items-center">
+                    <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
+                </div>
                 <h1 class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Twoje pkt</h1>
                 <div id="balance-display" class="text-6xl font-black tracking-tighter transition-all duration-300">0</div>
             </div>
@@ -288,20 +287,19 @@
                 type: "positive",
                 items: [
                     { name: "Masaż stóp", points: 5 },
-					{ name: "Mycie naczyń", points: 5 },
-					{ name: "Dzień w pasie cnoty", points: 10 },
-					{ name: "Wywieszenie prania", points: 10 },
-					{ name: "Złożenie prania", points: 10 },
-					{ name: "Prasowanie", points: 10 },
-					{ name: "Zadanie wykonał w bieliźnie", points: 10 },
-					{ name: "Zadanie wykonał nago", points: 15 },
+                    { name: "Mycie naczyń", points: 5 },
+                    { name: "Dzień w pasie cnoty", points: 10 },
+                    { name: "Wywieszenie prania", points: 10 },
+                    { name: "Złożenie prania", points: 10 },
+                    { name: "Prasowanie", points: 10 },
+                    { name: "Zadanie wykonał w bieliźnie", points: 10 },
+                    { name: "Zadanie wykonał nago", points: 15 },
                     { name: "Masaż pleców", points: 15 },
                     { name: "Obiad", points: 25 },
                     { name: "Sprzątanie domu", points: 25 },
                     { name: "Zlizanie nasienia", points: 25 },
                     { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25 },
                     { name: "Orgazm dla żony", points: 50 }
-                    
                 ]
             },
             {
@@ -311,9 +309,8 @@
                     { name: "Marudzenie", points: -20 },
                     { name: "Złe zachowanie", points: -50 },
                     { name: "Pyskowanie", points: -100 },
-					{ name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150 },
+                    { name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150 },
                     { name: "Dojście bez pozwolenia", points: -500 }
-                    
                 ]
             },
             {
@@ -321,9 +318,9 @@
                 type: "negative",
                 items: [
                     { name: "Masturbacja bez obecności żony bez orgazmu", points: -100 },
-					{ name: "Orgazm zrujnowany", points: -150 },
-					{ name: "Orgazm w gumce", points: -250 },
-					{ name: "Baty", points: -250 },
+                    { name: "Orgazm zrujnowany", points: -150 },
+                    { name: "Orgazm w gumce", points: -250 },
+                    { name: "Baty", points: -250 },
                     { name: "Orgazm na stopy", points: -300 },
                     { name: "Orgazm na dłoń", points: -300 },
                     { name: "Masturbacja nago przed ubraną żoną", points: -350 },
@@ -768,6 +765,7 @@
             historyEntries.unshift(entry);
             saveDataToFirestore();
             renderActions();
+            updateUI(); // <-- DODANE: natychmiastowa aktualizacja bilansu
             showToast("Zapisano w rejestrze!");
         };
 
@@ -778,6 +776,7 @@
                 historyEntries.splice(index, 1);
                 saveDataToFirestore();
                 renderActions();
+                updateUI(); // <-- DODANE: natychmiastowa aktualizacja bilansu
             }
         };
 
@@ -812,6 +811,7 @@
             historyEntries.unshift(entry);
             saveDataToFirestore();
             renderActions();
+            updateUI(); // <-- DODANE: natychmiastowa aktualizacja bilansu
             window.closeCustomModal();
         };
 
@@ -841,6 +841,7 @@
             });
             saveDataToFirestore();
             renderActions();
+            updateUI(); // <-- DODANE: odświeżenie po redukcji
             window.closeReduceModal();
             showToast("Zredukowano punkty zarabiania!");
         };
@@ -850,6 +851,7 @@
             eventDictionary[0] = JSON.parse(JSON.stringify(originalDictionary[0]));
             saveDataToFirestore();
             renderActions();
+            updateUI(); // <-- DODANE: odświeżenie po anulowaniu
             if (!silent) showToast("Przywrócono oryginalne punkty!");
         };
 
@@ -859,6 +861,7 @@
                 historyEntries = [];
                 saveDataToFirestore();
                 renderActions();
+                updateUI(); // <-- DODANE: natychmiastowa aktualizacja
                 showToast("Zresetowano!");
             }
         };
@@ -914,15 +917,13 @@
         // ----- START -----
         mainContent.classList.add('hidden');
         initApp();
-		
-		if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./service-worker.js')
-            .then(() => console.log('Service Worker zarejestrowany'))
-            .catch(err => console.error('Błąd rejestracji SW:', err));
-    	}
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(() => console.log('Service Worker zarejestrowany'))
+                .catch(err => console.error('Błąd rejestracji SW:', err));
+        }
     </script>
-	
-    
 
 </body>
 </html>
