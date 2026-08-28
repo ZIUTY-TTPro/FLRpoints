@@ -1,125 +1,189 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#09090b">
-    <title>FLR Points </title>
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#09090b" />
+    <title>FLR Points</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        app: '#09090b',
-                        card: '#18181b',
-                        bordercolor: '#27272a',
-                        blood: '#dc2626',
-                        bloodbg: '#450a0a'
-                    }
-                }
-            }
-        }
-    </script>
-
+    <!-- Tailwind CSS (produkcyjna wersja CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glow-red { text-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
+        .glow-white { text-shadow: 0 0 20px rgba(228, 228, 231, 0.4); }
         .click-anim:active { transform: scale(0.98); }
+        /* Kropka statusu */
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+        }
+        .status-dot.online {
+            background-color: #22c55e;
+            box-shadow: 0 0 12px rgba(34,197,94,0.6);
+        }
+        .status-dot.offline {
+            background-color: #ef4444;
+            box-shadow: 0 0 12px rgba(239,68,68,0.6);
+        }
+        .status-dot.connecting {
+            background-color: #eab308;
+            box-shadow: 0 0 12px rgba(234,179,8,0.6);
+        }
+        /* Uzupełnienie brakujących klas Tailwind 2 */
+        .bg-card { background-color: #18181b; }
+        .border-bordercolor { border-color: #27272a; }
+        .bg-app { background-color: #09090b; }
+        .text-zinc-950 { color: #09090b; }
+        .text-zinc-200 { color: #e4e4e7; }
+        .text-zinc-300 { color: #d4d4d8; }
+        .text-zinc-400 { color: #a1a1aa; }
+        .text-zinc-500 { color: #71717a; }
+        .text-zinc-600 { color: #52525b; }
+        .text-zinc-100 { color: #f4f4f5; }
+        .border-zinc-700 { border-color: #3f3f46; }
+        .bg-zinc-700 { background-color: #3f3f46; }
+        .bg-zinc-800 { background-color: #27272a; }
+        .bg-zinc-800\/60 { background-color: rgba(39,39,42,0.6); }
+        .bg-zinc-900\/40 { background-color: rgba(24,24,27,0.4); }
+        .bg-zinc-100 { background-color: #f4f4f5; }
+        .hover\:bg-zinc-700:hover { background-color: #3f3f46; }
+        .hover\:bg-zinc-800\/50:hover { background-color: rgba(39,39,42,0.5); }
+        .hover\:bg-blood\/20:hover { background-color: rgba(220,38,38,0.2); }
+        .bg-blood\/10 { background-color: rgba(220,38,38,0.1); }
+        .border-blood\/30 { border-color: rgba(220,38,38,0.3); }
+        .bg-bloodbg\/15 { background-color: rgba(69,10,10,0.15); }
+        .border-blood\/20 { border-color: rgba(220,38,38,0.2); }
+        .bg-emerald-950\/30 { background-color: rgba(5,46,22,0.3); }
+        .border-emerald-500\/50 { border-color: rgba(16,185,129,0.5); }
+        .bg-amber-500\/10 { background-color: rgba(245,158,11,0.1); }
+        .border-amber-500\/30 { border-color: rgba(245,158,11,0.3); }
+        .bg-amber-500\/20 { background-color: rgba(245,158,11,0.2); }
+        .hover\:bg-amber-500\/30:hover { background-color: rgba(245,158,11,0.3); }
+        .text-amber-500 { color: #f59e0b; }
+        .text-amber-400 { color: #fbbf24; }
+        .text-amber-300 { color: #fcd34d; }
+        .shadow-\[0_0_15px_rgba\(16\,185\,129\,0\.15\)\] { box-shadow: 0 0 15px rgba(16,185,129,0.15); }
+        .bg-zinc-200 { background-color: #e4e4e7; }
+        .text-zinc-950 { color: #09090b; }
+        .text-red-400 { color: #f87171; }
+        .border-zinc-500 { border-color: #71717a; }
+        .hover\:bg-zinc-800:hover { background-color: #27272a; }
+        .bg-black\/80 { background-color: rgba(0,0,0,0.8); }
+        .backdrop-blur-sm { backdrop-filter: blur(4px); }
+        .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .z-50 { z-index: 50; }
+        .whitespace-nowrap { white-space: nowrap; }
+        .border-dashed { border-style: dashed; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
 
     <main class="w-full max-w-md p-4 flex flex-col gap-5">
-        
-        <!-- BILANS -->
-        <section class="bg-card border border-bordercolor rounded-2xl p-6 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
-            <div class="absolute top-3 right-3 flex items-center gap-1.5">
-                <span id="sync-status" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Łączenie z Firebase..."></span>
-                <span class="text-[9px] text-zinc-500 uppercase tracking-widest font-bold">Live Firebase</span>
-            </div>
-            <h1 class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Twoje pkt</h1>
-            <div id="balance-display" class="text-6xl font-black tracking-tighter transition-all duration-300">0</div>
-        </section>
 
-        <!-- BANER REDUKCJI -->
-        <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex justify-between items-center">
-            <div class="flex flex-col">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
-                <span id="reduction-info-text" class="text-xs text-zinc-300"></span>
-            </div>
-            <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
+        <!-- Stan ładowania i komunikaty błędów -->
+        <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
+            ⏳ Ładowanie danych...
         </div>
 
-        <!-- OPCJE -->
-        <section class="bg-card border border-bordercolor rounded-2xl p-3 flex flex-col gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-1">Opcje Dodatkowe</span>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
-                <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
-                <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
-                <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
-            </div>
-        </section>
+        <!-- Główna treść (ukryta do czasu pobrania danych) -->
+        <div id="main-content" class="hidden flex flex-col gap-5">
 
-        <!-- KALENDARZ -->
-        <section class="bg-card border border-bordercolor rounded-2xl p-4">
-            <div class="flex justify-between items-center mb-3">
-                <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
-                <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200"></span>
-                <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
+            <!-- BILANS z kropką statusu -->
+            <div class="bg-card border border-bordercolor rounded-2xl p-6 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
+                <!-- Wskaźnik statusu połączenia w prawym górnym rogu -->
+                <div class="absolute top-3 right-3 flex items-center gap-0.5 transform scale-100 origin-top-right">
+    <span class="text-[8px] font-bold uppercase tracking-wider text-zinc-500" style="font-size: 8px;">Online</span>
+    <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
+</div>
+                <h1 class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Twoje pkt</h1>
+                <div id="balance-display" class="text-6xl font-black tracking-tighter transition-all duration-300">0</div>
             </div>
-            <div class="grid grid-cols-7 gap-1 text-center mb-2">
-                <span class="text-[10px] font-bold text-zinc-500">Pn</span>
-                <span class="text-[10px] font-bold text-zinc-500">Wt</span>
-                <span class="text-[10px] font-bold text-zinc-500">Śr</span>
-                <span class="text-[10px] font-bold text-zinc-500">Cz</span>
-                <span class="text-[10px] font-bold text-zinc-500">Pt</span>
-                <span class="text-[10px] font-bold text-zinc-500">So</span>
-                <span class="text-[10px] font-bold text-zinc-500">Nd</span>
-            </div>
-            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
-            <div class="mt-3 text-center">
-                <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
-            </div>
-        </section>
 
-        <!-- KATALOG ZADAŃ -->
-        <section>
-            <div class="flex justify-between items-center mb-2 px-1">
-                <h2 class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Katalog Zdarzeń</h2>
-                <button onclick="cycleSortMode()" id="sort-mode-btn" class="text-[10px] font-bold text-zinc-400 hover:text-zinc-200 bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all">Sortowanie: Domyślne</button>
+            <!-- BANER REDUKCJI -->
+            <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex justify-between items-center">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
+                    <span id="reduction-info-text" class="text-xs text-zinc-300">Obniżka o 15% do 01.09.2026</span>
+                </div>
+                <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
             </div>
-            <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
-                <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
-                <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
-                <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
-            </div>
-            <div id="action-list" class="flex flex-col gap-2"></div>
-        </section>
 
-        <!-- HISTORIA -->
-        <section class="mt-1">
-            <div class="flex justify-between items-center mb-3 px-1">
-                <h2 class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Historia z wybranego dnia</h2>
-                <span id="history-date-label" class="text-[10px] text-zinc-400 font-bold"></span>
-            </div>
-            <div id="history-list" class="flex flex-col gap-2"></div>
-        </section>
+            <!-- OPCJE DODATKOWE -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-3 flex flex-col gap-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-1">Opcje Dodatkowe</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
+                    <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
+                    <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
+                    <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
+                    <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
+                    <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
+                    <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
+                </div>
+            </section>
 
+            <!-- KALENDARZ -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
+                    <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200">Styczeń 2026</span>
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                    <span class="text-[10px] font-bold text-zinc-500">Pn</span>
+                    <span class="text-[10px] font-bold text-zinc-500">Wt</span>
+                    <span class="text-[10px] font-bold text-zinc-500">Śr</span>
+                    <span class="text-[10px] font-bold text-zinc-500">Cz</span>
+                    <span class="text-[10px] font-bold text-zinc-500">Pt</span>
+                    <span class="text-[10px] font-bold text-zinc-500">So</span>
+                    <span class="text-[10px] font-bold text-zinc-500">Nd</span>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+                <div class="mt-3 text-center">
+                    <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
+                </div>
+            </section>
+
+            <!-- KATALOG -->
+            <section>
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <h2 class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Katalog Zdarzeń</h2>
+                    <button onclick="cycleSortMode()" id="sort-mode-btn" class="text-[10px] font-bold text-zinc-400 hover:text-zinc-200 bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all">Sortowanie: Domyślne</button>
+                </div>
+                <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
+                    <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
+                    <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
+                    <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
+                </div>
+                <div id="action-list" class="flex flex-col gap-2"></div>
+            </section>
+
+            <!-- HISTORIA -->
+            <section class="mt-1">
+                <div class="flex justify-between items-center mb-3 px-1">
+                    <h2 class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Historia z wybranego dnia</h2>
+                    <span id="history-date-label" class="text-[10px] text-zinc-400 font-bold"></span>
+                </div>
+                <div id="history-list" class="flex flex-col gap-2"></div>
+            </section>
+
+        </div> <!-- koniec main-content -->
     </main>
 
     <!-- MODALE -->
     <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
-            <input type="text" id="modal-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500">
-            <input type="number" id="modal-points" placeholder="Liczba punktów..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500">
+            <input type="text" id="modal-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <input type="number" id="modal-points" placeholder="Liczba punktów..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
             <div class="flex gap-2 mt-1">
                 <button onclick="closeCustomModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
                 <button onclick="submitCustomModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zatwierdź</button>
@@ -127,11 +191,39 @@
         </div>
     </div>
 
+    <div id="add-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
+            <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <input type="number" id="catalog-item-points" placeholder="Wartość punktowa (np. 10 lub -50)..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Dodaj</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-zinc-200">Edytuj zdarzenie</h3>
+            <input type="text" id="edit-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <input type="number" id="edit-item-points" placeholder="Wartość punktowa..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeEditCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button onclick="submitEditCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
     <div id="reduce-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
-            <h3 class="text-sm font-bold text-zinc-200">Redukcja punktów</h3>
-            <input type="number" id="reduce-percent" placeholder="Obniżka w %" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none">
-            <input type="date" id="reduce-date" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none">
+            <h3 class="text-sm font-bold text-zinc-200">Zredukuj punkty zarabiania</h3>
+            <p class="text-xs text-zinc-400">Podaj o ile procent (%) obniżyć punkty oraz datę, do której ma obowiązywać redukcja:</p>
+            <input type="number" id="reduce-percent" placeholder="Obniżka w % (np. 15)" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] text-zinc-400 font-semibold">Obowiązuje do dnia:</label>
+                <input type="date" id="reduce-date" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            </div>
             <div class="flex gap-2 mt-1">
                 <button onclick="closeReduceModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
                 <button onclick="submitReduce()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zastosuj</button>
@@ -139,57 +231,108 @@
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zaktualizowano!</div>
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
-    <!-- SKRYPTY FIREBASE ORAZ LOGIKI -->
+    <!-- Import map dla Firebase -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { initializeApp } from 'firebase/app';
+        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot, enableNetwork, disableNetwork } from 'firebase/firestore';
 
+        // ----- TWOJA KONFIGURACJA FIREBASE -----
         const firebaseConfig = {
-          apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
-          authDomain: "rejestflr.firebaseapp.com",
-          projectId: "rejestflr",
-          storageBucket: "rejestflr.firebasestorage.app",
-          messagingSenderId: "1017001684786",
-          appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+            apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+            authDomain: "rejestflr.firebaseapp.com",
+            projectId: "rejestflr",
+            storageBucket: "rejestflr.firebasestorage.app",
+            messagingSenderId: "1017001684786",
+            appId: "1:1017001684786:web:1a440900555ed8340bf12b"
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const db = initializeFirestore(app, {
+            cacheSizeBytes: 1048576 // 1 MB
+        });
+        const docRef = doc(db, 'registry/shared');
 
+        // ----- ELEMENTY UI STATUSU -----
+        const statusDot = document.getElementById('connection-status-dot');
+
+        function setStatusOnline() {
+            statusDot.className = 'status-dot online';
+            statusDot.title = 'Połączono z Firebase';
+        }
+
+        function setStatusOffline() {
+            statusDot.className = 'status-dot offline';
+            statusDot.title = 'Brak połączenia';
+        }
+
+        function setStatusConnecting() {
+            statusDot.className = 'status-dot connecting';
+            statusDot.title = 'Łączenie...';
+        }
+
+        // ----- SŁOWNIK DOMYŚLNY -----
         const originalDictionary = [
             {
-                group: "Zarobek (+)", type: "positive",
+                group: "Zarobek (+)",
+                type: "positive",
                 items: [
-                    { name: "Masaż stóp", points: 10 }, { name: "Masaż pleców", points: 10 },
-                    { name: "Obiad", points: 15 }, { name: "Sprzątanie domu", points: 20 },
-                    { name: "Wywieszenie prania", points: 5 }, { name: "Złożenie prania", points: 5 },
-                    { name: "Prasowanie", points: 10 }, { name: "Mycie naczyń", points: 5 },
-                    { name: "Pieszczenie cipki", points: 15 }, { name: "Dzień w pasie cnoty", points: 50 },
-                    { name: "Zlizanie nasienia", points: 150 }, { name: "Zadanie nago", points: 20 },
-                    { name: "Zadanie w bieliźnie", points: 30 }
+                    { name: "Masaż stóp", points: 5 },
+					{ name: "Mycie naczyń", points: 5 },
+					{ name: "Dzień w pasie cnoty", points: 10 },
+					{ name: "Wywieszenie prania", points: 10 },
+					{ name: "Złożenie prania", points: 10 },
+					{ name: "Prasowanie", points: 10 },
+					{ name: "Zadanie wykonał w bieliźnie", points: 10 },
+					{ name: "Zadanie wykonał nago", points: 15 },
+                    { name: "Masaż pleców", points: 15 },
+                    { name: "Obiad", points: 25 },
+                    { name: "Sprzątanie domu", points: 25 },
+                    { name: "Zlizanie nasienia", points: 25 },
+                    { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25 },
+                    { name: "Orgazm dla żony", points: 50 }
+                    
                 ]
             },
             {
-                group: "Kary (-)", type: "negative",
+                group: "Kary (-)",
+                type: "negative",
                 items: [
-                    { name: "Marudzenie", points: -50 }, { name: "Złe zachowanie", points: -30 },
-                    { name: "Pyskowanie", points: -100 }, { name: "Dojście bez pozwolenia", points: -200 },
-                    { name: "Brak orgazmu Żonie", points: -50 }
+                    { name: "Marudzenie", points: -20 },
+                    { name: "Złe zachowanie", points: -50 },
+                    { name: "Pyskowanie", points: -100 },
+					{ name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150 },
+                    { name: "Dojście bez pozwolenia", points: -500 }
+                    
                 ]
             },
             {
-                group: "Wykup (-)", type: "negative",
+                group: "Wykup (-)",
+                type: "negative",
                 items: [
-                    { name: "Orgazm w gumce", points: -150 }, { name: "Orgazm na stopy", points: -100 },
-                    { name: "Orgazm na dłoń", points: -50 }, { name: "Orgazm zrujnowany", points: -200 },
-                    { name: "Lodzik", points: -300 }, { name: "Masturbacja nago", points: -500 },
-                    { name: "Całowanie stóp", points: -20 }, { name: "Całowanie tyłka", points: -30 }
+                    { name: "Masturbacja bez obecności żony bez orgazmu", points: -100 },
+					{ name: "Orgazm zrujnowany", points: -150 },
+					{ name: "Orgazm w gumce", points: -250 },
+					{ name: "Baty", points: -250 },
+                    { name: "Orgazm na stopy", points: -300 },
+                    { name: "Orgazm na dłoń", points: -300 },
+                    { name: "Masturbacja nago przed ubraną żoną", points: -350 },
+                    { name: "Lodzik", points: -500 }
                 ]
             }
         ];
 
+        // ----- STAN APLIKACJI -----
         let eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
         let balance = 0;
         let historyEntries = [];
@@ -198,57 +341,30 @@
         let currentModalType = 'add';
         let activeReduction = null;
         let sortMode = 0;
+        let editingGroupIdx = null;
+        let editingItemIdx = null;
         let calendarYear = new Date().getFullYear();
         let calendarMonth = new Date().getMonth();
-        let isInitialLoad = true;
+        let isLocalUpdate = false;
 
-        // Rejestracja Service Workera
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(() => console.log('Service Worker zarejestrowany pomyślnie!'))
-                    .catch((err) => console.log('Błąd rejestracji Service Workera:', err));
-            });
+        // ----- REFERENCJE DOM -----
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const mainContent = document.getElementById('main-content');
+
+        // ----- POMOCNICZE -----
+        function showToast(text = "Zapisano!") {
+            const toast = document.getElementById('toast');
+            toast.innerText = text;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 1500);
         }
 
-        const dbRef = ref(db, 'flr_registry');
-        onValue(dbRef, (snapshot) => {
-            const statusEl = document.getElementById('sync-status');
-            const data = snapshot.val();
-            if (data) {
-                balance = data.balance || 0;
-                historyEntries = data.history || [];
-                activeReduction = data.activeReduction || null;
-                if (data.dictionary) eventDictionary = data.dictionary;
-            } else {
-                saveToFirebase();
-            }
-            renderActions();
-            renderCalendar();
-            updateUI();
-            statusEl.className = "w-2 h-2 rounded-full bg-emerald-500";
-            if (!isInitialLoad) showToast("Zsynchronizowano!");
-            isInitialLoad = false;
-        });
-
-        function saveToFirebase() {
-            set(ref(db, 'flr_registry'), {
-                balance,
-                history: historyEntries,
-                activeReduction,
-                dictionary: eventDictionary
-            }).catch(() => {
-                document.getElementById('sync-status').className = "w-2 h-2 rounded-full bg-red-500";
-            });
+        function formatDateText(dateStr) {
+            const parts = dateStr.split('-');
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
         }
 
-        window.changeMonth = function(direction) {
-            calendarMonth += direction;
-            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
-            else if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
-            renderCalendar();
-        }
-
+        // ----- RENDEROWANIE KALENDARZA -----
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             const label = document.getElementById('calendar-month-year');
@@ -263,7 +379,9 @@
             const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
             const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
 
-            for (let i = 0; i < adjustedFirstDay; i++) grid.appendChild(document.createElement('div'));
+            for (let i = 0; i < adjustedFirstDay; i++) {
+                grid.appendChild(document.createElement('div'));
+            }
 
             for (let day = 1; day <= totalDays; day++) {
                 const monthStr = String(calendarMonth + 1).padStart(2, '0');
@@ -278,25 +396,271 @@
                     isSelected ? 'bg-zinc-100 text-zinc-950 shadow' : isToday ? 'border border-zinc-500 text-zinc-200' : 'text-zinc-400 hover:bg-zinc-800'
                 }`;
                 btn.innerText = day;
-                btn.onclick = () => { activeDate = dateStr; renderCalendar(); updateUI(); };
+                btn.onclick = () => {
+                    activeDate = dateStr;
+                    updateUI();
+                };
                 grid.appendChild(btn);
             }
         }
 
-        function formatDateText(dateStr) {
-            const parts = dateStr.split('-');
-            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        // ----- RENDEROWANIE KATALOGU (AKCJE) -----
+        function renderActions() {
+            const listContainer = document.getElementById('action-list');
+            listContainer.innerHTML = '';
+
+            const group = eventDictionary[currentTab];
+            const isNegative = group.type === 'negative';
+
+            let actionLabel = "+ Dodaj";
+            if (currentTab === 1) actionLabel = "- zabierz";
+            else if (currentTab === 2) actionLabel = "- kup";
+
+            let itemsToRender = group.items.map((item, idx) => ({ ...item, originalIndex: idx }));
+
+            if (sortMode === 1) {
+                itemsToRender.sort((a, b) => a.points - b.points);
+            } else if (sortMode === 2) {
+                itemsToRender.sort((a, b) => b.points - a.points);
+            }
+
+            itemsToRender.forEach((item, renderIdx) => {
+                const row = document.createElement('div');
+                let affordabilityClass = isNegative ? 'bg-bloodbg/15 border-blood/20 text-zinc-200' : 'bg-card border-bordercolor text-zinc-200';
+                if (currentTab === 2 && item.points < 0) {
+                    const cost = Math.abs(item.points);
+                    if (balance >= cost) {
+                        affordabilityClass = 'bg-emerald-950/30 border-emerald-500/50 text-zinc-200 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+                    }
+                }
+                row.className = `flex items-center justify-between p-3 rounded-xl border transition-all relative ${affordabilityClass}`;
+
+                const sign = item.points > 0 ? '+' : '';
+                const pointColor = isNegative ? 'text-red-400' : (activeReduction && currentTab === 0 ? 'text-amber-400' : 'text-zinc-100');
+
+                let moveButtonsHTML = '';
+                if (sortMode === 0) {
+                    moveButtonsHTML = `
+                        <button onclick="window.moveItem(${item.originalIndex}, -1)" ${renderIdx === 0 ? 'disabled class="text-zinc-700 cursor-not-allowed text-xs px-0.5"' : 'class="text-zinc-400 hover:text-zinc-200 text-xs px-0.5"'} title="Przesuń w górę">▲</button>
+                        <button onclick="window.moveItem(${item.originalIndex}, 1)" ${renderIdx === itemsToRender.length - 1 ? 'disabled class="text-zinc-700 cursor-not-allowed text-xs px-0.5"' : 'class="text-zinc-400 hover:text-zinc-200 text-xs px-0.5"'} title="Przesuń w dół">▼</button>
+                    `;
+                }
+
+                const escapedName = item.name.replace(/'/g, "\\'");
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 flex-1 cursor-pointer pr-2" onclick="window.tryExecuteEvent('${escapedName}', ${item.points})">
+                        <span class="${pointColor} font-black text-xs min-w-[36px]">${sign}${item.points}</span>
+                        <span class="text-xs font-medium text-zinc-200">${item.name}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        ${moveButtonsHTML}
+                        <button onclick="window.tryExecuteEvent('${escapedName}', ${item.points})" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-lg text-zinc-300 font-medium click-anim ml-1">${actionLabel}</button>
+                        <button onclick="window.openEditCatalogModal(${currentTab}, ${item.originalIndex})" class="text-zinc-500 hover:text-zinc-300 text-xs px-1" title="Edytuj">✏️</button>
+                        <button onclick="window.deleteCatalogItem(${currentTab}, ${item.originalIndex})" class="text-zinc-500 hover:text-red-400 text-xs px-1" title="Usuń z katalogu">✕</button>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            });
+
+            const addRow = document.createElement('button');
+            addRow.className = `w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800/50 text-zinc-400 text-xs font-medium transition-all click-anim mt-1`;
+            addRow.onclick = () => window.openAddCatalogModal();
+            addRow.innerHTML = `
+                <span class="text-base font-bold">+</span>
+                <span>Dodaj nowe zdarzenie do katalogu</span>
+            `;
+            listContainer.appendChild(addRow);
         }
+
+        // ----- AKTUALIZACJA UI -----
+        function updateUI() {
+            const balanceEl = document.getElementById('balance-display');
+            balanceEl.innerText = balance;
+            if (balance < 0) {
+                balanceEl.className = "text-6xl font-black tracking-tighter transition-all duration-300 text-blood glow-red";
+            } else if (balance > 0) {
+                balanceEl.className = "text-6xl font-black tracking-tighter transition-all duration-300 text-zinc-100 glow-white";
+            } else {
+                balanceEl.className = "text-6xl font-black tracking-tighter transition-all duration-300 text-zinc-500";
+            }
+
+            const banner = document.getElementById('reduction-banner');
+            const bannerText = document.getElementById('reduction-info-text');
+            if (activeReduction) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+                bannerText.innerText = `Obniżka zarobku o ${activeReduction.percent}% do ${formatDateText(activeReduction.endDate)}`;
+            } else {
+                banner.classList.remove('flex');
+                banner.classList.add('hidden');
+            }
+
+            document.getElementById('history-date-label').innerText = formatDateText(activeDate);
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            const dayEntries = historyEntries.filter(e => e.date === activeDate);
+            if (dayEntries.length === 0) {
+                historyList.innerHTML = '<div class="text-zinc-600 text-xs italic py-2 px-1">Brak wpisów dla wybranego dnia.</div>';
+            } else {
+                dayEntries.forEach(entry => {
+                    const isNegative = entry.points < 0;
+                    const sign = entry.points > 0 ? '+' : '';
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl";
+                    item.innerHTML = `
+                        <span class="text-xs font-medium text-zinc-200">${entry.name}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="font-black text-sm ${isNegative ? 'text-red-400' : 'text-zinc-100'}">${sign}${entry.points}</span>
+                            <button onclick="window.deleteEntry('${entry.id}')" class="text-zinc-600 hover:text-red-500 text-xs px-1">✕</button>
+                        </div>
+                    `;
+                    historyList.appendChild(item);
+                });
+            }
+
+            renderCalendar();
+            renderActions();
+        }
+
+        // ----- ZAPIS DO FIRESTORE -----
+        function saveDataToFirestore() {
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary
+            };
+            isLocalUpdate = true;
+            setDoc(docRef, dataObj)
+                .then(() => { isLocalUpdate = false; })
+                .catch((err) => {
+                    console.error("Błąd zapisu do Firestore:", err);
+                    showToast("❌ Błąd zapisu!");
+                    isLocalUpdate = false;
+                    setStatusOffline();
+                });
+        }
+
+        // ----- AKTUALIZACJA STANU Z FIRESTORE -----
+        function updateStateFromFirestore(data) {
+            if (!data) return;
+            balance = data.balance ?? 0;
+            historyEntries = data.history ?? [];
+            activeReduction = data.activeReduction ?? null;
+            if (data.dictionary) {
+                eventDictionary = data.dictionary;
+            } else {
+                eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
+            }
+            updateUI();
+            setStatusOnline();
+        }
+
+        // ----- INICJALIZACJA Z OBSŁUGĄ BŁĘDÓW I PONAWIANIEM -----
+        let retryCount = 0;
+        const MAX_RETRIES = 10;
+
+        function initApp() {
+            setStatusConnecting();
+            loadingIndicator.innerText = "⏳ Ładowanie danych...";
+
+            getDoc(docRef)
+                .then((snap) => {
+                    retryCount = 0;
+                    if (snap.exists()) {
+                        updateStateFromFirestore(snap.data());
+                    } else {
+                        const defaultData = {
+                            balance: 0,
+                            history: [],
+                            activeReduction: null,
+                            dictionary: JSON.parse(JSON.stringify(originalDictionary))
+                        };
+                        setDoc(docRef, defaultData)
+                            .then(() => {
+                                updateStateFromFirestore(defaultData);
+                            })
+                            .catch((err) => {
+                                console.error("Błąd tworzenia dokumentu:", err);
+                                showToast("❌ Błąd inicjalizacji bazy");
+                                loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
+                                setStatusOffline();
+                            });
+                    }
+                    loadingIndicator.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    setStatusOnline();
+                })
+                .catch((err) => {
+                    console.error("Błąd odczytu dokumentu:", err);
+                    loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
+                    loadingIndicator.innerHTML = `
+                        <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
+                        <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                            <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
+                            <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
+                            <p>3. Czy masz połączenie z internetem?</p>
+                            <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
+                        </div>
+                    `;
+                    showToast("❌ Błąd połączenia");
+                    setStatusOffline();
+
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        setTimeout(() => {
+                            initApp();
+                        }, 5000);
+                    } else {
+                        loadingIndicator.innerHTML = `
+                            <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
+                            <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                <p>Sprawdź konfigurację Firebase w konsoli.</p>
+                                <p>Upewnij się, że adres URL projektu jest poprawny.</p>
+                            </div>
+                        `;
+                        setStatusOffline();
+                    }
+                });
+
+            // Nasłuch zmian w czasie rzeczywistym
+            onSnapshot(docRef, (snapshot) => {
+                if (isLocalUpdate) return;
+                if (snapshot.exists()) {
+                    updateStateFromFirestore(snapshot.data());
+                    setStatusOnline();
+                }
+            }, (error) => {
+                console.error("Błąd nasłuchu:", error);
+                showToast("❌ Błąd synchronizacji");
+                setStatusOffline();
+            });
+        }
+
+        // ----- FUNKCJE GLOBALNE (dla onclick) -----
+        window.changeMonth = function(direction) {
+            calendarMonth += direction;
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+            else if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            renderCalendar();
+        };
 
         window.switchTab = function(index) {
             currentTab = index;
             [0, 1, 2].forEach(i => {
                 const tab = document.getElementById(`tab-${i}`);
-                if (i === index) { tab.classList.add('bg-zinc-700', 'text-white', 'shadow'); tab.classList.remove('text-zinc-400'); }
-                else { tab.classList.remove('bg-zinc-700', 'text-white', 'shadow'); tab.classList.add('text-zinc-400'); }
+                if (i === index) {
+                    tab.classList.add('bg-zinc-700', 'text-white', 'shadow');
+                    tab.classList.remove('text-zinc-400');
+                } else {
+                    tab.classList.remove('bg-zinc-700', 'text-white', 'shadow');
+                    tab.classList.add('text-zinc-400');
+                }
             });
             renderActions();
-        }
+        };
 
         window.cycleSortMode = function() {
             sortMode = (sortMode + 1) % 3;
@@ -305,115 +669,260 @@
             else if (sortMode === 1) btn.innerText = "Sortowanie: Rosnąco";
             else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
             renderActions();
-        }
+        };
 
-        function renderActions() {
-            const listContainer = document.getElementById('action-list');
-            listContainer.innerHTML = '';
-            const group = eventDictionary[currentTab];
-            const isNegative = group.type === 'negative';
-            let actionLabel = currentTab === 0 ? "+ Dodaj" : (currentTab === 1 ? "- zabierz" : "- kup");
+        window.moveItem = function(index, direction) {
+            const group = eventDictionary[currentTab].items;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= group.length) return;
+            const temp = group[index];
+            group[index] = group[newIndex];
+            group[newIndex] = temp;
+            saveDataToFirestore();
+            renderActions();
+        };
 
-            let itemsToRender = group.items.map((item, idx) => ({ ...item, originalIndex: idx }));
-            if (sortMode === 1) itemsToRender.sort((a, b) => a.points - b.points);
-            else if (sortMode === 2) itemsToRender.sort((a, b) => b.points - a.points);
+        window.deleteCatalogItem = function(groupIndex, itemIndex) {
+            const item = eventDictionary[groupIndex].items[itemIndex];
+            if (confirm(`Czy na pewno chcesz usunąć zdarzenie "${item.name}" z katalogu?`)) {
+                eventDictionary[groupIndex].items.splice(itemIndex, 1);
+                saveDataToFirestore();
+                renderActions();
+                showToast("Usunięto zdarzenie z katalogu!");
+            }
+        };
 
-            itemsToRender.forEach((item) => {
-                const row = document.createElement('div');
-                let affordabilityClass = isNegative ? 'bg-bloodbg/15 border-blood/20 text-zinc-200' : 'bg-card border-bordercolor text-zinc-200';
-                if (currentTab === 2 && item.points < 0 && balance >= Math.abs(item.points)) {
-                    affordabilityClass = 'bg-emerald-950/30 border-emerald-500/50 text-zinc-200';
-                }
-                row.className = `flex items-center justify-between p-3 rounded-xl border transition-all relative ${affordabilityClass}`;
-                row.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1 cursor-pointer pr-2" onclick="window.tryExecuteEvent('${item.name}', ${item.points})">
-                        <span class="${item.points > 0 ? 'text-zinc-100' : 'text-red-400'} font-black text-xs min-w-[36px]">${item.points > 0 ? '+' : ''}${item.points}</span>
-                        <span class="text-xs font-medium text-zinc-200">${item.name}</span>
-                    </div>
-                    <button onclick="window.tryExecuteEvent('${item.name}', ${item.points})" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-lg text-zinc-300 font-medium click-anim">${actionLabel}</button>
-                `;
-                listContainer.appendChild(row);
-            });
-        }
+        window.openEditCatalogModal = function(groupIndex, itemIndex) {
+            editingGroupIdx = groupIndex;
+            editingItemIdx = itemIndex;
+            const item = eventDictionary[groupIndex].items[itemIndex];
+            document.getElementById('edit-item-name').value = item.name;
+            document.getElementById('edit-item-points').value = item.points;
+            document.getElementById('edit-catalog-modal').classList.remove('hidden');
+            document.getElementById('edit-catalog-modal').classList.add('flex');
+        };
+
+        window.closeEditCatalogModal = function() {
+            document.getElementById('edit-catalog-modal').classList.remove('flex');
+            document.getElementById('edit-catalog-modal').classList.add('hidden');
+            editingGroupIdx = null;
+            editingItemIdx = null;
+        };
+
+        window.submitEditCatalogModal = function() {
+            const newName = document.getElementById('edit-item-name').value.trim();
+            const newPoints = parseInt(document.getElementById('edit-item-points').value, 10);
+            if (!newName || isNaN(newPoints)) {
+                alert("Podaj poprawną nazwę i wartość punktową.");
+                return;
+            }
+            if (editingGroupIdx !== null && editingItemIdx !== null) {
+                eventDictionary[editingGroupIdx].items[editingItemIdx].name = newName;
+                eventDictionary[editingGroupIdx].items[editingItemIdx].points = newPoints;
+                saveDataToFirestore();
+                renderActions();
+                window.closeEditCatalogModal();
+                showToast("Zaktualizowano zdarzenie!");
+            }
+        };
+
+        window.openAddCatalogModal = function() {
+            document.getElementById('catalog-item-name').value = '';
+            document.getElementById('catalog-item-points').value = '';
+            document.getElementById('add-catalog-modal').classList.remove('hidden');
+            document.getElementById('add-catalog-modal').classList.add('flex');
+        };
+
+        window.closeAddCatalogModal = function() {
+            document.getElementById('add-catalog-modal').classList.remove('flex');
+            document.getElementById('add-catalog-modal').classList.add('hidden');
+        };
+
+        window.submitAddCatalogModal = function() {
+            const name = document.getElementById('catalog-item-name').value.trim();
+            const points = parseInt(document.getElementById('catalog-item-points').value, 10);
+            if (!name || isNaN(points)) {
+                alert("Podaj poprawną nazwę oraz liczbę punktów.");
+                return;
+            }
+            let targetGroupIdx = currentTab;
+            if (points > 0 && targetGroupIdx !== 0) targetGroupIdx = 0;
+            if (points < 0 && targetGroupIdx === 0) targetGroupIdx = 2;
+            eventDictionary[targetGroupIdx].items.push({ name, points });
+            saveDataToFirestore();
+            renderActions();
+            window.closeAddCatalogModal();
+            showToast("Dodano nowe zdarzenie do katalogu!");
+        };
 
         window.tryExecuteEvent = function(name, points) {
-            if (points < 0 && balance < Math.abs(points)) {
-                alert(`Brak punktów! Masz ${balance}, a potrzeba ${Math.abs(points)}.`);
-                return;
+            if (points < 0) {
+                const requiredAbs = Math.abs(points);
+                if (balance < requiredAbs) {
+                    alert(`Brak wystarczającej liczby punktów! Masz ${balance} pkt, a ten koszt wynosi ${requiredAbs} pkt.`);
+                    return;
+                }
             }
             const entry = { id: Date.now().toString(), name, points, date: activeDate };
             balance += points;
             historyEntries.unshift(entry);
-            saveToFirebase();
-        }
-
-        window.resetRegistry = function() {
-            if (confirm("Wyzerować wszystko?")) {
-                balance = 0; historyEntries = []; saveToFirebase();
-            }
-        }
+            saveDataToFirestore();
+            renderActions();
+            showToast("Zapisano w rejestrze!");
+        };
 
         window.deleteEntry = function(id) {
             const index = historyEntries.findIndex(e => e.id === id);
             if (index !== -1) {
                 balance -= historyEntries[index].points;
                 historyEntries.splice(index, 1);
-                saveToFirebase();
+                saveDataToFirestore();
+                renderActions();
             }
-        }
+        };
 
-        function updateUI() {
-            document.getElementById('balance-display').innerText = balance;
-            document.getElementById('history-date-label').innerText = formatDateText(activeDate);
-            const historyList = document.getElementById('history-list');
-            historyList.innerHTML = '';
+        window.openCustomModal = function(type) {
+            currentModalType = type;
+            document.getElementById('modal-title').innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
+            document.getElementById('modal-name').value = '';
+            document.getElementById('modal-points').value = '';
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        };
 
-            const dayEntries = historyEntries.filter(e => e.date === activeDate);
-            if (dayEntries.length === 0) {
-                historyList.innerHTML = '<div class="text-zinc-600 text-xs italic py-2 px-1">Brak wpisów.</div>';
-                return;
-            }
+        window.closeCustomModal = function() {
+            document.getElementById('custom-modal').classList.remove('flex');
+            document.getElementById('custom-modal').classList.add('hidden');
+        };
 
-            dayEntries.forEach(entry => {
-                const item = document.createElement('div');
-                item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl";
-                item.innerHTML = `
-                    <span class="text-xs font-medium text-zinc-200">${entry.name}</span>
-                    <div class="flex items-center gap-3">
-                        <span class="font-black text-sm ${entry.points < 0 ? 'text-red-400' : 'text-zinc-100'}">${entry.points > 0 ? '+' : ''}${entry.points}</span>
-                        <button onclick="window.deleteEntry('${entry.id}')" class="text-zinc-600 hover:text-red-500 text-xs">✕</button>
-                    </div>`;
-                historyList.appendChild(item);
-            });
-        }
-
-        window.openCustomModal = function(type) { currentModalType = type; document.getElementById('custom-modal').classList.remove('hidden'); document.getElementById('custom-modal').classList.add('flex'); }
-        window.closeCustomModal = function() { document.getElementById('custom-modal').classList.remove('hidden'); document.getElementById('custom-modal').classList.add('hidden'); }
         window.submitCustomModal = function() {
             const name = document.getElementById('modal-name').value.trim();
             let points = parseInt(document.getElementById('modal-points').value, 10);
-            if (!name || isNaN(points)) return;
-            if (currentModalType === 'sub') points = -Math.abs(points);
-            tryExecuteEvent(name, points);
-            closeCustomModal();
-        }
-        window.openReduceModal = function() { document.getElementById('reduce-modal').classList.remove('hidden'); document.getElementById('reduce-modal').classList.add('flex'); }
-        window.closeReduceModal = function() { document.getElementById('reduce-modal').classList.add('hidden'); }
+            if (!name || isNaN(points)) { alert("Wypełnij poprawne dane."); return; }
+            if (currentModalType === 'add' && points < 0) points = Math.abs(points);
+            if (currentModalType === 'sub') {
+                points = -Math.abs(points);
+                if (balance < Math.abs(points)) {
+                    alert(`Brak wystarczającej liczby punktów! Masz ${balance} pkt, a chcesz odjąć ${Math.abs(points)} pkt.`);
+                    return;
+                }
+            }
+            const entry = { id: Date.now().toString(), name, points, date: activeDate };
+            balance += points;
+            historyEntries.unshift(entry);
+            saveDataToFirestore();
+            renderActions();
+            window.closeCustomModal();
+        };
+
+        window.openReduceModal = function() {
+            document.getElementById('reduce-percent').value = '';
+            document.getElementById('reduce-date').value = '';
+            document.getElementById('reduce-modal').classList.remove('hidden');
+            document.getElementById('reduce-modal').classList.add('flex');
+        };
+
+        window.closeReduceModal = function() {
+            document.getElementById('reduce-modal').classList.remove('flex');
+            document.getElementById('reduce-modal').classList.add('hidden');
+        };
+
         window.submitReduce = function() {
             const percent = parseFloat(document.getElementById('reduce-percent').value);
             const endDate = document.getElementById('reduce-date').value;
-            if (isNaN(percent) || !endDate) return;
+            if (isNaN(percent) || percent <= 0 || !endDate) {
+                alert("Podaj procent oraz wybierz datę końcową.");
+                return;
+            }
             activeReduction = { percent, endDate };
-            saveToFirebase();
-            closeReduceModal();
-        }
-        window.cancelReduction = function() { activeReduction = null; saveToFirebase(); }
+            eventDictionary[0].items = originalDictionary[0].items.map(item => {
+                const reduced = Math.round(item.points * (1 - percent / 100));
+                return { name: item.name, points: reduced > 0 ? reduced : 1 };
+            });
+            saveDataToFirestore();
+            renderActions();
+            window.closeReduceModal();
+            showToast("Zredukowano punkty zarabiania!");
+        };
 
-        function showToast(text) {
-            const toast = document.getElementById('toast');
-            toast.innerText = text; toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 1500);
-        }
+        window.cancelReduction = function(silent = false) {
+            activeReduction = null;
+            eventDictionary[0] = JSON.parse(JSON.stringify(originalDictionary[0]));
+            saveDataToFirestore();
+            renderActions();
+            if (!silent) showToast("Przywrócono oryginalne punkty!");
+        };
+
+        window.resetRegistry = function() {
+            if (confirm("Czy na pewno chcesz wyzerować cały bilans i wyczyścić historię?")) {
+                balance = 0;
+                historyEntries = [];
+                saveDataToFirestore();
+                renderActions();
+                showToast("Zresetowano!");
+            }
+        };
+
+        window.exportData = function() {
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `rejestr_flr_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Pobrano plik JSON!");
+        };
+
+        window.triggerImport = function() {
+            document.getElementById('import-file-input').click();
+        };
+
+        window.importData = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
+                        balance = parsed.balance;
+                        historyEntries = parsed.history;
+                        activeReduction = parsed.activeReduction || null;
+                        if (parsed.dictionary) eventDictionary = parsed.dictionary;
+                        saveDataToFirestore();
+                        renderActions();
+                        updateUI();
+                        showToast("Wczytano dane pomyślnie!");
+                    } else {
+                        alert("Nieprawidłowy format pliku JSON.");
+                    }
+                } catch (err) {
+                    alert("Błąd podczas odczytu pliku JSON.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        };
+
+        // ----- START -----
+        mainContent.classList.add('hidden');
+        initApp();
+		
+		if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(() => console.log('Service Worker zarejestrowany'))
+            .catch(err => console.error('Błąd rejestracji SW:', err));
+    	}
     </script>
+	
+    
+
 </body>
 </html>
