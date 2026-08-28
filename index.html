@@ -243,8 +243,53 @@
     </script>
 
     <script type="module">
+        // ============================================================
+        // 0. NATYCHMIASTOWY NASŁUCH NA beforeinstallprompt (ZANIM FIREBASE)
+        // ============================================================
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBanner();
+        });
+
+        function showInstallBanner() {
+            if (document.getElementById('install-banner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'install-banner';
+            banner.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-card border border-bordercolor rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">📲 Zainstaluj aplikację</span>
+                <button id="install-btn" class="bg-zinc-100 text-zinc-950 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Instaluj</button>
+                <button id="close-install-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('install-btn').addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        showToast('Aplikacja zainstalowana! 🎉');
+                    } else {
+                        showToast('Instalacja anulowana.');
+                    }
+                    deferredPrompt = null;
+                    banner.remove();
+                }
+            });
+
+            document.getElementById('close-install-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        // ============================================================
+        // IMPORTY FIREBASE
+        // ============================================================
         import { initializeApp } from 'firebase/app';
-        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot, enableNetwork, disableNetwork } from 'firebase/firestore';
+        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
         // ----- TWOJA KONFIGURACJA FIREBASE -----
         const firebaseConfig = {
@@ -765,7 +810,7 @@
             historyEntries.unshift(entry);
             saveDataToFirestore();
             renderActions();
-            updateUI(); // <-- DODANE: natychmiastowa aktualizacja bilansu
+            updateUI();
             showToast("Zapisano w rejestrze!");
         };
 
@@ -776,7 +821,7 @@
                 historyEntries.splice(index, 1);
                 saveDataToFirestore();
                 renderActions();
-                updateUI(); // <-- DODANE: natychmiastowa aktualizacja bilansu
+                updateUI();
             }
         };
 
@@ -811,7 +856,7 @@
             historyEntries.unshift(entry);
             saveDataToFirestore();
             renderActions();
-            updateUI(); // <-- DODANE: natychmiastowa aktualizacja bilansu
+            updateUI();
             window.closeCustomModal();
         };
 
@@ -841,7 +886,7 @@
             });
             saveDataToFirestore();
             renderActions();
-            updateUI(); // <-- DODANE: odświeżenie po redukcji
+            updateUI();
             window.closeReduceModal();
             showToast("Zredukowano punkty zarabiania!");
         };
@@ -851,7 +896,7 @@
             eventDictionary[0] = JSON.parse(JSON.stringify(originalDictionary[0]));
             saveDataToFirestore();
             renderActions();
-            updateUI(); // <-- DODANE: odświeżenie po anulowaniu
+            updateUI();
             if (!silent) showToast("Przywrócono oryginalne punkty!");
         };
 
@@ -861,7 +906,7 @@
                 historyEntries = [];
                 saveDataToFirestore();
                 renderActions();
-                updateUI(); // <-- DODANE: natychmiastowa aktualizacja
+                updateUI();
                 showToast("Zresetowano!");
             }
         };
@@ -914,66 +959,22 @@
             reader.readAsText(file);
         };
 
-        // ----- START -----
-        mainContent.classList.add('hidden');
-        initApp();
-
+        // ============================================================
+        // REJESTRACJA SERVICE WORKERA (na window.load – gwarantuje gotowość)
+        // ============================================================
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(() => console.log('Service Worker zarejestrowany'))
-                .catch(err => console.error('Błąd rejestracji SW:', err));
-        }
-		               // ============================================================
-        // 1. INSTALACJA (baner "Zainstaluj aplikację")
-        // ============================================================
-        let deferredPrompt = null;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showInstallBanner();
-        });
-
-        function showInstallBanner() {
-            // Sprawdź czy baner już istnieje
-            if (document.getElementById('install-banner')) return;
-            
-            const banner = document.createElement('div');
-            banner.id = 'install-banner';
-            banner.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-card border border-bordercolor rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
-            banner.innerHTML = `
-                <span class="text-xs text-zinc-200 font-medium">📲 Zainstaluj aplikację</span>
-                <button id="install-btn" class="bg-zinc-100 text-zinc-950 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Instaluj</button>
-                <button id="close-install-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
-            `;
-            document.body.appendChild(banner);
-
-            document.getElementById('install-btn').addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        showToast('Aplikacja zainstalowana! 🎉');
-                    } else {
-                        showToast('Instalacja anulowana.');
-                    }
-                    deferredPrompt = null;
-                    banner.remove();
-                }
-            });
-
-            // POPRAWIONE: close-install-btn (było close-install-banner)
-            document.getElementById('close-install-btn').addEventListener('click', () => {
-                banner.remove();
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker zarejestrowany:', reg.scope))
+                    .catch(err => console.error('Błąd rejestracji SW:', err));
             });
         }
 
         // ============================================================
-        // 2. WERSJONOWANIE I AKTUALIZACJE
+        // WERSJONOWANIE I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.0.1'; // Ta wersja musi zgadzać się z manifest.json i service-worker.js
+        const APP_VERSION = '1.0.1';
 
-        // Sprawdzanie nowej wersji co 30 sekund
         setInterval(() => {
             checkForUpdate();
         }, 30000);
@@ -983,11 +984,8 @@
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (!registration) return;
 
-                // Pobieramy aktualny manifest (z cache lub sieci)
                 const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
                 const manifest = await manifestResponse.json();
-
-                // Porównujemy wersję z manifestu z obecną
                 const newVersion = manifest.version || '1.0.0';
                 if (newVersion !== APP_VERSION) {
                     showUpdateNotification(newVersion);
@@ -998,7 +996,6 @@
         }
 
         function showUpdateNotification(newVersion) {
-            // Sprawdzamy czy powiadomienie już istnieje – unikamy duplikatów
             if (document.getElementById('update-banner')) return;
 
             const banner = document.createElement('div');
@@ -1012,7 +1009,6 @@
             document.body.appendChild(banner);
 
             document.getElementById('update-btn').addEventListener('click', () => {
-                // Odświeżamy service worker i przeładowujemy stronę
                 navigator.serviceWorker.getRegistration().then(reg => {
                     reg.update().then(() => {
                         window.location.reload();
@@ -1024,7 +1020,12 @@
                 banner.remove();
             });
         }
-    </script>
 
+        // ============================================================
+        // START APLIKACJI
+        // ============================================================
+        mainContent.classList.add('hidden');
+        initApp();
+    </script>
 </body>
 </html>
