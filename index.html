@@ -923,123 +923,107 @@
                 .then(() => console.log('Service Worker zarejestrowany'))
                 .catch(err => console.error('Błąd rejestracji SW:', err));
         }
-		// ============================================================
-// 1. INSTALACJA (baner "Zainstaluj aplikację")
-// ============================================================
-let deferredPrompt = null;
+		               // ============================================================
+        // 1. INSTALACJA (baner "Zainstaluj aplikację")
+        // ============================================================
+        let deferredPrompt = null;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    showInstallBanner();
-});
-
-function showInstallBanner() {
-    const banner = document.createElement('div');
-    banner.id = 'install-banner';
-    banner.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-card border border-bordercolor rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
-    banner.innerHTML = `
-        <span class="text-xs text-zinc-200 font-medium">📲 Zainstaluj aplikację</span>
-        <button id="install-btn" class="bg-zinc-100 text-zinc-950 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Instaluj</button>
-        <button id="close-install-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
-    `;
-    document.body.appendChild(banner);
-
-    document.getElementById('install-btn').addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                showToast('Aplikacja zainstalowana! 🎉');
-            } else {
-                showToast('Instalacja anulowana.');
-            }
-            deferredPrompt = null;
-            banner.remove();
-        }
-    });
-
-    document.getElementById('close-install-banner').addEventListener('click', () => {
-        banner.remove();
-    });
-}
-
-// ============================================================
-// 2. WERSJONOWANIE I AKTUALIZACJE
-// ============================================================
-const APP_VERSION = '1.0.0'; // Ta wersja musi zgadzać się z manifest.json i service-worker.js
-
-// Sprawdzanie nowej wersji co 30 sekund
-setInterval(() => {
-    checkForUpdate();
-}, 30000);
-
-async function checkForUpdate() {
-    try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (!registration) return;
-
-        // Pobieramy aktualny manifest (z cache lub sieci)
-        const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
-        const manifest = await manifestResponse.json();
-
-        // Porównujemy wersję z manifestu z obecną
-        const newVersion = manifest.version || '1.0.0';
-        if (newVersion !== APP_VERSION) {
-            showUpdateNotification(newVersion);
-        }
-    } catch (err) {
-        console.warn('Błąd sprawdzania aktualizacji:', err);
-    }
-}
-
-function showUpdateNotification(newVersion) {
-    // Sprawdzamy czy powiadomienie już istnieje – unikamy duplikatów
-    if (document.getElementById('update-banner')) return;
-
-    const banner = document.createElement('div');
-    banner.id = 'update-banner';
-    banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
-    banner.innerHTML = `
-        <span class="text-xs text-zinc-200 font-medium">🔄 Nowa wersja ${newVersion} dostępna!</span>
-        <button id="update-btn" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Zaktualizuj</button>
-        <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
-    `;
-    document.body.appendChild(banner);
-
-    document.getElementById('update-btn').addEventListener('click', () => {
-        // Odświeżamy service worker i przeładowujemy stronę
-        navigator.serviceWorker.getRegistration().then(reg => {
-            reg.update().then(() => {
-                window.location.reload();
-            });
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBanner();
         });
-    });
 
-    document.getElementById('close-update-btn').addEventListener('click', () => {
-        banner.remove();
-    });
-}
+        function showInstallBanner() {
+            // Sprawdź czy baner już istnieje
+            if (document.getElementById('install-banner')) return;
+            
+            const banner = document.createElement('div');
+            banner.id = 'install-banner';
+            banner.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-card border border-bordercolor rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">📲 Zainstaluj aplikację</span>
+                <button id="install-btn" class="bg-zinc-100 text-zinc-950 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Instaluj</button>
+                <button id="close-install-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
 
-// ============================================================
-// 3. Rejestracja Service Workera (już masz, ale uzupełniam)
-// ============================================================
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js')
-        .then(registration => {
-            console.log('Service Worker zarejestrowany');
-            // Nasłuch na zmiany w SW – automatyczne odświeżenie
-            registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        showUpdateNotification('(automatyczna)');
+            document.getElementById('install-btn').addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        showToast('Aplikacja zainstalowana! 🎉');
+                    } else {
+                        showToast('Instalacja anulowana.');
                     }
+                    deferredPrompt = null;
+                    banner.remove();
+                }
+            });
+
+            // POPRAWIONE: close-install-btn (było close-install-banner)
+            document.getElementById('close-install-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        // ============================================================
+        // 2. WERSJONOWANIE I AKTUALIZACJE
+        // ============================================================
+        const APP_VERSION = '1.0.1'; // Ta wersja musi zgadzać się z manifest.json i service-worker.js
+
+        // Sprawdzanie nowej wersji co 30 sekund
+        setInterval(() => {
+            checkForUpdate();
+        }, 30000);
+
+        async function checkForUpdate() {
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) return;
+
+                // Pobieramy aktualny manifest (z cache lub sieci)
+                const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
+                const manifest = await manifestResponse.json();
+
+                // Porównujemy wersję z manifestu z obecną
+                const newVersion = manifest.version || '1.0.0';
+                if (newVersion !== APP_VERSION) {
+                    showUpdateNotification(newVersion);
+                }
+            } catch (err) {
+                console.warn('Błąd sprawdzania aktualizacji:', err);
+            }
+        }
+
+        function showUpdateNotification(newVersion) {
+            // Sprawdzamy czy powiadomienie już istnieje – unikamy duplikatów
+            if (document.getElementById('update-banner')) return;
+
+            const banner = document.createElement('div');
+            banner.id = 'update-banner';
+            banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">🔄 Nowa wersja ${newVersion} dostępna!</span>
+                <button id="update-btn" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Zaktualizuj</button>
+                <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('update-btn').addEventListener('click', () => {
+                // Odświeżamy service worker i przeładowujemy stronę
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    reg.update().then(() => {
+                        window.location.reload();
+                    });
                 });
             });
-        })
-        .catch(err => console.error('Błąd rejestracji SW:', err));
-}
+
+            document.getElementById('close-update-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
     </script>
 
 </body>
