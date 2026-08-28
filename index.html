@@ -785,21 +785,33 @@
         };
 
         window.submitAddCatalogModal = function() {
-            const name = document.getElementById('catalog-item-name').value.trim();
-            const points = parseInt(document.getElementById('catalog-item-points').value, 10);
-            if (!name || isNaN(points)) {
-                alert("Podaj poprawną nazwę oraz liczbę punktów.");
-                return;
-            }
-            let targetGroupIdx = currentTab;
-            if (points > 0 && targetGroupIdx !== 0) targetGroupIdx = 0;
-            if (points < 0 && targetGroupIdx === 0) targetGroupIdx = 2;
-            eventDictionary[targetGroupIdx].items.push({ name, points });
-            saveDataToFirestore();
-            renderActions();
-            window.closeAddCatalogModal();
-            showToast("Dodano nowe zdarzenie do katalogu!");
-        };
+    const name = document.getElementById('catalog-item-name').value.trim();
+    const points = parseInt(document.getElementById('catalog-item-points').value, 10);
+    
+    if (!name || isNaN(points)) {
+        alert("Podaj poprawną nazwę oraz liczbę punktów.");
+        return;
+    }
+
+    // Walidacja: dodatnie punkty w Karach lub Wykupie
+    if (points > 0 && (currentTab === 1 || currentTab === 2)) {
+        if (!confirm(
+            `⚠️ Dodajesz dodatnie punkty (+${points}) w zakładce "${eventDictionary[currentTab].group}".\n\n` +
+            `Zazwyczaj w tej zakładce powinny być wartości ujemne.\n` +
+            `Czy na pewno chcesz kontynuować?`
+        )) {
+            return; // Anulowano
+        }
+    }
+
+    // Zawsze dodaj do aktualnie wybranej zakładki
+    const targetGroupIdx = currentTab;
+    eventDictionary[targetGroupIdx].items.push({ name, points });
+    saveDataToFirestore();
+    renderActions();
+    window.closeAddCatalogModal();
+    showToast(`Dodano do "${eventDictionary[targetGroupIdx].group}"`);
+};
 
         window.tryExecuteEvent = function(name, points) {
             if (points < 0) {
