@@ -979,8 +979,7 @@
 // ============================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // Używamy ścieżki względnej bez wiodącego slash'a
-        navigator.serviceWorker.register('service-worker.js', { scope: './' })
+        navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
             .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
             .catch(err => console.error('❌ Błąd rejestracji SW:', err));
     });
