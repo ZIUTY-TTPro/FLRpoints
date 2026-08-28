@@ -905,15 +905,15 @@
         };
 
         window.resetRegistry = function() {
-            if (confirm("Czy na pewno chcesz wyzerować cały bilans i wyczyścić historię?")) {
-                balance = 0;
-                historyEntries = [];
-                saveDataToFirestore();
-                renderActions();
-                updateUI();
-                showToast("Zresetowano!");
-            }
-        };
+    if (confirm("Czy na pewno chcesz wyzerować bilans? Historia pozostanie nienaruszona.")) {
+        balance = 0;
+        // Nie ruszamy historyEntries – zachowujemy statystyki
+        saveDataToFirestore();
+        renderActions();
+        updateUI();
+        showToast("Bilans wyzerowany!");
+    }
+};
 
         window.exportData = function() {
             const dataObj = {
