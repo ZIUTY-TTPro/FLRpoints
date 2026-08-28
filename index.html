@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#09090b" />
     <title>FLR Slave Points</title>
-
+	
+    <!-- PWA Manifest & Favicon -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+	
     <!-- Tailwind CSS (produkcyjna wersja CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
@@ -962,13 +966,17 @@
         // ============================================================
         // REJESTRACJA SERVICE WORKERA (na window.load – gwarantuje gotowość)
         // ============================================================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('Service Worker zarejestrowany:', reg.scope))
-                    .catch(err => console.error('Błąd rejestracji SW:', err));
-            });
-        }
+        // ============================================================
+// REJESTRACJA SERVICE WORKERA (ze poprawną ścieżką względną)
+// ============================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        // Używamy ścieżki względnej bez wiodącego slash'a
+        navigator.serviceWorker.register('service-worker.js', { scope: './' })
+            .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
+            .catch(err => console.error('❌ Błąd rejestracji SW:', err));
+    });
+}
 
         // ============================================================
         // WERSJONOWANIE I AKTUALIZACJE
