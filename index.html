@@ -906,12 +906,20 @@
 
         window.resetRegistry = function() {
     if (confirm("Czy na pewno chcesz wyzerować bilans? Historia pozostanie nienaruszona.")) {
+        // Dodajemy wpis do historii o zerowaniu
+        const entry = {
+            id: Date.now().toString(),
+            name: "🔄 Wyzerowanie bilansu",
+            points: 0,
+            date: activeDate
+        };
+        historyEntries.unshift(entry);
+        
         balance = 0;
-        // Nie ruszamy historyEntries – zachowujemy statystyki
         saveDataToFirestore();
         renderActions();
         updateUI();
-        showToast("Bilans wyzerowany!");
+        showToast("Bilans wyzerowany! Wpis dodany do historii.");
     }
 };
 
