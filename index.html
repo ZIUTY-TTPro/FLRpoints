@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#09090b" />
     <title>FLR Slave Points</title>
-	
+
     <!-- PWA Manifest & Favicon -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
-	
+
     <!-- Tailwind CSS (produkcyjna wersja CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
@@ -19,7 +19,6 @@
         .glow-red { text-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
         .glow-white { text-shadow: 0 0 20px rgba(228, 228, 231, 0.4); }
         .click-anim:active { transform: scale(0.98); }
-        /* Kropka statusu */
         .status-dot {
             width: 12px;
             height: 12px;
@@ -40,7 +39,6 @@
             background-color: #eab308;
             box-shadow: 0 0 12px rgba(234,179,8,0.6);
         }
-        /* Uzupełnienie brakujących klas Tailwind 2 */
         .bg-card { background-color: #18181b; }
         .border-bordercolor { border-color: #27272a; }
         .bg-app { background-color: #09090b; }
@@ -86,29 +84,183 @@
         .z-50 { z-index: 50; }
         .whitespace-nowrap { white-space: nowrap; }
         .border-dashed { border-style: dashed; }
+        .transition-collapse { transition: max-height 0.3s ease-in-out; overflow: hidden; max-height: 2000px; }
+        .transition-collapse.collapsed { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+        .rotate-180 { transform: rotate(180deg); }
+        .transition-transform { transition: transform 0.3s ease; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #d4d4d8;
+        }
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: #71717a;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .collapse-btn:hover {
+            color: #d4d4d8;
+        }
+        .collapse-btn svg {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.3s ease;
+        }
+        .collapse-btn svg.rotate-180 {
+            transform: rotate(180deg);
+        }
+        /* Rewards */
+        .reward-item {
+            background-color: rgba(5,46,22,0.15);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            color: #d4d4d8;
+        }
+        .reward-item .name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+        }
+        .reward-item .cost {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #34d399;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .rewards-empty {
+            color: #71717a;
+            font-size: 0.75rem;
+            font-style: italic;
+            padding: 0.25rem 0;
+        }
+        .bg-emerald-950\/20 {
+            background-color: rgba(5,46,22,0.2);
+        }
+        .border-emerald-500\/30 {
+            border-color: rgba(16,185,129,0.3);
+        }
+        /* Sortowanie i data – taka sama czcionka jak nagłówki */
+        .sort-btn {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #d4d4d8;
+        }
+        .history-date {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #d4d4d8;
+        }
+        /* Ikona bilansu */
+        .balance-icon {
+            width: 120px;
+            height: 120px;
+            display: block;
+            margin: 0 auto;
+        }
+        @media (min-width: 640px) {
+            .balance-icon {
+                width: 160px;
+                height: 160px;
+            }
+        }
+        @media (min-width: 768px) {
+            .balance-icon {
+                width: 180px;
+                height: 180px;
+            }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
 
     <main class="w-full max-w-md p-4 flex flex-col gap-5">
 
-        <!-- Stan ładowania i komunikaty błędów -->
+        <!-- Stan ładowania -->
         <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
             ⏳ Ładowanie danych...
         </div>
 
-        <!-- Główna treść (ukryta do czasu pobrania danych) -->
+        <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
-            <!-- BILANS z kropką statusu (bez napisu "Online") -->
-            <div class="bg-card border border-bordercolor rounded-2xl p-6 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
-                <!-- Wskaźnik statusu połączenia w prawym górnym rogu – tylko kropka -->
+                                          <!-- BILANS – moneta na przezroczystym tle -->
+            <div class="bg-card border border-bordercolor rounded-2xl p-4 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
+                <!-- Kropka statusu -->
                 <div class="absolute top-3 right-3 flex items-center">
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
                 </div>
-                <h1 class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-1">Twoje pkt</h1>
-                <div id="balance-display" class="text-6xl font-black tracking-tighter transition-all duration-300">0</div>
+                
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320" style="display:block;margin:0 auto;">
+                    <!-- Moneta (bez czarnego tła) -->
+                    <g transform="translate(160, 160)">
+                        <!-- Zewnętrzne koło monety -->
+                        <circle cx="0" cy="0" r="100" fill="#1a1410" stroke="#dc2626" stroke-width="6" />
+                        
+                        <!-- Wewnętrzna obwódka -->
+                        <circle cx="0" cy="0" r="85" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5" />
+                        
+                        <!-- Kropki dookoła monety -->
+                        <g opacity="0.4">
+                            <circle cx="0" cy="-95" r="4" fill="#dc2626" />
+                            <circle cx="0" cy="95" r="4" fill="#dc2626" />
+                            <circle cx="-95" cy="0" r="4" fill="#dc2626" />
+                            <circle cx="95" cy="0" r="4" fill="#dc2626" />
+                            <circle cx="-67" cy="-67" r="4" fill="#dc2626" />
+                            <circle cx="67" cy="-67" r="4" fill="#dc2626" />
+                            <circle cx="-67" cy="67" r="4" fill="#dc2626" />
+                            <circle cx="67" cy="67" r="4" fill="#dc2626" />
+                        </g>
+                        
+                        <!-- Liczba punktów na środku -->
+                        <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="60" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
+                    </g>
+                </svg>
             </div>
+
+
+                    
+                   
+                
+            </div>
+
+            <!-- SEKCJA: MOŻESZ PROSIĆ O: -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <span class="section-title">Możesz prosić o:</span>
+                    <button onclick="toggleCollapse('rewards')" class="collapse-btn" id="collapse-btn-rewards">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-rewards" class="transition-collapse mt-2">
+                    <div id="rewards-list" class="flex flex-col gap-1.5"></div>
+                    <div id="rewards-empty" class="rewards-empty">Wszystkie przyjemności są zablokowane.</div>
+                </div>
+            </section>
 
             <!-- BANER REDUKCJI -->
             <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex justify-between items-center">
@@ -120,62 +272,97 @@
             </div>
 
             <!-- OPCJE DODATKOWE -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-3 flex flex-col gap-2">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 px-1">Opcje Dodatkowe</span>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
-                    <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
-                    <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
-                    <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
-                    <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
-                    <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
-                    <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <span class="section-title">Opcje Dodatkowe</span>
+                    <button onclick="toggleCollapse('options')" class="collapse-btn" id="collapse-btn-options">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-options" class="transition-collapse mt-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
+                        <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
+                        <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
+                        <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
+                        <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
+                        <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
+                        <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
+                    </div>
                 </div>
             </section>
 
             <!-- KALENDARZ -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="flex justify-between items-center mb-3">
-                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
-                    <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200">Styczeń 2026</span>
-                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <span class="section-title">Kalendarz</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
+                        <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200">Styczeń 2026</span>
+                        <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
+                        <button onclick="toggleCollapse('calendar')" class="collapse-btn" id="collapse-btn-calendar">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="grid grid-cols-7 gap-1 text-center mb-2">
-                    <span class="text-[10px] font-bold text-zinc-500">Pn</span>
-                    <span class="text-[10px] font-bold text-zinc-500">Wt</span>
-                    <span class="text-[10px] font-bold text-zinc-500">Śr</span>
-                    <span class="text-[10px] font-bold text-zinc-500">Cz</span>
-                    <span class="text-[10px] font-bold text-zinc-500">Pt</span>
-                    <span class="text-[10px] font-bold text-zinc-500">So</span>
-                    <span class="text-[10px] font-bold text-zinc-500">Nd</span>
-                </div>
-                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
-                <div class="mt-3 text-center">
-                    <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
+                <div id="collapse-content-calendar" class="transition-collapse mt-2">
+                    <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                        <span class="text-[10px] font-bold text-zinc-500">Pn</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Wt</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Śr</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Cz</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Pt</span>
+                        <span class="text-[10px] font-bold text-zinc-500">So</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Nd</span>
+                    </div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+                    <div class="mt-3 text-center">
+                        <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
+                    </div>
                 </div>
             </section>
 
             <!-- KATALOG -->
-            <section>
-                <div class="flex justify-between items-center mb-2 px-1">
-                    <h2 class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Katalog Zdarzeń</h2>
-                    <button onclick="cycleSortMode()" id="sort-mode-btn" class="text-[10px] font-bold text-zinc-400 hover:text-zinc-200 bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all">Sortowanie: Domyślne</button>
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <h2 class="section-title">Katalog Zdarzeń</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
+                        <button onclick="toggleCollapse('catalog')" class="collapse-btn" id="collapse-btn-catalog">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
-                    <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
-                    <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
-                    <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
+                <div id="collapse-content-catalog" class="transition-collapse mt-2">
+                    <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
+                        <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
+                        <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
+                        <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
+                    </div>
+                    <div id="action-list" class="flex flex-col gap-2"></div>
                 </div>
-                <div id="action-list" class="flex flex-col gap-2"></div>
             </section>
 
             <!-- HISTORIA -->
-            <section class="mt-1">
-                <div class="flex justify-between items-center mb-3 px-1">
-                    <h2 class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Historia z wybranego dnia</h2>
-                    <span id="history-date-label" class="text-[10px] text-zinc-400 font-bold"></span>
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <h2 class="section-title">Historia z wybranego dnia</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="history-date-label" class="history-date"></span>
+                        <button onclick="toggleCollapse('history')" class="collapse-btn" id="collapse-btn-history">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
                 </div>
-                <div id="history-list" class="flex flex-col gap-2"></div>
+                <div id="collapse-content-history" class="transition-collapse mt-2">
+                    <div id="history-list" class="flex flex-col gap-2"></div>
+                </div>
             </section>
 
         </div> <!-- koniec main-content -->
@@ -248,7 +435,7 @@
 
     <script type="module">
         // ============================================================
-        // 0. NATYCHMIASTOWY NASŁUCH NA beforeinstallprompt (ZANIM FIREBASE)
+        // 0. beforeinstallprompt
         // ============================================================
         let deferredPrompt = null;
 
@@ -290,12 +477,78 @@
         }
 
         // ============================================================
-        // IMPORTY FIREBASE
+        // 1. BADGE
+        // ============================================================
+        let newEventsCount = 0;
+        let isInitialSnapshot = true;
+
+        function updateBadge() {
+            if ('setAppBadge' in navigator) {
+                if (newEventsCount > 0) {
+                    navigator.setAppBadge(newEventsCount).catch(() => {});
+                } else {
+                    navigator.clearAppBadge().catch(() => {});
+                }
+            }
+        }
+
+        function incrementBadge() {
+            newEventsCount++;
+            updateBadge();
+        }
+
+        function resetBadge() {
+            newEventsCount = 0;
+            updateBadge();
+        }
+
+        // ============================================================
+        // 2. ZWIJANIE
+        // ============================================================
+        window.toggleCollapse = function(sectionId) {
+            const content = document.getElementById(`collapse-content-${sectionId}`);
+            const btn = document.getElementById(`collapse-btn-${sectionId}`);
+            if (!content || !btn) return;
+
+            const isCollapsed = content.classList.contains('collapsed');
+            const svg = btn.querySelector('svg');
+            
+            if (isCollapsed) {
+                content.classList.remove('collapsed');
+                if (svg) svg.classList.remove('rotate-180');
+            } else {
+                content.classList.add('collapsed');
+                if (svg) svg.classList.add('rotate-180');
+            }
+            
+            localStorage.setItem(`flr_collapse_${sectionId}`, isCollapsed ? 'open' : 'collapsed');
+        };
+
+        function loadCollapseStates() {
+            const sections = ['rewards', 'options', 'calendar', 'catalog', 'history'];
+            sections.forEach(id => {
+                const content = document.getElementById(`collapse-content-${id}`);
+                const btn = document.getElementById(`collapse-btn-${id}`);
+                if (!content || !btn) return;
+                const state = localStorage.getItem(`flr_collapse_${id}`);
+                const svg = btn.querySelector('svg');
+                
+                if (state === 'collapsed') {
+                    content.classList.add('collapsed');
+                    if (svg) svg.classList.add('rotate-180');
+                } else {
+                    content.classList.remove('collapsed');
+                    if (svg) svg.classList.remove('rotate-180');
+                }
+            });
+        }
+
+        // ============================================================
+        // 3. FIREBASE
         // ============================================================
         import { initializeApp } from 'firebase/app';
         import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
-        // ----- TWOJA KONFIGURACJA FIREBASE -----
         const firebaseConfig = {
             apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
             authDomain: "rejestflr.firebaseapp.com",
@@ -306,9 +559,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = initializeFirestore(app, {
-            cacheSizeBytes: 1048576 // 1 MB
-        });
+        const db = initializeFirestore(app, { cacheSizeBytes: 1048576 });
         const docRef = doc(db, 'registry/shared');
 
         // ----- ELEMENTY UI STATUSU -----
@@ -386,7 +637,7 @@
         let currentTab = 0;
         let currentModalType = 'add';
         let activeReduction = null;
-        let sortMode = 0;
+        let sortModes = { 0: 0, 1: 0, 2: 0 };
         let editingGroupIdx = null;
         let editingItemIdx = null;
         let calendarYear = new Date().getFullYear();
@@ -408,6 +659,14 @@
         function formatDateText(dateStr) {
             const parts = dateStr.split('-');
             return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        // ----- AKTUALIZACJA LICZBY NA IKONIE -----
+        function updateBalanceOnIcon() {
+            const balanceEl = document.getElementById('balance-on-icon');
+            if (balanceEl) {
+                balanceEl.textContent = balance;
+            }
         }
 
         // ----- RENDEROWANIE KALENDARZA -----
@@ -461,6 +720,9 @@
             let actionLabel = "+ Dodaj";
             if (currentTab === 1) actionLabel = "- zabierz";
             else if (currentTab === 2) actionLabel = "- kup";
+
+            const sortMode = sortModes[currentTab] || 0;
+            updateSortButtonLabel(sortMode);
 
             let itemsToRender = group.items.map((item, idx) => ({ ...item, originalIndex: idx }));
 
@@ -519,17 +781,43 @@
             listContainer.appendChild(addRow);
         }
 
+        function updateSortButtonLabel(sortMode) {
+            const btn = document.getElementById('sort-mode-btn');
+            if (sortMode === 0) btn.innerText = "Sortowanie: Domyślne";
+            else if (sortMode === 1) btn.innerText = "Sortowanie: Rosnąco";
+            else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
+        }
+
+        // ----- RENDEROWANIE "MOŻESZ PROSIĆ O:" -----
+        function renderRewards() {
+            const listContainer = document.getElementById('rewards-list');
+            const emptyContainer = document.getElementById('rewards-empty');
+            listContainer.innerHTML = '';
+
+            const rewardsGroup = eventDictionary[2]; // Wykup
+            const available = rewardsGroup.items.filter(item => item.points < 0 && balance >= Math.abs(item.points));
+
+            if (available.length === 0) {
+                emptyContainer.classList.remove('hidden');
+                return;
+            }
+            emptyContainer.classList.add('hidden');
+
+            available.forEach(item => {
+                const cost = Math.abs(item.points);
+                const row = document.createElement('div');
+                row.className = 'reward-item';
+                row.innerHTML = `
+                    <span class="name">${item.name}</span>
+                    <span class="cost">✅ ${cost} pkt</span>
+                `;
+                listContainer.appendChild(row);
+            });
+        }
+
         // ----- AKTUALIZACJA UI -----
         function updateUI() {
-            const balanceEl = document.getElementById('balance-display');
-            balanceEl.innerText = balance;
-            if (balance < 0) {
-                balanceEl.className = "text-6xl font-black tracking-tighter transition-all duration-300 text-blood glow-red";
-            } else if (balance > 0) {
-                balanceEl.className = "text-6xl font-black tracking-tighter transition-all duration-300 text-zinc-100 glow-white";
-            } else {
-                balanceEl.className = "text-6xl font-black tracking-tighter transition-all duration-300 text-zinc-500";
-            }
+            updateBalanceOnIcon();
 
             const banner = document.getElementById('reduction-banner');
             const bannerText = document.getElementById('reduction-info-text');
@@ -568,6 +856,7 @@
 
             renderCalendar();
             renderActions();
+            renderRewards();
         }
 
         // ----- ZAPIS DO FIRESTORE -----
@@ -576,7 +865,8 @@
                 balance,
                 history: historyEntries,
                 activeReduction,
-                dictionary: eventDictionary
+                dictionary: eventDictionary,
+                sortModes: sortModes
             };
             isLocalUpdate = true;
             setDoc(docRef, dataObj)
@@ -595,6 +885,7 @@
             balance = data.balance ?? 0;
             historyEntries = data.history ?? [];
             activeReduction = data.activeReduction ?? null;
+            sortModes = data.sortModes || { 0: 0, 1: 0, 2: 0 };
             if (data.dictionary) {
                 eventDictionary = data.dictionary;
             } else {
@@ -604,7 +895,7 @@
             setStatusOnline();
         }
 
-        // ----- INICJALIZACJA Z OBSŁUGĄ BŁĘDÓW I PONAWIANIEM -----
+        // ----- INICJALIZACJA -----
         let retryCount = 0;
         const MAX_RETRIES = 10;
 
@@ -622,7 +913,8 @@
                             balance: 0,
                             history: [],
                             activeReduction: null,
-                            dictionary: JSON.parse(JSON.stringify(originalDictionary))
+                            dictionary: JSON.parse(JSON.stringify(originalDictionary)),
+                            sortModes: { 0: 0, 1: 0, 2: 0 }
                         };
                         setDoc(docRef, defaultData)
                             .then(() => {
@@ -638,6 +930,9 @@
                     loadingIndicator.classList.add('hidden');
                     mainContent.classList.remove('hidden');
                     setStatusOnline();
+                    resetBadge();
+                    isInitialSnapshot = false;
+                    loadCollapseStates();
                 })
                 .catch((err) => {
                     console.error("Błąd odczytu dokumentu:", err);
@@ -671,12 +966,13 @@
                     }
                 });
 
-            // Nasłuch zmian w czasie rzeczywistym
             onSnapshot(docRef, (snapshot) => {
                 if (isLocalUpdate) return;
                 if (snapshot.exists()) {
+                    if (!isInitialSnapshot) {
+                        incrementBadge();
+                    }
                     updateStateFromFirestore(snapshot.data());
-                    setStatusOnline();
                 }
             }, (error) => {
                 console.error("Błąd nasłuchu:", error);
@@ -685,7 +981,7 @@
             });
         }
 
-        // ----- FUNKCJE GLOBALNE (dla onclick) -----
+        // ----- FUNKCJE GLOBALNE -----
         window.changeMonth = function(direction) {
             calendarMonth += direction;
             if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
@@ -709,11 +1005,9 @@
         };
 
         window.cycleSortMode = function() {
-            sortMode = (sortMode + 1) % 3;
-            const btn = document.getElementById('sort-mode-btn');
-            if (sortMode === 0) btn.innerText = "Sortowanie: Domyślne";
-            else if (sortMode === 1) btn.innerText = "Sortowanie: Rosnąco";
-            else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
+            const currentSort = sortModes[currentTab] || 0;
+            sortModes[currentTab] = (currentSort + 1) % 3;
+            saveDataToFirestore();
             renderActions();
         };
 
@@ -785,33 +1079,31 @@
         };
 
         window.submitAddCatalogModal = function() {
-    const name = document.getElementById('catalog-item-name').value.trim();
-    const points = parseInt(document.getElementById('catalog-item-points').value, 10);
-    
-    if (!name || isNaN(points)) {
-        alert("Podaj poprawną nazwę oraz liczbę punktów.");
-        return;
-    }
+            const name = document.getElementById('catalog-item-name').value.trim();
+            const points = parseInt(document.getElementById('catalog-item-points').value, 10);
+            if (!name || isNaN(points)) {
+                alert("Podaj poprawną nazwę oraz liczbę punktów.");
+                return;
+            }
 
-    // Walidacja: dodatnie punkty w Karach lub Wykupie
-    if (points > 0 && (currentTab === 1 || currentTab === 2)) {
-        if (!confirm(
-            `⚠️ Dodajesz dodatnie punkty (+${points}) w zakładce "${eventDictionary[currentTab].group}".\n\n` +
-            `Zazwyczaj w tej zakładce powinny być wartości ujemne.\n` +
-            `Czy na pewno chcesz kontynuować?`
-        )) {
-            return; // Anulowano
-        }
-    }
+            if (points > 0 && (currentTab === 1 || currentTab === 2)) {
+                if (!confirm(
+                    `⚠️ Dodajesz dodatnie punkty (+${points}) w zakładce "${eventDictionary[currentTab].group}".\n\n` +
+                    `Zazwyczaj w tej zakładce powinny być wartości ujemne.\n` +
+                    `Czy na pewno chcesz kontynuować?`
+                )) {
+                    return;
+                }
+            }
 
-    // Zawsze dodaj do aktualnie wybranej zakładki
-    const targetGroupIdx = currentTab;
-    eventDictionary[targetGroupIdx].items.push({ name, points });
-    saveDataToFirestore();
-    renderActions();
-    window.closeAddCatalogModal();
-    showToast(`Dodano do "${eventDictionary[targetGroupIdx].group}"`);
-};
+            const targetGroupIdx = currentTab;
+            eventDictionary[targetGroupIdx].items.push({ name, points });
+            saveDataToFirestore();
+            renderActions();
+            window.closeAddCatalogModal();
+            showToast(`Dodano do "${eventDictionary[targetGroupIdx].group}"`);
+            incrementBadge();
+        };
 
         window.tryExecuteEvent = function(name, points) {
             if (points < 0) {
@@ -828,6 +1120,7 @@
             renderActions();
             updateUI();
             showToast("Zapisano w rejestrze!");
+            incrementBadge();
         };
 
         window.deleteEntry = function(id) {
@@ -874,6 +1167,7 @@
             renderActions();
             updateUI();
             window.closeCustomModal();
+            incrementBadge();
         };
 
         window.openReduceModal = function() {
@@ -917,30 +1211,30 @@
         };
 
         window.resetRegistry = function() {
-    if (confirm("Czy na pewno chcesz wyzerować bilans? Historia pozostanie nienaruszona.")) {
-        // Dodajemy wpis do historii o zerowaniu
-        const entry = {
-            id: Date.now().toString(),
-            name: "🔄 Wyzerowanie bilansu",
-            points: 0,
-            date: activeDate
+            if (confirm("Czy na pewno chcesz wyzerować bilans? Historia pozostanie nienaruszona.")) {
+                const entry = {
+                    id: Date.now().toString(),
+                    name: "🔄 Wyzerowanie bilansu",
+                    points: 0,
+                    date: activeDate
+                };
+                historyEntries.unshift(entry);
+                balance = 0;
+                saveDataToFirestore();
+                renderActions();
+                updateUI();
+                showToast("Bilans wyzerowany! Wpis dodany do historii.");
+                incrementBadge();
+            }
         };
-        historyEntries.unshift(entry);
-        
-        balance = 0;
-        saveDataToFirestore();
-        renderActions();
-        updateUI();
-        showToast("Bilans wyzerowany! Wpis dodany do historii.");
-    }
-};
 
         window.exportData = function() {
             const dataObj = {
                 balance,
                 history: historyEntries,
                 activeReduction,
-                dictionary: eventDictionary
+                dictionary: eventDictionary,
+                sortModes: sortModes
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -968,10 +1262,12 @@
                         historyEntries = parsed.history;
                         activeReduction = parsed.activeReduction || null;
                         if (parsed.dictionary) eventDictionary = parsed.dictionary;
+                        sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         saveDataToFirestore();
                         renderActions();
                         updateUI();
                         showToast("Wczytano dane pomyślnie!");
+                        incrementBadge();
                     } else {
                         alert("Nieprawidłowy format pliku JSON.");
                     }
@@ -984,21 +1280,18 @@
         };
 
         // ============================================================
-        // REJESTRACJA SERVICE WORKERA (na window.load – gwarantuje gotowość)
+        // REJESTRACJA SERVICE WORKERA
         // ============================================================
-        // ============================================================
-// REJESTRACJA SERVICE WORKERA (ze poprawną ścieżką względną)
-// ============================================================
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
-            .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
-            .catch(err => console.error('❌ Błąd rejestracji SW:', err));
-    });
-}
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
+                    .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
+                    .catch(err => console.error('❌ Błąd rejestracji SW:', err));
+            });
+        }
 
         // ============================================================
-        // WERSJONOWANIE I AKTUALIZACJE
+        // WERSJONOWANIE
         // ============================================================
         const APP_VERSION = '1.0.1';
 
@@ -1010,7 +1303,6 @@ if ('serviceWorker' in navigator) {
             try {
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (!registration) return;
-
                 const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
                 const manifest = await manifestResponse.json();
                 const newVersion = manifest.version || '1.0.0';
@@ -1024,7 +1316,6 @@ if ('serviceWorker' in navigator) {
 
         function showUpdateNotification(newVersion) {
             if (document.getElementById('update-banner')) return;
-
             const banner = document.createElement('div');
             banner.id = 'update-banner';
             banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
