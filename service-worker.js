@@ -1,42 +1,11 @@
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
-
-const CACHE_NAME = 'flr-slave-points-v1.0.1';
-
-// ============================================================
-// FIREBASE MESSAGING (BACKGROUND)
-// ============================================================
-firebase.initializeApp({
-  apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
-  authDomain: "rejestflr.firebaseapp.com",
-  projectId: "rejestflr",
-  storageBucket: "rejestflr.firebasestorage.app",
-  messagingSenderId: "1017001684786",
-  appId: "1:1017001684786:web:1a440900555ed8340bf12b"
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Odebrano wiadomość w tle:', payload);
-
-  // ===== SPRAWDZAMY, CZY APLIKACJA JEST OTWARTA =====
-  clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-    if (clientList.length > 0) {
-      console.log('[SW] Aplikacja otwarta – pomijam systemowe powiadomienie');
-      return; // NIE wyświetlamy systemowego powiadomienia
-    }
-
-    // Aplikacja zamknięta – wyświetlamy systemowe powiadomienie
-    const notificationTitle = payload.notification?.title || 'FLR Slave Points';
-    const notificationOptions = {
-      body: payload.notification?.body || 'Nowa zmiana w rejestrze punktów!',
-      icon: './icon-192.png',
-      badge: './icon-192.png'
-    };
-    self.registration.showNotification(notificationTitle, notificationOptions);
-  });
-});
+const CACHE_NAME = 'flr-slave-points-v1.0.2';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png'
+];
+const offlineFallbackPage = './index.html';
 
 // ============================================================
 // INSTALL & ACTIVATE
@@ -44,12 +13,7 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll([
-        './',
-        './index.html',
-        './manifest.json',
-        './icon-192.png'
-      ]);
+      return cache.addAll(urlsToCache);
     })
   );
   self.skipWaiting();
@@ -66,6 +30,32 @@ self.addEventListener('activate', event => {
         })
       );
     }).then(() => self.clients.claim())
+  );
+});
+
+// ============================================================
+// FETCH – POMIJA FIREBASE, CACHE'UJE RESZTĘ
+// ============================================================
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Pomijamy Firebase
+  if (
+    url.hostname.includes('firestore.googleapis.com') ||
+    url.hostname.includes('firebaseinstallations.googleapis.com') ||
+    url.hostname.includes('fcmregistrations.googleapis.com') ||
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('gstatic.com')
+  ) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return cachedResponse || fetch(event.request).catch(() => {
+        return caches.match(offlineFallbackPage);
+      });
+    })
   );
 });
 
@@ -89,5 +79,5 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ============================================================
-// NIE MA FETCH HANDLERA – NIE INGERUJEMY W ŻADNE ŻĄDANIA
+// NIE MA ONESIGNAL – NIE WYŚWIETLAMY POWIADOMIEŃ Z SW
 // ============================================================
