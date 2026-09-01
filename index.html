@@ -437,38 +437,119 @@
         import { initializeApp } from 'firebase/app';
         import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
-       // ============================================================
-// ONESIGNAL – INICJALIZACJA
-// ============================================================
-window.OneSignalDeferred = window.OneSignalDeferred || [];
-window.OneSignalDeferred.push(async function(OneSignal) {
-    try {
-        await OneSignal.init({
-            appId: "84a4c91e-1ef1-432e-b04b-bd88839afc0c",
-            serviceWorkerPath: "/FLRpoints/service-worker.js",
-            serviceWorkerParam: { scope: "/FLRpoints/" },
-            path: "/FLRpoints/",
-            allowLocalhostAsSecureOrigin: true,
-        });
-
-        const isSubscribed = await OneSignal.User.pushSubscription;
-        if (isSubscribed) {
-            localStorage.setItem('onesignal_subscribed', 'true');
-        } else {
-            localStorage.removeItem('onesignal_subscribed');
-        }
-        updateNotificationButton();
-
-        if (!isSubscribed) {
-            await OneSignal.Notifications.requestPermission();
-        }
-    } catch (err) {
-        console.error('Błąd inicjalizacji OneSignal:', err);
-    }
-});
+        // ============================================================
+        // ONESIGNAL – DANE
+        // ============================================================
+        const ONESIGNAL_APP_ID = "84a4c91e-1ef1-432e-b04b-bd88839afc0c";
+        const ONESIGNAL_API_KEY = "os_v2_app_qssmshq66fbs5mclxweihgx4btb4bf53evuemy4ppspvf7yorwntywj3gq5ipr2rgn6ryrinnelza42ez37tyre24zpamtlacqlbdda";
 
         // ============================================================
-        // FIREBASE KONFIGURACJA (TYLKO FIRESTORE)
+        // FUNKCJE GLOBALNE (dostępne z HTML)
+        // ============================================================
+        window.updateNotificationButton = function() {
+            const btn = document.getElementById('btn-notifications');
+            if (!btn) return;
+
+            const isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
+            
+            if (isSubscribed) {
+                btn.className = 'btn-notif-active p-2.5 rounded-xl text-xs font-semibold click-anim border w-full';
+                btn.innerText = '🔕 Wyłącz powiadomienia';
+            } else {
+                btn.className = 'btn-notif-inactive p-2.5 rounded-xl text-xs font-semibold click-anim border w-full';
+                btn.innerText = '🔔 Włącz powiadomienia';
+            }
+        };
+
+        async function sendPushNotification(title, body) {
+            try {
+                const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ONESIGNAL_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        app_id: ONESIGNAL_APP_ID,
+                        contents: { en: body || 'Nowa zmiana w rejestrze!' },
+                        headings: { en: title || 'FLR Slave Points' },
+                        included_segments: ['Subscribed Users']
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ Powiadomienie wysłane przez OneSignal:', title);
+                } else {
+                    const error = await response.text();
+                    console.warn('❌ Błąd OneSignal:', error);
+                }
+            } catch (err) {
+                console.warn('❌ Nie udało się wysłać powiadomienia:', err);
+            }
+        }
+
+        window.toggleNotifications = async function() {
+            try {
+                const isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
+                
+                if (isSubscribed) {
+                    if (window.OneSignal) {
+                        await window.OneSignal.User.setPushSubscription(false);
+                        localStorage.removeItem('onesignal_subscribed');
+                        showToast('🔕 Wyłączono powiadomienia!');
+                    }
+                } else {
+                    if (window.OneSignal) {
+                        await window.OneSignal.Notifications.requestPermission();
+                        setTimeout(async () => {
+                            const isNowSubscribed = await window.OneSignal.User.pushSubscription;
+                            if (isNowSubscribed) {
+                                localStorage.setItem('onesignal_subscribed', 'true');
+                                showToast('🔔 Włączono powiadomienia!');
+                            }
+                            window.updateNotificationButton();
+                        }, 1500);
+                    }
+                }
+                window.updateNotificationButton();
+            } catch (err) {
+                console.error('Błąd przełączania powiadomień:', err);
+                showToast('❌ Błąd: ' + err.message);
+            }
+        };
+
+        // ============================================================
+        // ONESIGNAL – INICJALIZACJA
+        // ============================================================
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async function(OneSignal) {
+            try {
+                await OneSignal.init({
+                    appId: ONESIGNAL_APP_ID,
+                    serviceWorkerPath: "/FLRpoints/service-worker.js",
+                    serviceWorkerParam: { scope: "/FLRpoints/" },
+                    path: "/FLRpoints/",
+                    allowLocalhostAsSecureOrigin: true,
+                });
+
+                const isSubscribed = await OneSignal.User.pushSubscription;
+                if (isSubscribed) {
+                    localStorage.setItem('onesignal_subscribed', 'true');
+                } else {
+                    localStorage.removeItem('onesignal_subscribed');
+                }
+                window.updateNotificationButton();
+
+                if (!isSubscribed) {
+                    await OneSignal.Notifications.requestPermission();
+                }
+            } catch (err) {
+                console.error('Błąd inicjalizacji OneSignal:', err);
+            }
+        });
+
+        // ============================================================
+        // FIREBASE KONFIGURACJA
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
@@ -484,7 +565,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
         const docRef = doc(db, 'registry/shared');
 
         // ============================================================
-        // RESZTA KODU – BEZ ZMIAN
+        // RESZTA KODU
         // ============================================================
         let deferredPrompt = null;
 
@@ -916,7 +997,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
                     mainContent.classList.remove('hidden');
                     setStatusOnline();
                     loadCollapseStates();
-                    updateNotificationButton();
+                    window.updateNotificationButton();
                 })
                 .catch((err) => {
                     console.error("Błąd odczytu dokumentu:", err);
@@ -939,7 +1020,7 @@ window.OneSignalDeferred.push(async function(OneSignal) {
         }
 
         // ============================================================
-        // FUNKCJE GLOBALNE Z POWIADOMIENIAMI
+        // FUNKCJE GLOBALNE Z POWIADOMIENIAMI (przypisane do window)
         // ============================================================
         window.changeMonth = function(direction) {
             calendarMonth += direction;
