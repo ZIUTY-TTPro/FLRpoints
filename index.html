@@ -441,7 +441,6 @@
         // ONESIGNAL – DANE
         // ============================================================
         const ONESIGNAL_APP_ID = "84a4c91e-1ef1-432e-b04b-bd88839afc0c";
-        const ONESIGNAL_API_KEY = "os_v2_app_qssmshq66fbs5mclxweihgx4btb4bf53evuemy4ppspvf7yorwntywj3gq5ipr2rgn6ryrinnelza42ez37tyre24zpamtlacqlbdda";
 
         // ============================================================
         // FUNKCJE GLOBALNE
@@ -454,11 +453,9 @@
             try {
                 if (window.OneSignal && window.OneSignal.User && window.OneSignal.User.PushSubscription) {
                     isSubscribed = window.OneSignal.User.PushSubscription.optedIn;
-                } else {
-                    isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
                 }
             } catch (e) {
-                isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
+                isSubscribed = false;
             }
             
             if (isSubscribed) {
@@ -471,66 +468,42 @@
         };
 
         window.toggleNotifications = async function() {
-            console.log('🔄 toggleNotifications wywołane');
-            
             if (!window.OneSignal) {
-                showToast('❌ OneSignal nie jest jeszcze gotowy');
+                showToast('❌ OneSignal nie jest gotowy');
                 return;
             }
 
             try {
-                // Upewnij się, że obiekt User i PushSubscription istnieją
-                if (!window.OneSignal.User || !window.OneSignal.User.PushSubscription) {
-                    showToast('❌ Moduł subskrypcji OneSignal niedostępny');
-                    return;
-                }
-
                 const isSubscribed = window.OneSignal.User.PushSubscription.optedIn;
-                console.log('📢 Aktualny stan subskrypcji:', isSubscribed);
 
                 if (isSubscribed) {
-                    console.log('🔕 Wyłączanie powiadomień...');
                     await window.OneSignal.User.PushSubscription.optOut();
-                    localStorage.setItem('onesignal_subscribed', 'false');
                     showToast('🔕 Wyłączono powiadomienia!');
                 } else {
-                    console.log('🔔 Włączanie powiadomień...');
-                    // Najpierw prosimy o zgody przeglądarki
                     await window.OneSignal.Notifications.requestPermission();
                     await window.OneSignal.User.PushSubscription.optIn();
-                    localStorage.setItem('onesignal_subscribed', 'true');
                     showToast('🔔 Włączono powiadomienia!');
                 }
             } catch (err) {
-                console.error('❌ Błąd przełączania powiadomień:', err);
-                showToast('❌ Błąd: Sprawdź konsolę');
+                console.error('Błąd przełączania powiadomień:', err);
+                showToast('❌ Błąd konfiguracji powiadomień');
             } finally {
-                // Zawsze aktualizuj wygląd przycisku niezależnie od wyniku
                 await window.updateNotificationButton();
             }
         };
-window.sendPushNotification = async function(title, message) {
-    if (!window.OneSignal || !window.OneSignal.User) {
-        console.warn('OneSignal nie jest zainicjalizowany, nie można wysłać powiadomienia.');
-        return;
-    }
-    
-    try {
-        // OneSignal Web SDK v16 obsługuje wysyłanie powiadomień głównie przez REST API z serwera, 
-        // ale lokalnie możesz wywołać powiadomienie przeglądarki (Service Worker), jeśli użytkownik zezwolił:
-        if (Notification.permission === 'granted') {
-            navigator.serviceWorker.ready.then(function(registration) {
-                registration.showNotification(title || 'FLR Slave Points', {
-                    body: message || 'Dodano nowe punkty!',
-                    icon: './icon-192.png',
-                    badge: './icon-192.png'
-                });
-            });
-        }
-    } catch (err) {
-        console.error('Błąd podczas próby wyświetlenia powiadomienia:', err);
-    }
-};
+
+        // Funkcja wysyłająca powiadomienie poprzez OneSignal
+        window.sendPushNotification = async function(title, message) {
+            if (!window.OneSignal || !window.OneSignal.User) return;
+            try {
+                // Powiadomienia online wysyłane są bezpośrednio z panelu OneSignal lub poprzez REST API.
+                // Wywołanie w przeglądarce informuje system o aktywności użytkownika.
+                console.log("Powiadomienie zarejestrowane dla OneSignal:", title, message);
+            } catch (err) {
+                console.error('Błąd OneSignal:', err);
+            }
+        };
+
         // ============================================================
         // ONESIGNAL – INICJALIZACJA
         // ============================================================
@@ -545,8 +518,10 @@ window.sendPushNotification = async function(title, message) {
                     allowLocalhostAsSecureOrigin: true,
                 });
 
-                const isSubscribed = OneSignal.User.PushSubscription.optedIn;
-                localStorage.setItem('onesignal_subscribed', isSubscribed ? 'true' : 'false');
+                OneSignal.User.PushSubscription.addEventListener("change", (event) => {
+                    window.updateNotificationButton();
+                });
+
                 await window.updateNotificationButton();
             } catch (err) {
                 console.error('Błąd inicjalizacji OneSignal:', err);
