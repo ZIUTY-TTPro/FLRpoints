@@ -1,28 +1,24 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.16';
+const CACHE_NAME = 'flr-slave-points-v1.0.17';
 
 // ============================================================
 // FIREBASE MESSAGING (BACKGROUND)
 // ============================================================
-try {
-  firebase.initializeApp({
-    apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
-    authDomain: "rejestflr.firebaseapp.com",
-    projectId: "rejestflr",
-    storageBucket: "rejestflr.firebasestorage.app",
-    messagingSenderId: "1017001684786",
-    appId: "1:1017001684786:web:1a440900555ed8340bf12b"
-  });
-  console.log('[SW] Firebase initialized');
-} catch (e) {
-  console.error('[SW] Firebase init error:', e);
-}
+firebase.initializeApp({
+  apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+  authDomain: "rejestflr.firebaseapp.com",
+  databaseURL: "https://rejestflr-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "rejestflr",
+  storageBucket: "rejestflr.firebasestorage.app",
+  messagingSenderId: "1017001684786",
+  appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+});
 
 const messaging = firebase.messaging();
 
-// ===== NIE UŻYWAMY usePublicVapidKey TUTAJ – klucz jest przekazywany w getToken w index.html =====
+// ===== NIE UŻYWAMY usePublicVapidKey W SW – klucz jest przekazywany w getToken w index.html =====
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Odebrano wiadomość w tle:', payload);
@@ -36,7 +32,7 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // ============================================================
-// INSTALL & ACTIVATE (minimalne cache)
+// INSTALL & ACTIVATE
 // ============================================================
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -86,5 +82,5 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ============================================================
-// NIE MA FETCH HANDLERA – FIREBASE NIE JEST PRZECHWYTYWANE
+// NIE MA FETCH HANDLERA – NIE INGERUJEMY W ŻADNE ŻĄDANIA
 // ============================================================
