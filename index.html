@@ -10,6 +10,22 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 
+    <!-- ============================================================
+         ONESIGNAL – JEDYNE CO POTRZEBUJESZ DO POWIADOMIEŃ
+         ============================================================ -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+                appId: "84a4c91e-1ef1-432e-b04b-bd88839afc0c",
+                allowLocalhostAsSecureOrigin: true,
+            });
+            // Automatycznie poproś o zgodę na powiadomienia
+            await OneSignal.showSlidedownPrompt();
+        });
+    </script>
+
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
@@ -190,22 +206,6 @@
                 height: 180px;
             }
         }
-        .btn-notifications-active {
-            background-color: rgba(5,46,22,0.3) !important;
-            border-color: rgba(16,185,129,0.5) !important;
-            color: #34d399 !important;
-        }
-        .btn-notifications-active:hover {
-            background-color: rgba(5,46,22,0.5) !important;
-        }
-        .btn-notifications-inactive {
-            background-color: rgba(39,39,42,0.6) !important;
-            border-color: #3f3f46 !important;
-            color: #e4e4e7 !important;
-        }
-        .btn-notifications-inactive:hover {
-            background-color: #3f3f46 !important;
-        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -281,7 +281,6 @@
                         <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
                         <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
                         <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
-                        <button id="btn-notifications" onclick="toggleNotifications()" class="btn-notifications-inactive p-2.5 rounded-xl text-xs font-semibold click-anim border">🔔 Włącz powiadomienia</button>
                         <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
                         <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
                         <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
@@ -420,22 +419,72 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
-    <!-- Import map dla Firebase -->
+    <!-- Import map dla Firebase (TYLKO FIRESTORE) -->
     <script type="importmap">
         {
             "imports": {
                 "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
-                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js",
-                "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
             }
         }
     </script>
 
     <script type="module">
         import { initializeApp } from 'firebase/app';
-        import { initializeFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
-        import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
+        // ============================================================
+        // FIREBASE KONFIGURACJA (TYLKO FIRESTORE)
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+            authDomain: "rejestflr.firebaseapp.com",
+            projectId: "rejestflr",
+            storageBucket: "rejestflr.firebasestorage.app",
+            messagingSenderId: "1017001684786",
+            appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = initializeFirestore(app, { cacheSizeBytes: 1048576 });
+        const docRef = doc(db, 'registry/shared');
+
+        // ============================================================
+        // FUNKCJA WYSYŁANIA POWIADOMIEŃ PRZEZ OneSignal
+        // ============================================================
+        const ONESIGNAL_APP_ID = "84a4c91e-1ef1-432e-b04b-bd88839afc0c";
+        const ONESIGNAL_API_KEY = "os_v2_app_qssmshq66fbs5mclxweihgx4btb4bf53evuemy4ppspvf7yorwntywj3gq5ipr2rgn6ryrinnelza42ez37tyre24zpamtlacqlbdda";
+
+        async function sendPushNotification(title, body) {
+            try {
+                const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ONESIGNAL_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        app_id: ONESIGNAL_APP_ID,
+                        contents: { en: body || 'Nowa zmiana w rejestrze!' },
+                        headings: { en: title || 'FLR Slave Points' },
+                        included_segments: ['Subscribed Users']
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ Powiadomienie wysłane przez OneSignal:', title);
+                } else {
+                    const error = await response.text();
+                    console.warn('❌ Błąd OneSignal:', error);
+                }
+            } catch (err) {
+                console.warn('❌ Nie udało się wysłać powiadomienia:', err);
+            }
+        }
+
+        // ============================================================
+        // RESZTA KODU – BEZ ZMIAN
+        // ============================================================
         let deferredPrompt = null;
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -510,152 +559,6 @@
                 }
             });
         }
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
-            authDomain: "rejestflr.firebaseapp.com",
-            projectId: "rejestflr",
-            storageBucket: "rejestflr.firebasestorage.app",
-            messagingSenderId: "1017001684786",
-            appId: "1:1017001684786:web:1a440900555ed8340bf12b"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = initializeFirestore(app, { cacheSizeBytes: 1048576 });
-        const docRef = doc(db, 'registry/shared');
-        const messaging = getMessaging(app);
-
-        const VAPID_KEY = "BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8";
-
-        // ============================================================
-        // FUNKCJA WYSYŁANIA POWIADOMIEŃ (wywołuje Cloud Function)
-        // ============================================================
-        async function sendPushNotification(title, body, eventType = 'general') {
-            try {
-                const response = await fetch('https://us-central1-rejestflr.cloudfunctions.net/sendNotification', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, body, eventType })
-                });
-                if (!response.ok) {
-                    console.warn('Błąd wysyłania powiadomienia:', response.status);
-                } else {
-                    console.log('✅ Powiadomienie wysłane:', title, body);
-                }
-            } catch (err) {
-                console.warn('Nie udało się wysłać powiadomienia (Cloud Function może być nieaktywna):', err);
-            }
-        }
-
-        // ============================================================
-        // AUTO-SYNC TOKENA
-        // ============================================================
-        async function autoSyncFCMToken() {
-            if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
-                try {
-                    const registration = await navigator.serviceWorker.ready;
-                    const token = await getToken(messaging, { 
-                        vapidKey: VAPID_KEY,
-                        serviceWorkerRegistration: registration 
-                    });
-                    if (token) {
-                        await updateDoc(docRef, { fcmTokens: arrayUnion(token) });
-                        console.log('✅ Token zsynchronizowany auto');
-                    }
-                } catch (e) {
-                    console.error("Błąd auto-sync tokena:", e);
-                }
-            }
-            updateNotificationButtonUI();
-        }
-
-        // ============================================================
-        // PRZYCISK – WŁĄCZ/WYŁĄCZ POWIADOMIENIA
-        // ============================================================
-        window.toggleNotifications = async function() {
-            if (!('Notification' in window)) {
-                alert("Twoja przeglądarka nie obsługuje powiadomień.");
-                return;
-            }
-
-            try {
-                const registration = await navigator.serviceWorker.ready;
-                console.log('✅ Service Worker gotowy:', registration);
-            } catch (err) {
-                console.error('❌ Service Worker NIE gotowy:', err);
-                alert('Service Worker nie jest gotowy. Odśwież stronę i spróbuj ponownie.');
-                return;
-            }
-
-            if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
-                try {
-                    const registration = await navigator.serviceWorker.ready;
-                    const token = await getToken(messaging, { 
-                        vapidKey: VAPID_KEY,
-                        serviceWorkerRegistration: registration 
-                    });
-                    if (token) {
-                        await updateDoc(docRef, { fcmTokens: arrayRemove(token) });
-                    }
-                    localStorage.removeItem('fcm_token_saved');
-                    showToast("🔕 Wyłączono powiadomienia!");
-                } catch (err) {
-                    console.error("Błąd usuwania tokena:", err);
-                    alert('Błąd wyłączania: ' + err.message);
-                } finally {
-                    updateNotificationButtonUI();
-                }
-            } else {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        const registration = await navigator.serviceWorker.ready;
-                        const token = await getToken(messaging, { 
-                            vapidKey: VAPID_KEY,
-                            serviceWorkerRegistration: registration 
-                        });
-                        if (token) {
-                            await updateDoc(docRef, { fcmTokens: arrayUnion(token) });
-                            localStorage.setItem('fcm_token_saved', 'true');
-                            showToast("🔔 Włączono powiadomienia!");
-                            console.log('✅ TOKEN FCM ZAPISANY:', token);
-                        } else {
-                            showToast("❌ Błąd pobierania tokena");
-                            alert('Nie udało się pobrać tokena FCM. Sprawdź konsolę.');
-                        }
-                    } else if (permission === 'denied') {
-                        alert("Powiadomienia są zablokowane w ustawieniach przeglądarki.");
-                    }
-                } catch (err) {
-                    console.error("Błąd konfiguracji FCM:", err);
-                    alert('Błąd: ' + err.message);
-                } finally {
-                    updateNotificationButtonUI();
-                }
-            }
-        };
-
-        function updateNotificationButtonUI() {
-            const btn = document.getElementById('btn-notifications');
-            if (!btn) return;
-            const isSaved = Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true';
-            
-            if (isSaved) {
-                btn.className = "btn-notifications-active p-2.5 rounded-xl text-xs font-semibold click-anim border w-full";
-                btn.innerText = "🔕 Wyłącz powiadomienia";
-            } else {
-                btn.className = "btn-notifications-inactive p-2.5 rounded-xl text-xs font-semibold click-anim border w-full";
-                btn.innerText = "🔔 Włącz powiadomienia";
-            }
-        }
-
-        // ============================================================
-        // ODBIÓR WIADOMOŚCI NA ŻYWO
-        // ============================================================
-        onMessage(messaging, (payload) => {
-            console.log("Wiadomość odebrana na żywo: ", payload);
-            showToast(`🔔 ${payload.notification?.title || 'Powiadomienie'}`);
-        });
 
         const statusDot = document.getElementById('connection-status-dot');
 
@@ -1012,8 +915,6 @@
                     mainContent.classList.remove('hidden');
                     setStatusOnline();
                     loadCollapseStates();
-                    updateNotificationButtonUI();
-                    autoSyncFCMToken();
                 })
                 .catch((err) => {
                     console.error("Błąd odczytu dokumentu:", err);
@@ -1036,50 +937,8 @@
         }
 
         // ============================================================
-        // WRAPPERY DLA AKCJI – DODAJĄ WYSYŁANIE POWIADOMIEŃ
+        // FUNKCJE GLOBALNE Z POWIADOMIENIAMI
         // ============================================================
-        function notifyAndExecute(actionFn, notificationTitle, notificationBody, ...args) {
-            const result = actionFn(...args);
-            // Wyślij powiadomienie (jeśli token jest zarejestrowany)
-            if (localStorage.getItem('fcm_token_saved') === 'true') {
-                sendPushNotification(notificationTitle, notificationBody);
-            }
-            return result;
-        }
-
-        // Nadpisujemy funkcje globalne, aby wysyłać powiadomienia
-        const originalTryExecute = window.tryExecuteEvent;
-        window.tryExecuteEvent = function(name, points) {
-            const action = () => originalTryExecute(name, points);
-            const sign = points > 0 ? '+' : '';
-            const body = `${sign}${points} pkt – ${name}`;
-            notifyAndExecute(action, 'Zmiana punktów', body);
-        };
-
-        const originalSubmitAddCatalog = window.submitAddCatalogModal;
-        window.submitAddCatalogModal = function() {
-            const action = () => originalSubmitAddCatalog();
-            const name = document.getElementById('catalog-item-name').value.trim();
-            const points = parseInt(document.getElementById('catalog-item-points').value, 10);
-            const groupName = eventDictionary[currentTab]?.group || 'Katalog';
-            const body = `${points} pkt – ${name} (${groupName})`;
-            notifyAndExecute(action, 'Nowe zdarzenie w katalogu', body);
-        };
-
-        const originalReset = window.resetRegistry;
-        window.resetRegistry = function() {
-            const action = () => originalReset();
-            notifyAndExecute(action, 'Reset', 'Bilans został wyzerowany');
-        };
-
-        const originalReduce = window.submitReduce;
-        window.submitReduce = function() {
-            const action = () => originalReduce();
-            notifyAndExecute(action, 'Redukcja zarobku', `Obniżka o ${document.getElementById('reduce-percent').value}%`);
-        };
-
-        // Pozostałe funkcje (changeMonth, switchTab, itp.) pozostają bez zmian
-
         window.changeMonth = function(direction) {
             calendarMonth += direction;
             if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
@@ -1127,9 +986,7 @@
                 saveDataToFirestore();
                 renderActions();
                 showToast("Usunięto zdarzenie z katalogu!");
-                if (localStorage.getItem('fcm_token_saved') === 'true') {
-                    sendPushNotification('Usunięto zdarzenie', `${item.name} (${item.points} pkt)`);
-                }
+                sendPushNotification('Usunięto zdarzenie', `${item.name} (${item.points} pkt)`);
             }
         };
 
@@ -1165,9 +1022,7 @@
                 renderActions();
                 window.closeEditCatalogModal();
                 showToast("Zaktualizowano zdarzenie!");
-                if (localStorage.getItem('fcm_token_saved') === 'true') {
-                    sendPushNotification('Zaktualizowano zdarzenie', `${oldItem.name} → ${newName} (${newPoints} pkt)`);
-                }
+                sendPushNotification('Zaktualizowano zdarzenie', `${oldItem.name} → ${newName} (${newPoints} pkt)`);
             }
         };
 
@@ -1183,7 +1038,23 @@
             document.getElementById('add-catalog-modal').classList.add('hidden');
         };
 
-        // Nadpisujemy submitAddCatalogModal już wyżej (przez oryginalną funkcję)
+        window.submitAddCatalogModal = function() {
+            const name = document.getElementById('catalog-item-name').value.trim();
+            const points = parseInt(document.getElementById('catalog-item-points').value, 10);
+            if (!name || isNaN(points)) {
+                alert("Podaj poprawną nazwę oraz liczbę punktów.");
+                return;
+            }
+
+            const targetGroupIdx = currentTab;
+            eventDictionary[targetGroupIdx].items.push({ name, points });
+            saveDataToFirestore();
+            renderActions();
+            window.closeAddCatalogModal();
+            showToast(`Dodano do "${eventDictionary[targetGroupIdx].group}"`);
+            const groupName = eventDictionary[targetGroupIdx].group;
+            sendPushNotification('Nowe zdarzenie w katalogu', `${name} (${points} pkt) – ${groupName}`);
+        };
 
         window.tryExecuteEvent = function(name, points) {
             if (points < 0) {
@@ -1200,7 +1071,8 @@
             renderActions();
             updateUI();
             showToast("Zapisano w rejestrze!");
-            // Powiadomienie wysłane przez wrapper (nadpisany)
+            const sign = points > 0 ? '+' : '';
+            sendPushNotification('Zmiana punktów', `${sign}${points} pkt – ${name}`);
         };
 
         window.deleteEntry = function(id) {
@@ -1212,9 +1084,7 @@
                 saveDataToFirestore();
                 renderActions();
                 updateUI();
-                if (localStorage.getItem('fcm_token_saved') === 'true') {
-                    sendPushNotification('Usunięto wpis z historii', `${removed.name} (${removed.points} pkt)`);
-                }
+                sendPushNotification('Usunięto wpis z historii', `${removed.name} (${removed.points} pkt)`);
             }
         };
 
@@ -1251,10 +1121,8 @@
             renderActions();
             updateUI();
             window.closeCustomModal();
-            if (localStorage.getItem('fcm_token_saved') === 'true') {
-                const sign = points > 0 ? '+' : '';
-                sendPushNotification('Ręczna zmiana punktów', `${sign}${points} pkt – ${name}`);
-            }
+            const sign = points > 0 ? '+' : '';
+            sendPushNotification('Ręczna zmiana punktów', `${sign}${points} pkt – ${name}`);
         };
 
         window.openReduceModal = function() {
@@ -1286,9 +1154,7 @@
             updateUI();
             window.closeReduceModal();
             showToast("Zredukowano punkty zarabiania!");
-            if (localStorage.getItem('fcm_token_saved') === 'true') {
-                sendPushNotification('Redukcja zarobku', `Obniżka o ${percent}% do ${endDate}`);
-            }
+            sendPushNotification('Redukcja zarobku', `Obniżka o ${percent}% do ${endDate}`);
         };
 
         window.cancelReduction = function(silent = false) {
@@ -1298,9 +1164,7 @@
             renderActions();
             updateUI();
             if (!silent) showToast("Przywrócono oryginalne punkty!");
-            if (!silent && localStorage.getItem('fcm_token_saved') === 'true') {
-                sendPushNotification('Anulowano redukcję', 'Przywrócono oryginalne punkty zarabiania');
-            }
+            if (!silent) sendPushNotification('Anulowano redukcję', 'Przywrócono oryginalne punkty zarabiania');
         };
 
         window.resetRegistry = function() {
@@ -1317,9 +1181,7 @@
                 renderActions();
                 updateUI();
                 showToast("Bilans wyzerowany!");
-                if (localStorage.getItem('fcm_token_saved') === 'true') {
-                    sendPushNotification('Reset bilansu', 'Bilans został wyzerowany');
-                }
+                sendPushNotification('Reset bilansu', 'Bilans został wyzerowany');
             }
         };
 
@@ -1362,9 +1224,7 @@
                         renderActions();
                         updateUI();
                         showToast("Wczytano dane pomyślnie!");
-                        if (localStorage.getItem('fcm_token_saved') === 'true') {
-                            sendPushNotification('Import danych', 'Wczytano plik JSON z danymi');
-                        }
+                        sendPushNotification('Import danych', 'Wczytano plik JSON z danymi');
                     } else {
                         alert("Nieprawidłowy format pliku JSON.");
                     }
@@ -1377,13 +1237,13 @@
         };
 
         // ============================================================
-        // REJESTRACJA SERVICE WORKERA (Tylko PWA)
+        // REJESTRACJA SERVICE WORKERA
         // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
                     .then(reg => {
-                        console.log('✅ Service Worker PWA zarejestrowany:', reg.scope);
+                        console.log('✅ Service Worker zarejestrowany:', reg.scope);
                     })
                     .catch(err => {
                         console.error('❌ Błąd rejestracji SW:', err);
