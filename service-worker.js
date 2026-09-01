@@ -4,7 +4,7 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 // ============================================================
 // CACHE
 // ============================================================
-const CACHE_NAME = 'flr-slave-points-v1.0.4';
+const CACHE_NAME = 'flr-slave-points-v1.0.5';
 const urlsToCache = [
   './',
   './index.html',
