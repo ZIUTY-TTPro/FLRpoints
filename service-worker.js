@@ -1,12 +1,4 @@
-// ============================================================
-// POŁĄCZONY SERVICE WORKER – PWA + ONESIGNAL
-// ============================================================
-
-// 1. OneSignal musi być zaimportowany na samym początku, 
-// aby jego listenery zarejestrowały się podczas początkowej ewaluacji skryptu.
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
-
-const CACHE_NAME = 'flr-slave-points-v1.0.9';
+const CACHE_NAME = 'flr-slave-points-v1.0.1';
 const urlsToCache = [
   './',
   './index.html',
@@ -14,27 +6,22 @@ const urlsToCache = [
   './icon-192.png',
   './icon-512.png'
 ];
+
 const offlineFallbackPage = './index.html';
 
-// 2. Synchroniczny nasłuchiwacz wiadomości (wymóg przeglądarek dla Service Workerów)
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
-// ============================================================
-// WŁASNE EVENT LISTENERY
-// ============================================================
+// ==========================
+// INSTALL
+// ==========================
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
 
+// ==========================
+// ACTIVATE
+// ==========================
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -49,40 +36,44 @@ self.addEventListener('activate', event => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-
-  if (
-    url.hostname.includes('firestore.googleapis.com') ||
-    url.hostname.includes('firebaseinstallations.googleapis.com') ||
-    url.hostname.includes('fcmregistrations.googleapis.com') ||
-    url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('gstatic.com')
-  ) {
-    return;
+// ==========================
+// FETCH SUPPORT
+// ==========================
+self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone();
+          if (event.request.url.startsWith('http')) {
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, copy);
+            });
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cache = await caches.open(CACHE_NAME);
+          const cachedResp = await cache.match(offlineFallbackPage);
+          return cachedResp;
+        })
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then(response => {
+        return response || fetch(event.request).catch(() => {
+          return caches.match(offlineFallbackPage);
+        });
+      })
+    );
   }
-
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        return caches.match(offlineFallbackPage);
-      });
-    })
-  );
 });
 
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes('FLRpoints') && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow('./index.html');
-      }
-    })
-  );
+// ==========================
+// MESSAGE HANDLER
+// ==========================
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
