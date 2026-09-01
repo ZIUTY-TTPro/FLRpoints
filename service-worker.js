@@ -1,7 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.7';
+const CACHE_NAME = 'flr-slave-points-v1.0.8';
 const urlsToCache = [
   './',
   './index.html',
@@ -34,7 +34,9 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Install & Activate
+// ============================================================
+// INSTALL & ACTIVATE
+// ============================================================
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
   self.skipWaiting();
@@ -48,9 +50,13 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch Guard
+// ============================================================
+// FETCH – POPRAWNIE POMIJA FIREBASE
+// ============================================================
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+
+  // === POMIJAMY WSZYSTKIE ŻĄDANIA DO FIREBASE ===
   if (
     url.origin.includes('firestore.googleapis.com') ||
     url.origin.includes('firebaseinstallations.googleapis.com') ||
@@ -58,8 +64,11 @@ self.addEventListener('fetch', (event) => {
     url.origin.includes('googleapis.com') ||
     url.origin.includes('gstatic.com')
   ) {
+    // NIE WYWOŁUJEMY event.respondWith() – pozwalamy przeglądarce obsłużyć normalnie
     return;
   }
+
+  // === OBSŁUGA ZASOBÓW LOKALNYCH ===
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       return cachedResponse || fetch(event.request).catch(() => caches.match(offlineFallbackPage));
@@ -67,6 +76,9 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// ============================================================
+// KLIKNIĘCIE W POWIADOMIENIE
+// ============================================================
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
