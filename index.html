@@ -451,13 +451,13 @@
             if (!btn) return;
 
             let isSubscribed = false;
-            if (window.OneSignal && window.OneSignal.User) {
-                try {
+            try {
+                if (window.OneSignal && window.OneSignal.User && window.OneSignal.User.PushSubscription) {
                     isSubscribed = window.OneSignal.User.PushSubscription.optedIn;
-                } catch (e) {
+                } else {
                     isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
                 }
-            } else {
+            } catch (e) {
                 isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
             }
             
@@ -473,15 +473,20 @@
         window.toggleNotifications = async function() {
             console.log('🔄 toggleNotifications wywołane');
             
-            if (!window.OneSignal || !window.OneSignal.User) {
-                console.warn('⚠️ OneSignal nie jest gotowy');
+            if (!window.OneSignal) {
                 showToast('❌ OneSignal nie jest jeszcze gotowy');
                 return;
             }
 
             try {
+                // Upewnij się, że obiekt User i PushSubscription istnieją
+                if (!window.OneSignal.User || !window.OneSignal.User.PushSubscription) {
+                    showToast('❌ Moduł subskrypcji OneSignal niedostępny');
+                    return;
+                }
+
                 const isSubscribed = window.OneSignal.User.PushSubscription.optedIn;
-                console.log('📢 Aktualny stan subskrypcji (optedIn):', isSubscribed);
+                console.log('📢 Aktualny stan subskrypcji:', isSubscribed);
 
                 if (isSubscribed) {
                     console.log('🔕 Wyłączanie powiadomień...');
@@ -490,17 +495,18 @@
                     showToast('🔕 Wyłączono powiadomienia!');
                 } else {
                     console.log('🔔 Włączanie powiadomień...');
+                    // Najpierw prosimy o zgody przeglądarki
                     await window.OneSignal.Notifications.requestPermission();
                     await window.OneSignal.User.PushSubscription.optIn();
                     localStorage.setItem('onesignal_subscribed', 'true');
                     showToast('🔔 Włączono powiadomienia!');
                 }
-                
-                await window.updateNotificationButton();
-                
             } catch (err) {
                 console.error('❌ Błąd przełączania powiadomień:', err);
-                showToast('❌ Błąd: ' + (err.message || 'Nieznany błąd'));
+                showToast('❌ Błąd: Sprawdź konsolę');
+            } finally {
+                // Zawsze aktualizuj wygląd przycisku niezależnie od wyniku
+                await window.updateNotificationButton();
             }
         };
 
