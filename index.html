@@ -528,13 +528,16 @@
         const VAPID_KEY = "BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8";
 
         // ============================================================
-        // AUTO-SYNC TOKENA (przy starcie) – POPRAWIONY
+        // AUTO-SYNC TOKENA – z ręcznym przekazaniem SW
         // ============================================================
         async function autoSyncFCMToken() {
             if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
                 try {
-                    // ===== USUŃ serviceWorkerRegistration – Firebase sam znajdzie SW =====
-                    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                    const registration = await navigator.serviceWorker.ready;
+                    const token = await getToken(messaging, { 
+                        vapidKey: VAPID_KEY,
+                        serviceWorkerRegistration: registration 
+                    });
                     console.log('📢 Auto-sync token:', token);
                     if (token) {
                         await updateDoc(docRef, { fcmTokens: arrayUnion(token) });
@@ -548,7 +551,7 @@
         }
 
         // ============================================================
-        // PRZYCISK – WŁĄCZ/WYŁĄCZ POWIADOMIENIA (POPRAWIONY)
+        // PRZYCISK – WŁĄCZ/WYŁĄCZ POWIADOMIENIA
         // ============================================================
         window.toggleNotifications = async function() {
             console.log('🔄 toggleNotifications wywołane');
@@ -571,8 +574,11 @@
             // Jeśli już włączone – wyłącz
             if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
                 try {
-                    // ===== USUŃ serviceWorkerRegistration – Firebase sam znajdzie SW =====
-                    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                    const registration = await navigator.serviceWorker.ready;
+                    const token = await getToken(messaging, { 
+                        vapidKey: VAPID_KEY,
+                        serviceWorkerRegistration: registration 
+                    });
                     console.log('📢 Token do usunięcia:', token);
                     
                     if (token) {
@@ -594,8 +600,12 @@
                     console.log('📢 Permission:', permission);
                     
                     if (permission === 'granted') {
-                        // ===== USUŃ serviceWorkerRegistration – Firebase sam znajdzie SW =====
-                        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                        // ===== PRZEKAZUJEMY SW RĘCZNIE =====
+                        const registration = await navigator.serviceWorker.ready;
+                        const token = await getToken(messaging, { 
+                            vapidKey: VAPID_KEY,
+                            serviceWorkerRegistration: registration 
+                        });
                         console.log('📢 Token FCM:', token);
                         
                         if (token) {
@@ -1305,17 +1315,31 @@
         };
 
         // ============================================================
-        // REJESTRACJA SERVICE WORKERA – POPRAWNA ŚCIEŻKA
+        // REJESTRACJA SERVICE WORKERA – POPRAWNA
         // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
-                    .then(reg => {
-                        console.log('✅ Service Worker zarejestrowany:', reg.scope);
-                    })
-                    .catch(err => {
-                        console.error('❌ Błąd rejestracji SW:', err);
-                    });
+                // Najpierw rejestrujemy firebase-messaging-sw.js z odpowiednim scope
+                navigator.serviceWorker.register('/firebase-messaging-sw.js', { 
+                    scope: '/firebase-cloud-messaging-push-scope' 
+                })
+                .then(reg => {
+                    console.log('✅ Firebase Messaging SW zarejestrowany:', reg.scope);
+                })
+                .catch(err => {
+                    console.error('❌ Błąd rejestracji FCM SW:', err);
+                });
+
+                // Potem rejestrujemy główny SW dla PWA (z cache)
+                navigator.serviceWorker.register('/FLRpoints/service-worker.js', { 
+                    scope: '/FLRpoints/' 
+                })
+                .then(reg => {
+                    console.log('✅ Service Worker PWA zarejestrowany:', reg.scope);
+                })
+                .catch(err => {
+                    console.error('❌ Błąd rejestracji PWA SW:', err);
+                });
             });
         }
 
