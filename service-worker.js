@@ -1,7 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.15';
+const CACHE_NAME = 'flr-slave-points-v1.0.16';
 
 // ============================================================
 // FIREBASE MESSAGING (BACKGROUND)
@@ -22,8 +22,7 @@ try {
 
 const messaging = firebase.messaging();
 
-// ===== KONIECZNIE – VAPID KEY =====
-messaging.usePublicVapidKey('BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8');
+// ===== NIE UŻYWAMY usePublicVapidKey TUTAJ – klucz jest przekazywany w getToken w index.html =====
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Odebrano wiadomość w tle:', payload);
