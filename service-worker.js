@@ -1,7 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.19';
+const CACHE_NAME = 'flr-slave-points-v1.0.1';
 
 // ============================================================
 // FIREBASE MESSAGING (BACKGROUND)
@@ -9,7 +9,6 @@ const CACHE_NAME = 'flr-slave-points-v1.0.19';
 firebase.initializeApp({
   apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
   authDomain: "rejestflr.firebaseapp.com",
-  databaseURL: "https://rejestflr-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "rejestflr",
   storageBucket: "rejestflr.firebasestorage.app",
   messagingSenderId: "1017001684786",
@@ -18,17 +17,25 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ===== NIE UŻYWAMY usePublicVapidKey W SW – klucz jest przekazywany w getToken w index.html =====
-
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Odebrano wiadomość w tle:', payload);
-  const notificationTitle = payload.notification?.title || 'FLR Slave Points';
-  const notificationOptions = {
-    body: payload.notification?.body || 'Nowa zmiana w rejestrze punktów!',
-    icon: './icon-192.png',
-    badge: './icon-192.png'
-  };
-  self.registration.showNotification(notificationTitle, notificationOptions);
+
+  // ===== SPRAWDZAMY, CZY APLIKACJA JEST OTWARTA =====
+  clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    if (clientList.length > 0) {
+      console.log('[SW] Aplikacja otwarta – pomijam systemowe powiadomienie');
+      return; // NIE wyświetlamy systemowego powiadomienia
+    }
+
+    // Aplikacja zamknięta – wyświetlamy systemowe powiadomienie
+    const notificationTitle = payload.notification?.title || 'FLR Slave Points';
+    const notificationOptions = {
+      body: payload.notification?.body || 'Nowa zmiana w rejestrze punktów!',
+      icon: './icon-192.png',
+      badge: './icon-192.png'
+    };
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
 
 // ============================================================
