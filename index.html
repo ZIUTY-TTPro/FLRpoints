@@ -509,7 +509,28 @@
                 await window.updateNotificationButton();
             }
         };
-
+window.sendPushNotification = async function(title, message) {
+    if (!window.OneSignal || !window.OneSignal.User) {
+        console.warn('OneSignal nie jest zainicjalizowany, nie można wysłać powiadomienia.');
+        return;
+    }
+    
+    try {
+        // OneSignal Web SDK v16 obsługuje wysyłanie powiadomień głównie przez REST API z serwera, 
+        // ale lokalnie możesz wywołać powiadomienie przeglądarki (Service Worker), jeśli użytkownik zezwolił:
+        if (Notification.permission === 'granted') {
+            navigator.serviceWorker.ready.then(function(registration) {
+                registration.showNotification(title || 'FLR Slave Points', {
+                    body: message || 'Dodano nowe punkty!',
+                    icon: './icon-192.png',
+                    badge: './icon-192.png'
+                });
+            });
+        }
+    } catch (err) {
+        console.error('Błąd podczas próby wyświetlenia powiadomienia:', err);
+    }
+};
         // ============================================================
         // ONESIGNAL – INICJALIZACJA
         // ============================================================
