@@ -2,7 +2,7 @@
 // POŁĄCZONY SERVICE WORKER – PWA + ONESIGNAL
 // ============================================================
 
-const CACHE_NAME = 'flr-slave-points-v1.0.7';
+const CACHE_NAME = 'flr-slave-points-v1.0.8';
 const urlsToCache = [
   './',
   './index.html',
