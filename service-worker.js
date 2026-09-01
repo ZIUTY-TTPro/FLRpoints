@@ -1,11 +1,21 @@
-const CACHE_NAME = 'flr-slave-points-v1.0.5';
+// ============================================================
+// POŁĄCZONY SERVICE WORKER – PWA + ONESIGNAL
+// ============================================================
+
+const CACHE_NAME = 'flr-slave-points-v1.0.6';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 const offlineFallbackPage = './index.html';
+
+// ============================================================
+// IMPORT ONESIGNAL SERVICE WORKER
+// ============================================================
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
 
 // ============================================================
 // INSTALL & ACTIVATE
@@ -34,38 +44,27 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH – POMIJA FIREBASE, CACHE'UJE RESZTĘ
+// FETCH – CACHE + OFFLINE (pomija Firebase)
 // ============================================================
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Pomijamy Firebase, Google APIs oraz zapytania inne niż GET
+  // Pomijamy Firebase – nie ingerujemy
   if (
-    event.request.method !== 'GET' ||
     url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('firebaseinstallations.googleapis.com') ||
     url.hostname.includes('fcmregistrations.googleapis.com') ||
     url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('gstatic.com') ||
-    url.hostname.includes('onesignal.com') // Dodatkowo omijamy OneSignal, jeśli występuje
+    url.hostname.includes('gstatic.com')
   ) {
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Zwrócenie z cache lub pobranie z sieci
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // Opcjonalnie można tu dodać aktualizację cache w tle
-        return networkResponse;
-      }).catch(() => {
-        // Jeśli sieć zawiedzie i nie ma w cache, zwróć stronę offline dla nawigacji
-        if (event.request.mode === 'navigate') {
-          return caches.match(offlineFallbackPage);
-        }
+      return cachedResponse || fetch(event.request).catch(() => {
+        return caches.match(offlineFallbackPage);
       });
-
-      return cachedResponse || fetchPromise;
     })
   );
 });
@@ -88,3 +87,7 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+// ============================================================
+// ONESIGNAL UŻYWA TEGO PLIKU – NIE REJESTRUJEMY OSOBNEGO
+// ============================================================
