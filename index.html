@@ -489,34 +489,46 @@
         }
 
         window.toggleNotifications = async function() {
-            try {
-                const isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
-                
-                if (isSubscribed) {
-                    if (window.OneSignal) {
-                        await window.OneSignal.User.setPushSubscription(false);
-                        localStorage.removeItem('onesignal_subscribed');
-                        showToast('🔕 Wyłączono powiadomienia!');
-                    }
-                } else {
-                    if (window.OneSignal) {
-                        await window.OneSignal.Notifications.requestPermission();
-                        setTimeout(async () => {
-                            const isNowSubscribed = await window.OneSignal.User.pushSubscription;
-                            if (isNowSubscribed) {
-                                localStorage.setItem('onesignal_subscribed', 'true');
-                                showToast('🔔 Włączono powiadomienia!');
-                            }
-                            window.updateNotificationButton();
-                        }, 1500);
-                    }
+    console.log('🔄 toggleNotifications wywołane');
+    
+    // Sprawdź, czy OneSignal jest dostępny
+    if (!window.OneSignal) {
+        console.warn('⚠️ OneSignal nie jest jeszcze gotowy. Inicjuję...');
+        // Spróbuj ponownie za 1 sekundę
+        setTimeout(() => {
+            window.toggleNotifications();
+        }, 1000);
+        return;
+    }
+
+    try {
+        const isSubscribed = localStorage.getItem('onesignal_subscribed') === 'true';
+        
+        if (isSubscribed) {
+            // WYŁĄCZ
+            console.log('🔕 Wyłączanie powiadomień...');
+            await window.OneSignal.User.setPushSubscription(false);
+            localStorage.removeItem('onesignal_subscribed');
+            showToast('🔕 Wyłączono powiadomienia!');
+        } else {
+            // WŁĄCZ
+            console.log('🔔 Włączanie powiadomień...');
+            await window.OneSignal.Notifications.requestPermission();
+            setTimeout(async () => {
+                const isNowSubscribed = await window.OneSignal.User.pushSubscription;
+                if (isNowSubscribed) {
+                    localStorage.setItem('onesignal_subscribed', 'true');
+                    showToast('🔔 Włączono powiadomienia!');
                 }
                 window.updateNotificationButton();
-            } catch (err) {
-                console.error('Błąd przełączania powiadomień:', err);
-                showToast('❌ Błąd: ' + err.message);
-            }
-        };
+            }, 1500);
+        }
+        window.updateNotificationButton();
+    } catch (err) {
+        console.error('❌ Błąd przełączania powiadomień:', err);
+        showToast('❌ Błąd: ' + err.message);
+    }
+};
 
         // ============================================================
         // ONESIGNAL – INICJALIZACJA
