@@ -527,72 +527,101 @@
 
         const VAPID_KEY = "BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8";
 
+        // ============================================================
+        // AUTO-SYNC TOKENA (przy starcie) – POPRAWIONY
+        // ============================================================
         async function autoSyncFCMToken() {
-    if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
-        try {
-            const registration = await navigator.serviceWorker.ready;
-            const token = await getToken(messaging, { 
-                vapidKey: VAPID_KEY,
-                serviceWorkerRegistration: registration 
-            });
-            if (token) {
-                await updateDoc(docRef, { fcmTokens: arrayUnion(token) });
+            if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
+                try {
+                    // ===== USUŃ serviceWorkerRegistration – Firebase sam znajdzie SW =====
+                    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                    console.log('📢 Auto-sync token:', token);
+                    if (token) {
+                        await updateDoc(docRef, { fcmTokens: arrayUnion(token) });
+                        console.log('✅ Token zsynchronizowany auto');
+                    }
+                } catch (e) {
+                    console.error("Błąd auto-sync tokena:", e);
+                }
             }
-        } catch (e) {
-            console.error("Błąd auto-sync tokena:", e);
+            updateNotificationButtonUI();
         }
-    }
-    updateNotificationButtonUI();
-}
 
+        // ============================================================
+        // PRZYCISK – WŁĄCZ/WYŁĄCZ POWIADOMIENIA (POPRAWIONY)
+        // ============================================================
         window.toggleNotifications = async function() {
+            console.log('🔄 toggleNotifications wywołane');
+            
             if (!('Notification' in window)) {
                 alert("Twoja przeglądarka nie obsługuje powiadomień.");
                 return;
             }
 
+            // Sprawdź, czy Service Worker jest gotowy
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                console.log('✅ Service Worker gotowy:', registration);
+            } catch (err) {
+                console.error('❌ Service Worker NIE gotowy:', err);
+                alert('Service Worker nie jest gotowy. Odśwież stronę i spróbuj ponownie.');
+                return;
+            }
+
+            // Jeśli już włączone – wyłącz
             if (Notification.permission === 'granted' && localStorage.getItem('fcm_token_saved') === 'true') {
                 try {
-                    const registration = await navigator.serviceWorker.ready;
-                    const token = await getToken(messaging, { 
-                        vapidKey: VAPID_KEY,
-                        serviceWorkerRegistration: registration 
-                    });
+                    // ===== USUŃ serviceWorkerRegistration – Firebase sam znajdzie SW =====
+                    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                    console.log('📢 Token do usunięcia:', token);
+                    
                     if (token) {
                         await updateDoc(docRef, { fcmTokens: arrayRemove(token) });
+                        console.log('✅ Token usunięty z Firestore');
                     }
                     localStorage.removeItem('fcm_token_saved');
                     showToast("🔕 Wyłączono powiadomienia!");
                 } catch (err) {
                     console.error("Błąd usuwania tokena:", err);
+                    alert('Błąd wyłączania: ' + err.message);
                 } finally {
                     updateNotificationButtonUI();
                 }
             } else {
+                // Włącz
                 try {
                     const permission = await Notification.requestPermission();
+                    console.log('📢 Permission:', permission);
+                    
                     if (permission === 'granted') {
-                        const registration = await navigator.serviceWorker.ready;
-                        const token = await getToken(messaging, { 
-                            vapidKey: VAPID_KEY,
-                            serviceWorkerRegistration: registration 
-                        });
+                        // ===== USUŃ serviceWorkerRegistration – Firebase sam znajdzie SW =====
+                        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                        console.log('📢 Token FCM:', token);
+                        
                         if (token) {
                             await updateDoc(docRef, { fcmTokens: arrayUnion(token) });
                             localStorage.setItem('fcm_token_saved', 'true');
                             showToast("🔔 Włączono powiadomienia!");
+                            console.log('✅ TOKEN FCM ZAPISANY:', token);
+                        } else {
+                            showToast("❌ Błąd pobierania tokena");
+                            alert('Nie udało się pobrać tokena FCM. Sprawdź konsolę.');
                         }
                     } else if (permission === 'denied') {
                         alert("Powiadomienia są zablokowane w ustawieniach przeglądarki.");
                     }
                 } catch (err) {
-                    alert("Błąd FCM: " + err.message);
+                    console.error("Błąd konfiguracji FCM:", err);
+                    alert('Błąd: ' + err.message);
                 } finally {
                     updateNotificationButtonUI();
                 }
             }
         };
 
+        // ============================================================
+        // AKTUALIZACJA WYGLĄDU PRZYCISKU
+        // ============================================================
         function updateNotificationButtonUI() {
             const btn = document.getElementById('btn-notifications');
             if (!btn) return;
@@ -607,6 +636,9 @@
             }
         }
 
+        // ============================================================
+        // ODBIÓR WIADOMOŚCI NA ŻYWO (gdy aplikacja otwarta)
+        // ============================================================
         onMessage(messaging, (payload) => {
             console.log("Wiadomość odebrana na żywo: ", payload);
             showToast(`🔔 ${payload.notification?.title || 'Powiadomienie'}`);
@@ -1272,11 +1304,18 @@
             reader.readAsText(file);
         };
 
+        // ============================================================
+        // REJESTRACJA SERVICE WORKERA – POPRAWNA ŚCIEŻKA
+        // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
-                    .catch(err => console.error('❌ Błąd rejestracji SW:', err));
+                navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
+                    .then(reg => {
+                        console.log('✅ Service Worker zarejestrowany:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.error('❌ Błąd rejestracji SW:', err);
+                    });
             });
         }
 
