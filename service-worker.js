@@ -1,7 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.17';
+const CACHE_NAME = 'flr-slave-points-v1.0.19';
 
 // ============================================================
 // FIREBASE MESSAGING (BACKGROUND)
