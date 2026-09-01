@@ -11,20 +11,24 @@
     <link rel="icon" type="image/png" href="icon-192.png">
 
     <!-- ============================================================
-         ONESIGNAL – JEDYNE CO POTRZEBUJESZ DO POWIADOMIEŃ
-         ============================================================ -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "84a4c91e-1ef1-432e-b04b-bd88839afc0c",
-                allowLocalhostAsSecureOrigin: true,
-            });
-            // Automatycznie poproś o zgodę na powiadomienia
-            await OneSignal.showSlidedownPrompt();
+     ONESIGNAL – POPRAWNA KONFIGURACJA DLA GITHUB PAGES
+     ============================================================ -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+            appId: "84a4c91e-1ef1-432e-b04b-bd88839afc0c",
+            // ===== TO JEST KLUCZOWE DLA GITHUB PAGES =====
+            serviceWorkerPath: "FLRpoints/OneSignalSDKWorker.js",
+            serviceWorkerParam: { scope: "/FLRpoints/" },
+            path: "/FLRpoints/",
+            allowLocalhostAsSecureOrigin: true,
         });
-    </script>
+        // Automatycznie poproś o zgodę na powiadomienia
+        await OneSignal.showSlidedownPrompt();
+    });
+</script>
 
     <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
