@@ -1,10 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// ============================================================
-// CACHE
-// ============================================================
-const CACHE_NAME = 'flr-slave-points-v1.0.5';
+const CACHE_NAME = 'flr-slave-points-v1.0.6';
 const urlsToCache = [
   './',
   './index.html',
@@ -68,12 +65,12 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH – POŁĄCZENIE TWOJEGO I MOJEGO KODU
+// FETCH – pomija Firebase, cache'uje resztę
 // ============================================================
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // 1. IGNORUJ zapytania do Firebase / Google APIs (przepuszczaj bezpośrednio do sieci)
+  // 1. IGNORUJ zapytania do Firebase / Google APIs
   if (
     url.origin.includes('firestore.googleapis.com') ||
     url.origin.includes('firebaseinstallations.googleapis.com') ||
@@ -81,22 +78,19 @@ self.addEventListener('fetch', (event) => {
     url.origin.includes('googleapis.com') ||
     url.origin.includes('gstatic.com')
   ) {
-    return; // Zostaw standardową obsługę przeglądarce – nie ingerujemy
+    return; // Przepuszczamy bez ingerencji SW
   }
 
-  // 2. Standardowa obsługa Cache dla zasobów lokalnych (PWA)
+  // 2. Cache dla zasobów lokalnych
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
         return cachedResponse;
       }
-      // Jeśli nie ma w cache, pobierz z sieci
       return fetch(event.request).catch(() => {
-        // Jeśli brak sieci i to nawigacja – zwróć stronę offline
         if (event.request.mode === 'navigate') {
           return caches.match(offlineFallbackPage);
         }
-        // Dla innych zasobów – zwróć błąd 503
         return new Response('Offline', { status: 503 });
       });
     })
@@ -123,7 +117,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ============================================================
-// MESSAGE HANDLER (do aktualizacji SW)
+// MESSAGE HANDLER
 // ============================================================
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
