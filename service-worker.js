@@ -2,7 +2,7 @@
 // POŁĄCZONY SERVICE WORKER – PWA + ONESIGNAL
 // ============================================================
 
-const CACHE_NAME = 'flr-slave-points-v1.0.6';
+const CACHE_NAME = 'flr-slave-points-v1.0.7';
 const urlsToCache = [
   './',
   './index.html',
@@ -13,12 +13,7 @@ const urlsToCache = [
 const offlineFallbackPage = './index.html';
 
 // ============================================================
-// IMPORT ONESIGNAL SERVICE WORKER
-// ============================================================
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
-
-// ============================================================
-// INSTALL & ACTIVATE
+// WŁASNE EVENT LISTENERY (Rejestrowane synchronicznie na starcie)
 // ============================================================
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -43,13 +38,9 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ============================================================
-// FETCH – CACHE + OFFLINE (pomija Firebase)
-// ============================================================
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Pomijamy Firebase – nie ingerujemy
   if (
     url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('firebaseinstallations.googleapis.com') ||
@@ -69,9 +60,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ============================================================
-// KLIKNIĘCIE W POWIADOMIENIE
-// ============================================================
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(
@@ -89,5 +77,6 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ============================================================
-// ONESIGNAL UŻYWA TEGO PLIKU – NIE REJESTRUJEMY OSOBNEGO
+// IMPORT ONESIGNAL SERVICE WORKER (na końcu, aby nie blokować)
 // ============================================================
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
