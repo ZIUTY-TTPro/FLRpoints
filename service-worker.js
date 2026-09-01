@@ -1,7 +1,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.12';
+const CACHE_NAME = 'flr-slave-points-v1.0.13';
 const urlsToCache = [
   './',
   './index.html',
@@ -46,10 +46,11 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Poprawiony Fetch Guard dla Realtime Database i Firebase API
+// Pełna przepustowość dla Firestore, Realtime Database i API Firebase
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (
+    url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('firebasedatabase.app') ||
     url.hostname.includes('firebaseinstallations.googleapis.com') ||
     url.hostname.includes('fcmregistrations.googleapis.com') ||
