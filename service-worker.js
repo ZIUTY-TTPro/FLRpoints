@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flr-slave-points-v1.0.4';
+const CACHE_NAME = 'flr-slave-points-v1.0.5';
 const urlsToCache = [
   './',
   './index.html',
@@ -39,22 +39,33 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Pomijamy Firebase
+  // Pomijamy Firebase, Google APIs oraz zapytania inne niż GET
   if (
+    event.request.method !== 'GET' ||
     url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('firebaseinstallations.googleapis.com') ||
     url.hostname.includes('fcmregistrations.googleapis.com') ||
     url.hostname.includes('googleapis.com') ||
-    url.hostname.includes('gstatic.com')
+    url.hostname.includes('gstatic.com') ||
+    url.hostname.includes('onesignal.com') // Dodatkowo omijamy OneSignal, jeśli występuje
   ) {
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        return caches.match(offlineFallbackPage);
+      // Zwrócenie z cache lub pobranie z sieci
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        // Opcjonalnie można tu dodać aktualizację cache w tle
+        return networkResponse;
+      }).catch(() => {
+        // Jeśli sieć zawiedzie i nie ma w cache, zwróć stronę offline dla nawigacji
+        if (event.request.mode === 'navigate') {
+          return caches.match(offlineFallbackPage);
+        }
       });
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
@@ -77,7 +88,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
-
-// ============================================================
-// NIE MA ONESIGNAL – NIE WYŚWIETLAMY POWIADOMIEŃ Z SW
-// ============================================================
