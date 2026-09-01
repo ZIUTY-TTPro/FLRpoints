@@ -1,4 +1,7 @@
-const CACHE_NAME = 'flr-slave-points-v1.0.1';
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
+
+const CACHE_NAME = 'flr-slave-points-v1.0.3';
 const urlsToCache = [
   './',
   './index.html',
@@ -8,6 +11,34 @@ const urlsToCache = [
 ];
 
 const offlineFallbackPage = './index.html';
+
+// ==========================
+// FIREBASE MESSAGING (BACKGROUND)
+// ==========================
+firebase.initializeApp({
+  apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+  authDomain: "rejestflr.firebaseapp.com",
+  projectId: "rejestflr",
+  storageBucket: "rejestflr.firebasestorage.app",
+  messagingSenderId: "1017001684786",
+  appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+});
+
+const messaging = firebase.messaging();
+// ====== DODAJ SWÓJ VAPID TUTAJ ======
+messaging.usePublicVapidKey('BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8');
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[service-worker.js] Odebrano wiadomość w tle: ', payload);
+  const notificationTitle = payload.notification?.title || 'FLR Slave Points';
+  const notificationOptions = {
+    body: payload.notification?.body || 'Nowa zmiana w rejestrze punktów!',
+    icon: './icon-192.png',
+    badge: './icon-192.png'
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
 
 // ==========================
 // INSTALL
