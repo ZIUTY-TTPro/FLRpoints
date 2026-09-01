@@ -1,21 +1,28 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-const CACHE_NAME = 'flr-slave-points-v1.0.14';
+const CACHE_NAME = 'flr-slave-points-v1.0.15';
 
 // ============================================================
 // FIREBASE MESSAGING (BACKGROUND)
 // ============================================================
-firebase.initializeApp({
-  apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
-  authDomain: "rejestflr.firebaseapp.com",
-  projectId: "rejestflr",
-  storageBucket: "rejestflr.firebasestorage.app",
-  messagingSenderId: "1017001684786",
-  appId: "1:1017001684786:web:1a440900555ed8340bf12b"
-});
+try {
+  firebase.initializeApp({
+    apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+    authDomain: "rejestflr.firebaseapp.com",
+    projectId: "rejestflr",
+    storageBucket: "rejestflr.firebasestorage.app",
+    messagingSenderId: "1017001684786",
+    appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+  });
+  console.log('[SW] Firebase initialized');
+} catch (e) {
+  console.error('[SW] Firebase init error:', e);
+}
 
 const messaging = firebase.messaging();
+
+// ===== KONIECZNIE – VAPID KEY =====
 messaging.usePublicVapidKey('BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8');
 
 messaging.onBackgroundMessage((payload) => {
@@ -30,7 +37,7 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // ============================================================
-// INSTALL & ACTIVATE (minimalne cache – tylko dla PWA)
+// INSTALL & ACTIVATE (minimalne cache)
 // ============================================================
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -80,5 +87,5 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ============================================================
-// NIE MA FETCH HANDLERA – FIREBASE DZIAŁA NORMALNIE
+// NIE MA FETCH HANDLERA – FIREBASE NIE JEST PRZECHWYTYWANE
 // ============================================================
