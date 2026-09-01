@@ -108,3 +108,22 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+// ==========================
+// OBSŁUGA KLIKNIĘCIA W POWIADOMIENIE
+// ==========================
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes('FLRpoints') && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow('./index.html');
+      }
+    })
+  );
+});
