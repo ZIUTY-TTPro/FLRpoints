@@ -2,7 +2,7 @@
   "name": "FLR Slave Points",
   "short_name": "FLR Slave Points",
   "description": "Aplikacja do zarządzania punktami i rejestrem FLR",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "start_url": "/FLRpoints/index.html",
   "scope": "/FLRpoints/",
   "display": "standalone",
