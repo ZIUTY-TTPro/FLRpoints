@@ -10,10 +10,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 
-    <!-- OneSignal SDK -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS (produkcyjna wersja CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -76,6 +73,7 @@
         .text-amber-300 { color: #fcd34d; }
         .shadow-\[0_0_15px_rgba\(16\,185\,129\,0\.15\)\] { box-shadow: 0 0 15px rgba(16,185,129,0.15); }
         .bg-zinc-200 { background-color: #e4e4e7; }
+        .text-zinc-950 { color: #09090b; }
         .text-red-400 { color: #f87171; }
         .border-zinc-500 { border-color: #71717a; }
         .hover\:bg-zinc-800:hover { background-color: #27272a; }
@@ -125,6 +123,7 @@
         .collapse-btn svg.rotate-180 {
             transform: rotate(180deg);
         }
+        /* Rewards */
         .reward-item {
             background-color: rgba(5,46,22,0.15);
             border: 1px solid rgba(16,185,129,0.2);
@@ -161,6 +160,7 @@
         .border-emerald-500\/30 {
             border-color: rgba(16,185,129,0.3);
         }
+        /* Sortowanie i data – taka sama czcionka jak nagłówki */
         .sort-btn {
             font-size: 0.65rem;
             font-weight: 700;
@@ -175,6 +175,7 @@
             letter-spacing: 0.05em;
             color: #d4d4d8;
         }
+        /* Ikona bilansu */
         .balance-icon {
             width: 120px;
             height: 120px;
@@ -193,22 +194,6 @@
                 height: 180px;
             }
         }
-        .btn-notif-active {
-            background-color: rgba(5,46,22,0.3) !important;
-            border-color: rgba(16,185,129,0.5) !important;
-            color: #34d399 !important;
-        }
-        .btn-notif-active:hover {
-            background-color: rgba(5,46,22,0.5) !important;
-        }
-        .btn-notif-inactive {
-            background-color: rgba(39,39,42,0.6) !important;
-            border-color: #3f3f46 !important;
-            color: #e4e4e7 !important;
-        }
-        .btn-notif-inactive:hover {
-            background-color: #3f3f46 !important;
-        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -223,15 +208,23 @@
         <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
-            <!-- BILANS -->
+                                          <!-- BILANS – moneta na przezroczystym tle -->
             <div class="bg-card border border-bordercolor rounded-2xl p-4 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
+                <!-- Kropka statusu -->
                 <div class="absolute top-3 right-3 flex items-center">
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
                 </div>
+                
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320" style="display:block;margin:0 auto;">
+                    <!-- Moneta (bez czarnego tła) -->
                     <g transform="translate(160, 160)">
+                        <!-- Zewnętrzne koło monety -->
                         <circle cx="0" cy="0" r="100" fill="#1a1410" stroke="#dc2626" stroke-width="6" />
+                        
+                        <!-- Wewnętrzna obwódka -->
                         <circle cx="0" cy="0" r="85" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5" />
+                        
+                        <!-- Kropki dookoła monety -->
                         <g opacity="0.4">
                             <circle cx="0" cy="-95" r="4" fill="#dc2626" />
                             <circle cx="0" cy="95" r="4" fill="#dc2626" />
@@ -242,12 +235,20 @@
                             <circle cx="-67" cy="67" r="4" fill="#dc2626" />
                             <circle cx="67" cy="67" r="4" fill="#dc2626" />
                         </g>
+                        
+                        <!-- Liczba punktów na środku -->
                         <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="60" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
                     </g>
                 </svg>
             </div>
 
-            <!-- SEKCJA: MOŻESZ PROSIĆ O -->
+
+                    
+                   
+                
+            </div>
+
+            <!-- SEKCJA: MOŻESZ PROSIĆ O: -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <span class="section-title">Możesz prosić o:</span>
@@ -284,7 +285,6 @@
                         <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
                         <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
                         <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
-                        <button id="btn-notifications" onclick="toggleNotifications()" class="btn-notif-inactive p-2.5 rounded-xl text-xs font-semibold click-anim border w-full">🔔 Włącz powiadomienia</button>
                         <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
                         <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
                         <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
@@ -365,7 +365,7 @@
                 </div>
             </section>
 
-        </div>
+        </div> <!-- koniec main-content -->
     </main>
 
     <!-- MODALE -->
@@ -423,7 +423,7 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
-    <!-- Import map dla Firebase (TYLKO FIRESTORE) -->
+    <!-- Import map dla Firebase -->
     <script type="importmap">
         {
             "imports": {
@@ -434,118 +434,8 @@
     </script>
 
     <script type="module">
-        import { initializeApp } from 'firebase/app';
-        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
-
         // ============================================================
-        // ONESIGNAL – DANE
-        // ============================================================
-        const ONESIGNAL_APP_ID = "84a4c91e-1ef1-432e-b04b-bd88839afc0c";
-
-        // ============================================================
-        // FUNKCJE GLOBALNE
-        // ============================================================
-        window.updateNotificationButton = async function() {
-            const btn = document.getElementById('btn-notifications');
-            if (!btn) return;
-
-            let isSubscribed = false;
-            try {
-                if (window.OneSignal && window.OneSignal.User && window.OneSignal.User.PushSubscription) {
-                    isSubscribed = window.OneSignal.User.PushSubscription.optedIn;
-                }
-            } catch (e) {
-                isSubscribed = false;
-            }
-            
-            if (isSubscribed) {
-                btn.className = 'btn-notif-active p-2.5 rounded-xl text-xs font-semibold click-anim border w-full';
-                btn.innerText = '🔕 Wyłącz powiadomienia';
-            } else {
-                btn.className = 'btn-notif-inactive p-2.5 rounded-xl text-xs font-semibold click-anim border w-full';
-                btn.innerText = '🔔 Włącz powiadomienia';
-            }
-        };
-
-        window.toggleNotifications = async function() {
-            if (!window.OneSignal) {
-                showToast('❌ OneSignal nie jest gotowy');
-                return;
-            }
-
-            try {
-                const isSubscribed = window.OneSignal.User.PushSubscription.optedIn;
-
-                if (isSubscribed) {
-                    await window.OneSignal.User.PushSubscription.optOut();
-                    showToast('🔕 Wyłączono powiadomienia!');
-                } else {
-                    await window.OneSignal.Notifications.requestPermission();
-                    await window.OneSignal.User.PushSubscription.optIn();
-                    showToast('🔔 Włączono powiadomienia!');
-                }
-            } catch (err) {
-                console.error('Błąd przełączania powiadomień:', err);
-                showToast('❌ Błąd konfiguracji powiadomień');
-            } finally {
-                await window.updateNotificationButton();
-            }
-        };
-
-        // Funkcja wysyłająca powiadomienie poprzez OneSignal
-        window.sendPushNotification = async function(title, message) {
-            if (!window.OneSignal || !window.OneSignal.User) return;
-            try {
-                // Powiadomienia online wysyłane są bezpośrednio z panelu OneSignal lub poprzez REST API.
-                // Wywołanie w przeglądarce informuje system o aktywności użytkownika.
-                console.log("Powiadomienie zarejestrowane dla OneSignal:", title, message);
-            } catch (err) {
-                console.error('Błąd OneSignal:', err);
-            }
-        };
-
-        // ============================================================
-        // ONESIGNAL – INICJALIZACJA
-        // ============================================================
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        window.OneSignalDeferred.push(async function(OneSignal) {
-            try {
-                await OneSignal.init({
-                    appId: ONESIGNAL_APP_ID,
-                    serviceWorkerPath: "/FLRpoints/service-worker.js",
-                    serviceWorkerParam: { scope: "/FLRpoints/" },
-                    path: "/FLRpoints/",
-                    allowLocalhostAsSecureOrigin: true,
-                });
-
-                OneSignal.User.PushSubscription.addEventListener("change", (event) => {
-                    window.updateNotificationButton();
-                });
-
-                await window.updateNotificationButton();
-            } catch (err) {
-                console.error('Błąd inicjalizacji OneSignal:', err);
-            }
-        });
-
-        // ============================================================
-        // FIREBASE KONFIGURACJA
-        // ============================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
-            authDomain: "rejestflr.firebaseapp.com",
-            projectId: "rejestflr",
-            storageBucket: "rejestflr.firebasestorage.app",
-            messagingSenderId: "1017001684786",
-            appId: "1:1017001684786:web:1a440900555ed8340bf12b"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = initializeFirestore(app, { cacheSizeBytes: 1048576 });
-        const docRef = doc(db, 'registry/shared');
-
-        // ============================================================
-        // RESZTA KODU
+        // 0. beforeinstallprompt
         // ============================================================
         let deferredPrompt = null;
 
@@ -573,6 +463,8 @@
                     const { outcome } = await deferredPrompt.userChoice;
                     if (outcome === 'accepted') {
                         showToast('Aplikacja zainstalowana! 🎉');
+                    } else {
+                        showToast('Instalacja anulowana.');
                     }
                     deferredPrompt = null;
                     banner.remove();
@@ -584,6 +476,35 @@
             });
         }
 
+        // ============================================================
+        // 1. BADGE
+        // ============================================================
+        let newEventsCount = 0;
+        let isInitialSnapshot = true;
+
+        function updateBadge() {
+            if ('setAppBadge' in navigator) {
+                if (newEventsCount > 0) {
+                    navigator.setAppBadge(newEventsCount).catch(() => {});
+                } else {
+                    navigator.clearAppBadge().catch(() => {});
+                }
+            }
+        }
+
+        function incrementBadge() {
+            newEventsCount++;
+            updateBadge();
+        }
+
+        function resetBadge() {
+            newEventsCount = 0;
+            updateBadge();
+        }
+
+        // ============================================================
+        // 2. ZWIJANIE
+        // ============================================================
         window.toggleCollapse = function(sectionId) {
             const content = document.getElementById(`collapse-content-${sectionId}`);
             const btn = document.getElementById(`collapse-btn-${sectionId}`);
@@ -622,6 +543,26 @@
             });
         }
 
+        // ============================================================
+        // 3. FIREBASE
+        // ============================================================
+        import { initializeApp } from 'firebase/app';
+        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+            authDomain: "rejestflr.firebaseapp.com",
+            projectId: "rejestflr",
+            storageBucket: "rejestflr.firebasestorage.app",
+            messagingSenderId: "1017001684786",
+            appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = initializeFirestore(app, { cacheSizeBytes: 1048576 });
+        const docRef = doc(db, 'registry/shared');
+
+        // ----- ELEMENTY UI STATUSU -----
         const statusDot = document.getElementById('connection-status-dot');
 
         function setStatusOnline() {
@@ -639,6 +580,7 @@
             statusDot.title = 'Łączenie...';
         }
 
+        // ----- SŁOWNIK DOMYŚLNY -----
         const originalDictionary = [
             {
                 group: "Zarobek (+)",
@@ -687,6 +629,7 @@
             }
         ];
 
+        // ----- STAN APLIKACJI -----
         let eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
         let balance = 0;
         let historyEntries = [];
@@ -701,9 +644,11 @@
         let calendarMonth = new Date().getMonth();
         let isLocalUpdate = false;
 
+        // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
         const mainContent = document.getElementById('main-content');
 
+        // ----- POMOCNICZE -----
         function showToast(text = "Zapisano!") {
             const toast = document.getElementById('toast');
             toast.innerText = text;
@@ -716,6 +661,7 @@
             return `${parts[2]}.${parts[1]}.${parts[0]}`;
         }
 
+        // ----- AKTUALIZACJA LICZBY NA IKONIE -----
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
             if (balanceEl) {
@@ -723,6 +669,7 @@
             }
         }
 
+        // ----- RENDEROWANIE KALENDARZA -----
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             const label = document.getElementById('calendar-month-year');
@@ -762,6 +709,7 @@
             }
         }
 
+        // ----- RENDEROWANIE KATALOGU (AKCJE) -----
         function renderActions() {
             const listContainer = document.getElementById('action-list');
             listContainer.innerHTML = '';
@@ -840,12 +788,13 @@
             else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
         }
 
+        // ----- RENDEROWANIE "MOŻESZ PROSIĆ O:" -----
         function renderRewards() {
             const listContainer = document.getElementById('rewards-list');
             const emptyContainer = document.getElementById('rewards-empty');
             listContainer.innerHTML = '';
 
-            const rewardsGroup = eventDictionary[2];
+            const rewardsGroup = eventDictionary[2]; // Wykup
             const available = rewardsGroup.items.filter(item => item.points < 0 && balance >= Math.abs(item.points));
 
             if (available.length === 0) {
@@ -866,6 +815,7 @@
             });
         }
 
+        // ----- AKTUALIZACJA UI -----
         function updateUI() {
             updateBalanceOnIcon();
 
@@ -909,6 +859,7 @@
             renderRewards();
         }
 
+        // ----- ZAPIS DO FIRESTORE -----
         function saveDataToFirestore() {
             const dataObj = {
                 balance,
@@ -918,7 +869,7 @@
                 sortModes: sortModes
             };
             isLocalUpdate = true;
-            setDoc(docRef, dataObj, { merge: true })
+            setDoc(docRef, dataObj)
                 .then(() => { isLocalUpdate = false; })
                 .catch((err) => {
                     console.error("Błąd zapisu do Firestore:", err);
@@ -928,6 +879,7 @@
                 });
         }
 
+        // ----- AKTUALIZACJA STANU Z FIRESTORE -----
         function updateStateFromFirestore(data) {
             if (!data) return;
             balance = data.balance ?? 0;
@@ -943,6 +895,7 @@
             setStatusOnline();
         }
 
+        // ----- INICJALIZACJA -----
         let retryCount = 0;
         const MAX_RETRIES = 10;
 
@@ -970,38 +923,65 @@
                             .catch((err) => {
                                 console.error("Błąd tworzenia dokumentu:", err);
                                 showToast("❌ Błąd inicjalizacji bazy");
+                                loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
                                 setStatusOffline();
                             });
                     }
                     loadingIndicator.classList.add('hidden');
                     mainContent.classList.remove('hidden');
                     setStatusOnline();
+                    resetBadge();
+                    isInitialSnapshot = false;
                     loadCollapseStates();
-                    window.updateNotificationButton();
                 })
                 .catch((err) => {
                     console.error("Błąd odczytu dokumentu:", err);
+                    loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
+                    loadingIndicator.innerHTML = `
+                        <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
+                        <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                            <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
+                            <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
+                            <p>3. Czy masz połączenie z internetem?</p>
+                            <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
+                        </div>
+                    `;
+                    showToast("❌ Błąd połączenia");
                     setStatusOffline();
+
                     if (retryCount < MAX_RETRIES) {
                         retryCount++;
-                        setTimeout(() => { initApp(); }, 5000);
+                        setTimeout(() => {
+                            initApp();
+                        }, 5000);
+                    } else {
+                        loadingIndicator.innerHTML = `
+                            <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
+                            <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                <p>Sprawdź konfigurację Firebase w konsoli.</p>
+                                <p>Upewnij się, że adres URL projektu jest poprawny.</p>
+                            </div>
+                        `;
+                        setStatusOffline();
                     }
                 });
 
             onSnapshot(docRef, (snapshot) => {
                 if (isLocalUpdate) return;
                 if (snapshot.exists()) {
+                    if (!isInitialSnapshot) {
+                        incrementBadge();
+                    }
                     updateStateFromFirestore(snapshot.data());
                 }
             }, (error) => {
                 console.error("Błąd nasłuchu:", error);
+                showToast("❌ Błąd synchronizacji");
                 setStatusOffline();
             });
         }
 
-        // ============================================================
-        // FUNKCJE GLOBALNE
-        // ============================================================
+        // ----- FUNKCJE GLOBALNE -----
         window.changeMonth = function(direction) {
             calendarMonth += direction;
             if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
@@ -1049,7 +1029,6 @@
                 saveDataToFirestore();
                 renderActions();
                 showToast("Usunięto zdarzenie z katalogu!");
-                sendPushNotification('Usunięto zdarzenie', `${item.name} (${item.points} pkt)`);
             }
         };
 
@@ -1078,14 +1057,12 @@
                 return;
             }
             if (editingGroupIdx !== null && editingItemIdx !== null) {
-                const oldItem = eventDictionary[editingGroupIdx].items[editingItemIdx];
                 eventDictionary[editingGroupIdx].items[editingItemIdx].name = newName;
                 eventDictionary[editingGroupIdx].items[editingItemIdx].points = newPoints;
                 saveDataToFirestore();
                 renderActions();
                 window.closeEditCatalogModal();
                 showToast("Zaktualizowano zdarzenie!");
-                sendPushNotification('Zaktualizowano zdarzenie', `${oldItem.name} → ${newName} (${newPoints} pkt)`);
             }
         };
 
@@ -1109,14 +1086,23 @@
                 return;
             }
 
+            if (points > 0 && (currentTab === 1 || currentTab === 2)) {
+                if (!confirm(
+                    `⚠️ Dodajesz dodatnie punkty (+${points}) w zakładce "${eventDictionary[currentTab].group}".\n\n` +
+                    `Zazwyczaj w tej zakładce powinny być wartości ujemne.\n` +
+                    `Czy na pewno chcesz kontynuować?`
+                )) {
+                    return;
+                }
+            }
+
             const targetGroupIdx = currentTab;
             eventDictionary[targetGroupIdx].items.push({ name, points });
             saveDataToFirestore();
             renderActions();
             window.closeAddCatalogModal();
             showToast(`Dodano do "${eventDictionary[targetGroupIdx].group}"`);
-            const groupName = eventDictionary[targetGroupIdx].group;
-            sendPushNotification('Nowe zdarzenie w katalogu', `${name} (${points} pkt) – ${groupName}`);
+            incrementBadge();
         };
 
         window.tryExecuteEvent = function(name, points) {
@@ -1134,20 +1120,17 @@
             renderActions();
             updateUI();
             showToast("Zapisano w rejestrze!");
-            const sign = points > 0 ? '+' : '';
-            sendPushNotification('Zmiana punktów', `${sign}${points} pkt – ${name}`);
+            incrementBadge();
         };
 
         window.deleteEntry = function(id) {
             const index = historyEntries.findIndex(e => e.id === id);
             if (index !== -1) {
-                const removed = historyEntries[index];
-                balance -= removed.points;
+                balance -= historyEntries[index].points;
                 historyEntries.splice(index, 1);
                 saveDataToFirestore();
                 renderActions();
                 updateUI();
-                sendPushNotification('Usunięto wpis z historii', `${removed.name} (${removed.points} pkt)`);
             }
         };
 
@@ -1184,8 +1167,7 @@
             renderActions();
             updateUI();
             window.closeCustomModal();
-            const sign = points > 0 ? '+' : '';
-            sendPushNotification('Ręczna zmiana punktów', `${sign}${points} pkt – ${name}`);
+            incrementBadge();
         };
 
         window.openReduceModal = function() {
@@ -1217,7 +1199,6 @@
             updateUI();
             window.closeReduceModal();
             showToast("Zredukowano punkty zarabiania!");
-            sendPushNotification('Redukcja zarobku', `Obniżka o ${percent}% do ${endDate}`);
         };
 
         window.cancelReduction = function(silent = false) {
@@ -1227,7 +1208,6 @@
             renderActions();
             updateUI();
             if (!silent) showToast("Przywrócono oryginalne punkty!");
-            if (!silent) sendPushNotification('Anulowano redukcję', 'Przywrócono oryginalne punkty zarabiania');
         };
 
         window.resetRegistry = function() {
@@ -1243,8 +1223,8 @@
                 saveDataToFirestore();
                 renderActions();
                 updateUI();
-                showToast("Bilans wyzerowany!");
-                sendPushNotification('Reset bilansu', 'Bilans został wyzerowany');
+                showToast("Bilans wyzerowany! Wpis dodany do historii.");
+                incrementBadge();
             }
         };
 
@@ -1287,7 +1267,7 @@
                         renderActions();
                         updateUI();
                         showToast("Wczytano dane pomyślnie!");
-                        sendPushNotification('Import danych', 'Wczytano plik JSON z danymi');
+                        incrementBadge();
                     } else {
                         alert("Nieprawidłowy format pliku JSON.");
                     }
@@ -1305,17 +1285,62 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
-                    .then(reg => {
-                        console.log('✅ Service Worker zarejestrowany:', reg.scope);
-                    })
-                    .catch(err => {
-                        console.error('❌ Błąd rejestracji SW:', err);
-                    });
+                    .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
+                    .catch(err => console.error('❌ Błąd rejestracji SW:', err));
             });
         }
 
         // ============================================================
-        // START
+        // WERSJONOWANIE
+        // ============================================================
+        const APP_VERSION = '1.0.1';
+
+        setInterval(() => {
+            checkForUpdate();
+        }, 30000);
+
+        async function checkForUpdate() {
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) return;
+                const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
+                const manifest = await manifestResponse.json();
+                const newVersion = manifest.version || '1.0.0';
+                if (newVersion !== APP_VERSION) {
+                    showUpdateNotification(newVersion);
+                }
+            } catch (err) {
+                console.warn('Błąd sprawdzania aktualizacji:', err);
+            }
+        }
+
+        function showUpdateNotification(newVersion) {
+            if (document.getElementById('update-banner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'update-banner';
+            banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">🔄 Nowa wersja ${newVersion} dostępna!</span>
+                <button id="update-btn" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Zaktualizuj</button>
+                <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('update-btn').addEventListener('click', () => {
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    reg.update().then(() => {
+                        window.location.reload();
+                    });
+                });
+            });
+
+            document.getElementById('close-update-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        // ============================================================
+        // START APLIKACJI
         // ============================================================
         mainContent.classList.add('hidden');
         initApp();
