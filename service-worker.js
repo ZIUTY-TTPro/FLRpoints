@@ -2,7 +2,11 @@
 // POŁĄCZONY SERVICE WORKER – PWA + ONESIGNAL
 // ============================================================
 
-const CACHE_NAME = 'flr-slave-points-v1.0.8';
+// 1. OneSignal musi być zaimportowany na samym początku, 
+// aby jego listenery zarejestrowały się podczas początkowej ewaluacji skryptu.
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+
+const CACHE_NAME = 'flr-slave-points-v1.0.9';
 const urlsToCache = [
   './',
   './index.html',
@@ -12,8 +16,15 @@ const urlsToCache = [
 ];
 const offlineFallbackPage = './index.html';
 
+// 2. Synchroniczny nasłuchiwacz wiadomości (wymóg przeglądarek dla Service Workerów)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // ============================================================
-// WŁASNE EVENT LISTENERY (Rejestrowane synchronicznie na starcie)
+// WŁASNE EVENT LISTENERY
 // ============================================================
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -75,8 +86,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
-
-// ============================================================
-// IMPORT ONESIGNAL SERVICE WORKER (na końcu, aby nie blokować)
-// ============================================================
-importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
