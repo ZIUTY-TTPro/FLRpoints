@@ -208,7 +208,7 @@
         <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
-                                          <!-- BILANS – moneta na przezroczystym tle -->
+            <!-- BILANS – moneta na przezroczystym tle -->
             <div class="bg-card border border-bordercolor rounded-2xl p-4 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
                 <!-- Kropka statusu -->
                 <div class="absolute top-3 right-3 flex items-center">
@@ -240,12 +240,6 @@
                         <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="60" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
                     </g>
                 </svg>
-            </div>
-
-
-                    
-                   
-                
             </div>
 
             <!-- SEKCJA: MOŻESZ PROSIĆ O: -->
@@ -362,6 +356,93 @@
                 </div>
                 <div id="collapse-content-history" class="transition-collapse mt-2">
                     <div id="history-list" class="flex flex-col gap-2"></div>
+                </div>
+            </section>
+
+            <!-- STATYSTYKI ZDARZEŃ -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <h2 class="section-title">Statystyki Zdarzeń</h2>
+                    </div>
+                    <button onclick="toggleCollapse('stats')" class="collapse-btn" id="collapse-btn-stats">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                
+                <div id="collapse-content-stats" class="transition-collapse mt-3 flex flex-col gap-3">
+                    
+                    <!-- Przełącznik zakresu (Rok / Miesiąc / Tydzień) -->
+                    <div class="flex gap-1 bg-app p-1 rounded-xl border border-bordercolor text-center">
+                        <button onclick="switchStatsRange('year')" id="stats-tab-year" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Rok</button>
+                        <button onclick="switchStatsRange('month')" id="stats-tab-month" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all bg-zinc-700 text-white shadow">Miesiąc</button>
+                        <button onclick="switchStatsRange('week')" id="stats-tab-week" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Tydzień</button>
+                    </div>
+
+                    <!-- Informacja o wybranym zakresie -->
+                    <div class="text-center">
+                        <span id="stats-range-label" class="text-[11px] text-zinc-400 font-medium">Zakres: --</span>
+                    </div>
+
+                    <!-- Kafelki podsumowania punktowego w wybranym zakresie (Zarobek / Kary / Wykup) -->
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Zarobek</span>
+                            <span id="stats-val-earn" class="text-xs font-black text-zinc-100">0</span>
+                        </div>
+                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Kary</span>
+                            <span id="stats-val-pen" class="text-xs font-black text-red-400">0</span>
+                        </div>
+                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Wykup</span>
+                            <span id="stats-val-buy" class="text-xs font-black text-amber-400">0</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-bordercolor my-0.5"></div>
+
+                    <!-- Ostatnie zdarzenia -->
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Ostatnie aktywności</span>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">❤️ Ostatni orgazm żony: <strong id="stat-last-orgasm" class="text-zinc-200">-</strong></span>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">➕ Ostatni zarobek: <strong id="stat-last-earn" class="text-zinc-200">-</strong></span>
+                                <span id="stat-last-earn-pts" class="font-bold text-zinc-100 shrink-0">0 pkt</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">❌ Ostatnia kara: <strong id="stat-last-pen" class="text-zinc-200">-</strong></span>
+                                <span id="stat-last-pen-pts" class="font-bold text-red-400 shrink-0">0 pkt</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">🛒 Ostatni wykup: <strong id="stat-last-buy" class="text-zinc-200">-</strong></span>
+                                <span id="stat-last-buy-pts" class="font-bold text-amber-400 shrink-0">0 pkt</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Najczęściej występujące (Dynamiczne względem wybranego zakresu w kalendarzu/przełączniku) -->
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">📈 Najczęstszy zarobek:</span>
+                                <strong id="stat-freq-earn" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">📉 Najczęstsza kara:</span>
+                                <strong id="stat-freq-pen" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">🏷️ Najczęstszy wykup:</span>
+                                <strong id="stat-freq-buy" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
@@ -525,7 +606,7 @@
         };
 
         function loadCollapseStates() {
-            const sections = ['rewards', 'options', 'calendar', 'catalog', 'history'];
+            const sections = ['rewards', 'options', 'calendar', 'catalog', 'history', 'stats'];
             sections.forEach(id => {
                 const content = document.getElementById(`collapse-content-${id}`);
                 const btn = document.getElementById(`collapse-btn-${id}`);
@@ -815,6 +896,186 @@
             });
         }
 
+        // ============================================================
+        // LOGIKA STATYSTYK ZDARZEŃ (DYNAMICZNA WZGLĘDEM ZAKRESU)
+        // ============================================================
+        let statsRange = 'month'; // 'year' | 'month' | 'week'
+
+        window.switchStatsRange = function(range) {
+            statsRange = range;
+            ['year', 'month', 'week'].forEach(r => {
+                const btn = document.getElementById(`stats-tab-${r}`);
+                if (r === range) {
+                    btn.classList.add('bg-zinc-700', 'text-white', 'shadow');
+                    btn.classList.remove('text-zinc-400');
+                } else {
+                    btn.classList.remove('bg-zinc-700', 'text-white', 'shadow');
+                    btn.classList.add('text-zinc-400');
+                }
+            });
+            renderStats();
+        };
+
+        function getWeekBoundsFromActiveDate(dateStr) {
+            const end = new Date(dateStr);
+            end.setHours(23, 59, 59, 999);
+            
+            const start = new Date(dateStr);
+            start.setDate(start.getDate() - 6);
+            start.setHours(0, 0, 0, 0);
+            
+            return { start, end };
+        }
+
+        // Funkcja pomocnicza do znajdowania najczęściej występującego elementu
+        function getMostFrequent(arr) {
+            if (!arr || arr.length === 0) return '-';
+            const counts = {};
+            let maxCount = 0;
+            let mostFrequent = '-';
+
+            for (const item of arr) {
+                if (!item) continue;
+                counts[item] = (counts[item] || 0) + 1;
+                if (counts[item] > maxCount) {
+                    maxCount = counts[item];
+                    mostFrequent = item;
+                }
+            }
+            return `${mostFrequent} (${maxCount}x)`;
+        }
+
+        // Funkcja filtrująca dane na podstawie wybranego widoku (rok, miesiąc, tydzień)
+        function filterDataByRange(data, viewType, referenceDateStr) {
+            const target = new Date(referenceDateStr);
+            
+            return data.filter(entry => {
+                if (!entry.date) return false;
+                const entryDate = new Date(entry.date);
+                
+                if (viewType === 'year') {
+                    return entryDate.getFullYear() === target.getFullYear();
+                } 
+                
+                if (viewType === 'month') {
+                    return (
+                        entryDate.getFullYear() === target.getFullYear() &&
+                        entryDate.getMonth() === target.getMonth()
+                    );
+                } 
+                
+                if (viewType === 'week') {
+                    const { start, end } = getWeekBoundsFromActiveDate(referenceDateStr);
+                    return entryDate >= start && entryDate <= end;
+                }
+                
+                return true;
+            });
+        }
+
+        function renderStats() {
+            const activeD = new Date(activeDate);
+            let rangeLabelStr = "";
+
+            if (statsRange === 'year') {
+                rangeLabelStr = `Rok ${activeD.getFullYear()}`;
+            } else if (statsRange === 'month') {
+                const monthsNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+                rangeLabelStr = `${monthsNames[activeD.getMonth()]} ${activeD.getFullYear()}`;
+            } else if (statsRange === 'week') {
+                const { start, end } = getWeekBoundsFromActiveDate(activeDate);
+                rangeLabelStr = `${formatDateText(start.toISOString().split('T')[0])} - ${formatDateText(end.toISOString().split('T')[0])}`;
+            }
+
+            document.getElementById('stats-range-label').innerText = `Zakres: ${rangeLabelStr}`;
+
+            // Filtrowanie danych przy użyciu zintegrowanej logiki zakresów
+            const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
+
+            let sumEarn = 0;
+            let sumPen = 0;
+            let sumBuy = 0;
+
+            filteredHistory.forEach(e => {
+                if (e.points > 0) {
+                    sumEarn += e.points;
+                } else if (e.points < 0) {
+                    const isPen = eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
+                    const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
+                    
+                    if (isPen) {
+                        sumPen += Math.abs(e.points);
+                    } else if (isBuy) {
+                        sumBuy += Math.abs(e.points);
+                    } else {
+                        sumPen += Math.abs(e.points);
+                    }
+                }
+            });
+
+            document.getElementById('stats-val-earn').innerText = `+${sumEarn}`;
+            document.getElementById('stats-val-pen').innerText = `-${sumPen}`;
+            document.getElementById('stats-val-buy').innerText = `-${sumBuy}`;
+
+            // Ostatnie aktywności (z całej historii)
+            const orgasmEntry = historyEntries.find(e => e.name.toLowerCase().includes("orgazm dla żony"));
+            if (orgasmEntry) {
+                const daysAgo = Math.floor((new Date() - new Date(orgasmEntry.date)) / (1000 * 60 * 60 * 24));
+                let agoText = daysAgo === 0 ? "dzisiaj" : daysAgo === 1 ? "wczoraj" : `${daysAgo} dni temu`;
+                document.getElementById('stat-last-orgasm').innerText = `${formatDateText(orgasmEntry.date)} (${agoText})`;
+            } else {
+                document.getElementById('stat-last-orgasm').innerText = "Brak w historii";
+            }
+
+            const lastEarn = historyEntries.find(e => e.points > 0);
+            if (lastEarn) {
+                document.getElementById('stat-last-earn').innerText = lastEarn.name;
+                document.getElementById('stat-last-earn-pts').innerText = `+${lastEarn.points} pkt`;
+            } else {
+                document.getElementById('stat-last-earn').innerText = "-";
+                document.getElementById('stat-last-earn-pts').innerText = "0 pkt";
+            }
+
+            const lastPen = historyEntries.find(e => {
+                if (e.points >= 0) return false;
+                return eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase()) || !eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
+            });
+            if (lastPen) {
+                document.getElementById('stat-last-pen').innerText = lastPen.name;
+                document.getElementById('stat-last-pen-pts').innerText = `${lastPen.points} pkt`;
+            } else {
+                document.getElementById('stat-last-pen').innerText = "-";
+                document.getElementById('stat-last-pen-pts').innerText = "0 pkt";
+            }
+
+            const lastBuy = historyEntries.find(e => {
+                if (e.points >= 0) return false;
+                return eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
+            });
+            if (lastBuy) {
+                document.getElementById('stat-last-buy').innerText = lastBuy.name;
+                document.getElementById('stat-last-buy-pts').innerText = `${lastBuy.points} pkt`;
+            } else {
+                document.getElementById('stat-last-buy').innerText = "-";
+                document.getElementById('stat-last-buy-pts').innerText = "0 pkt";
+            }
+
+            // Najczęściej w wybranym zakresie (dynamiczne względem wybranego roku, miesiąca lub tygodnia)
+            const earnItemsFiltered = filteredHistory.filter(e => e.points > 0).map(e => e.name);
+            const penItemsFiltered = filteredHistory.filter(e => {
+                if (e.points >= 0) return false;
+                return eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
+            }).map(e => e.name);
+            const buyItemsFiltered = filteredHistory.filter(e => {
+                if (e.points >= 0) return false;
+                return eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
+            }).map(e => e.name);
+
+            document.getElementById('stat-freq-earn').innerText = getMostFrequent(earnItemsFiltered);
+            document.getElementById('stat-freq-pen').innerText = getMostFrequent(penItemsFiltered);
+            document.getElementById('stat-freq-buy').innerText = getMostFrequent(buyItemsFiltered);
+        }
+
         // ----- AKTUALIZACJA UI -----
         function updateUI() {
             updateBalanceOnIcon();
@@ -857,6 +1118,7 @@
             renderCalendar();
             renderActions();
             renderRewards();
+            renderStats(); // Odświeżenie statystyk
         }
 
         // ----- ZAPIS DO FIRESTORE -----
@@ -1293,7 +1555,7 @@
         // ============================================================
         // WERSJONOWANIE
         // ============================================================
-        const APP_VERSION = '1.0.1';
+        const APP_VERSION = '1.0.3';
 
         setInterval(() => {
             checkForUpdate();
