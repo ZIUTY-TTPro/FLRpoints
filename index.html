@@ -1675,9 +1675,11 @@
         };
 
         // ============================================================
-        // POPRAWIONE FUNKCJE: tryExecuteEvent i submitCustomModal
+        // GŁÓWNA FUNKCJA WYKONANIA ZDARZENIA – z powiadomieniami
         // ============================================================
         window.tryExecuteEvent = function(name, points) {
+            console.log('🎯 tryExecuteEvent wywołane:', { name, points });
+
             if (points < 0) {
                 const requiredAbs = Math.abs(points);
                 if (balance < requiredAbs) {
@@ -2220,7 +2222,7 @@
             }
         }
 
-        const APP_VERSION = '1.0.1';
+        const APP_VERSION = '1.0.2';
 
         // ============================================================
         // START
