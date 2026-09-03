@@ -144,16 +144,6 @@
             }
         }
 
-        /* ===== IKONY RÓL ===== */
-        .role-icon-mistress {
-            color: #dc2626;
-            font-size: 1.2rem;
-        }
-        .role-icon-slave {
-            color: #d4af37;
-            font-size: 1.2rem;
-        }
-
         .flr-history-item {
             border-left: 2px solid #27272a;
             transition: border-color 0.2s;
@@ -556,7 +546,7 @@
                     <span class="text-2xl">👠</span> Pani
                 </button>
                 <button onclick="setRole('slave')" class="role-btn bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-4 rounded-xl text-lg font-bold text-zinc-200 transition-all flex items-center justify-center gap-3">
-                    <span class="text-2xl">🔗</span> Sługa
+                    <span class="text-2xl">⛓️</span> Sługa
                 </button>
             </div>
             <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
@@ -1718,6 +1708,13 @@
             updateUI();
             showToast("Zapisano!");
             incrementBadge();
+
+            // === WYSYŁKA POWIADOMIENIA ===
+            if (points !== 0) {
+                const title = points > 0 ? '➕ Nowy zarobek' : '➖ Nowa kara / wykup';
+                const body = `${name} (${points > 0 ? '+' : ''}${points} pkt)`;
+                sendNotificationToPartner(title, body, { type: points > 0 ? 'earn' : 'penalty', points });
+            }
         };
 
         window.deleteEntry = function(id) {
@@ -1996,6 +1993,8 @@
         let lastNotificationTime = 0;
 
         async function sendNotificationToPartner(title, body, data = {}) {
+            console.log('📤 Wysyłanie powiadomienia:', { title, body, data });
+
             const now = Date.now();
             if (now - lastNotificationTime < 2000) {
                 console.log('⏳ Pomijam duplikat powiadomienia (za szybko)');
@@ -2221,7 +2220,7 @@
             }
         }
 
-        const APP_VERSION = '1.0.6';
+        const APP_VERSION = '1.0.9';
 
         // ============================================================
         // START
