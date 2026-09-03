@@ -6,13 +6,16 @@
     <meta name="theme-color" content="#09090b" />
     <title>FLR Slave Points</title>
 
-    <!-- PWA Manifest & Favicon -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 
-    <!-- Tailwind CSS (produkcyjna wersja CDN) -->
+    <!-- Google Font: Cinzel (FLR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
     <style>
+        /* ===== STYLE ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -38,6 +41,16 @@
         .status-dot.connecting {
             background-color: #eab308;
             box-shadow: 0 0 12px rgba(234,179,8,0.6);
+        }
+        .status-dot.pending {
+            background-color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245,158,11,0.8);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
         }
         .bg-card { background-color: #18181b; }
         .border-bordercolor { border-color: #27272a; }
@@ -71,9 +84,9 @@
         .text-amber-500 { color: #f59e0b; }
         .text-amber-400 { color: #fbbf24; }
         .text-amber-300 { color: #fcd34d; }
+        .text-blood { color: #dc2626; }
         .shadow-\[0_0_15px_rgba\(16\,185\,129\,0\.15\)\] { box-shadow: 0 0 15px rgba(16,185,129,0.15); }
         .bg-zinc-200 { background-color: #e4e4e7; }
-        .text-zinc-950 { color: #09090b; }
         .text-red-400 { color: #f87171; }
         .border-zinc-500 { border-color: #71717a; }
         .hover\:bg-zinc-800:hover { background-color: #27272a; }
@@ -88,6 +101,57 @@
         .transition-collapse.collapsed { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
         .rotate-180 { transform: rotate(180deg); }
         .transition-transform { transition: transform 0.3s ease; }
+        
+        /* ===== KLIMATYCZNE DODATKI WIZUALNE FLR ===== */
+        .glow-coin {
+            filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.4));
+            transition: filter 0.3s ease;
+        }
+        .glow-coin-positive {
+            filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.7));
+        }
+        .flr-ornament {
+            letter-spacing: 0.1em;
+            border-left: 2px solid #dc2626;
+            padding-left: 8px;
+        }
+
+        /* ===== CZCIONKA FLR DLA NAGŁÓWKÓW ===== */
+        .flr-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ===== POWIĘKSZONA MONETA ===== */
+        .balance-icon {
+            width: 180px;
+            height: 180px;
+            display: block;
+            margin: 0 auto;
+        }
+        @media (min-width: 640px) {
+            .balance-icon {
+                width: 220px;
+                height: 220px;
+            }
+        }
+        @media (min-width: 768px) {
+            .balance-icon {
+                width: 260px;
+                height: 260px;
+            }
+        }
+
+        .flr-history-item {
+            border-left: 2px solid #27272a;
+            transition: border-color 0.2s;
+        }
+        .flr-history-item:hover {
+            border-color: #dc2626;
+        }
+
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -123,7 +187,6 @@
         .collapse-btn svg.rotate-180 {
             transform: rotate(180deg);
         }
-        /* Rewards */
         .reward-item {
             background-color: rgba(5,46,22,0.15);
             border: 1px solid rgba(16,185,129,0.2);
@@ -160,7 +223,6 @@
         .border-emerald-500\/30 {
             border-color: rgba(16,185,129,0.3);
         }
-        /* Sortowanie i data – taka sama czcionka jak nagłówki */
         .sort-btn {
             font-size: 0.65rem;
             font-weight: 700;
@@ -175,24 +237,8 @@
             letter-spacing: 0.05em;
             color: #d4d4d8;
         }
-        /* Ikona bilansu */
-        .balance-icon {
-            width: 120px;
-            height: 120px;
-            display: block;
-            margin: 0 auto;
-        }
-        @media (min-width: 640px) {
-            .balance-icon {
-                width: 160px;
-                height: 160px;
-            }
-        }
-        @media (min-width: 768px) {
-            .balance-icon {
-                width: 180px;
-                height: 180px;
-            }
+        #offline-banner {
+            transition: all 0.3s ease;
         }
     </style>
 </head>
@@ -208,44 +254,36 @@
         <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
-            <!-- BILANS – moneta na przezroczystym tle -->
-            <div class="bg-card border border-bordercolor rounded-2xl p-4 text-center relative overflow-hidden flex flex-col items-center mt-1 shadow-xl">
-                <!-- Kropka statusu -->
-                <div class="absolute top-3 right-3 flex items-center">
+            <!-- BILANS -->
+            <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
+                <div class="absolute top-3 right-3 flex items-center gap-2">
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
+                    <span id="offline-badge" class="hidden text-[8px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Offline</span>
                 </div>
-                
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320" style="display:block;margin:0 auto;">
-                    <!-- Moneta (bez czarnego tła) -->
-                    <g transform="translate(160, 160)">
-                        <!-- Zewnętrzne koło monety -->
-                        <circle cx="0" cy="0" r="100" fill="#1a1410" stroke="#dc2626" stroke-width="6" />
-                        
-                        <!-- Wewnętrzna obwódka -->
-                        <circle cx="0" cy="0" r="85" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5" />
-                        
-                        <!-- Kropki dookoła monety -->
+                <!-- POWIĘKSZONA MONETA -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" class="balance-icon glow-coin" id="balance-coin-svg">
+                    <g transform="translate(200, 200)">
+                        <circle cx="0" cy="0" r="130" fill="#1a1410" stroke="#dc2626" stroke-width="8" />
+                        <circle cx="0" cy="0" r="110" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5" />
                         <g opacity="0.4">
-                            <circle cx="0" cy="-95" r="4" fill="#dc2626" />
-                            <circle cx="0" cy="95" r="4" fill="#dc2626" />
-                            <circle cx="-95" cy="0" r="4" fill="#dc2626" />
-                            <circle cx="95" cy="0" r="4" fill="#dc2626" />
-                            <circle cx="-67" cy="-67" r="4" fill="#dc2626" />
-                            <circle cx="67" cy="-67" r="4" fill="#dc2626" />
-                            <circle cx="-67" cy="67" r="4" fill="#dc2626" />
-                            <circle cx="67" cy="67" r="4" fill="#dc2626" />
+                            <circle cx="0" cy="-120" r="5" fill="#dc2626" />
+                            <circle cx="0" cy="120" r="5" fill="#dc2626" />
+                            <circle cx="-120" cy="0" r="5" fill="#dc2626" />
+                            <circle cx="120" cy="0" r="5" fill="#dc2626" />
+                            <circle cx="-85" cy="-85" r="5" fill="#dc2626" />
+                            <circle cx="85" cy="-85" r="5" fill="#dc2626" />
+                            <circle cx="-85" cy="85" r="5" fill="#dc2626" />
+                            <circle cx="85" cy="85" r="5" fill="#dc2626" />
                         </g>
-                        
-                        <!-- Liczba punktów na środku -->
-                        <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="60" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
+                        <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
                     </g>
                 </svg>
             </div>
 
-            <!-- SEKCJA: MOŻESZ PROSIĆ O: -->
+            <!-- SEKCJA: DOZWOLONE PRZYJEMNOŚCI -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
-                    <span class="section-title">Możesz prosić o:</span>
+                    <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
                     <button onclick="toggleCollapse('rewards')" class="collapse-btn" id="collapse-btn-rewards">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -268,7 +306,7 @@
             <!-- OPCJE DODATKOWE -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
-                    <span class="section-title">Opcje Dodatkowe</span>
+                    <span class="section-title flr-ornament flr-title">Opcje Dodatkowe</span>
                     <button onclick="toggleCollapse('options')" class="collapse-btn" id="collapse-btn-options">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -290,7 +328,7 @@
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <div class="flex items-center gap-2">
-                        <span class="section-title">Kalendarz</span>
+                        <span class="section-title flr-ornament flr-title">Kalendarz</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
@@ -322,7 +360,7 @@
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <div class="flex items-center gap-2">
-                        <h2 class="section-title">Katalog Zdarzeń</h2>
+                        <h2 class="section-title flr-ornament flr-title">Katalog Zdarzeń</h2>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
@@ -345,7 +383,7 @@
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <div class="flex items-center gap-2">
-                        <h2 class="section-title">Historia z wybranego dnia</h2>
+                        <h2 class="section-title flr-ornament flr-title">Historia z wybranego dnia</h2>
                     </div>
                     <div class="flex items-center gap-2">
                         <span id="history-date-label" class="history-date"></span>
@@ -359,32 +397,25 @@
                 </div>
             </section>
 
-            <!-- STATYSTYKI ZDARZEŃ -->
+            <!-- STATYSTYKI -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <div class="flex items-center gap-2">
-                        <h2 class="section-title">Statystyki Zdarzeń</h2>
+                        <h2 class="section-title flr-ornament flr-title">Statystyki Zdarzeń</h2>
                     </div>
                     <button onclick="toggleCollapse('stats')" class="collapse-btn" id="collapse-btn-stats">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                 </div>
-                
                 <div id="collapse-content-stats" class="transition-collapse mt-3 flex flex-col gap-3">
-                    
-                    <!-- Przełącznik zakresu (Rok / Miesiąc / Tydzień) -->
                     <div class="flex gap-1 bg-app p-1 rounded-xl border border-bordercolor text-center">
                         <button onclick="switchStatsRange('year')" id="stats-tab-year" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Rok</button>
                         <button onclick="switchStatsRange('month')" id="stats-tab-month" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all bg-zinc-700 text-white shadow">Miesiąc</button>
                         <button onclick="switchStatsRange('week')" id="stats-tab-week" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Tydzień</button>
                     </div>
-
-                    <!-- Informacja o wybranym zakresie -->
                     <div class="text-center">
                         <span id="stats-range-label" class="text-[11px] text-zinc-400 font-medium">Zakres: --</span>
                     </div>
-
-                    <!-- Kafelki podsumowania punktowego w wybranym zakresie (Zarobek / Kary / Wykup) -->
                     <div class="grid grid-cols-3 gap-2 text-center">
                         <div class="bg-app border border-bordercolor p-2 rounded-xl">
                             <span class="block text-[9px] font-bold text-zinc-500 uppercase">Zarobek</span>
@@ -399,10 +430,7 @@
                             <span id="stats-val-buy" class="text-xs font-black text-amber-400">0</span>
                         </div>
                     </div>
-
                     <div class="border-t border-bordercolor my-0.5"></div>
-
-                    <!-- Ostatnie zdarzenia -->
                     <div class="flex flex-col gap-1.5">
                         <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Ostatnie aktywności</span>
                         <div class="grid grid-cols-1 gap-1.5 text-xs">
@@ -423,8 +451,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Najczęściej występujące (Dynamiczne względem wybranego zakresu w kalendarzu/przełączniku) -->
                     <div class="flex flex-col gap-1.5">
                         <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
                         <div class="grid grid-cols-1 gap-1.5 text-xs">
@@ -442,11 +468,10 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </section>
 
-        </div> <!-- koniec main-content -->
+        </div>
     </main>
 
     <!-- MODALE -->
@@ -504,7 +529,6 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
-    <!-- Import map dla Firebase -->
     <script type="importmap">
         {
             "imports": {
@@ -561,7 +585,7 @@
         // 1. BADGE
         // ============================================================
         let newEventsCount = 0;
-        let isInitialSnapshot = true;
+        let isFirstSnapshot = true;
 
         function updateBadge() {
             if ('setAppBadge' in navigator) {
@@ -625,10 +649,52 @@
         }
 
         // ============================================================
-        // 3. FIREBASE
+        // 3. POMOCNICZE FUNKCJE DAT
+        // ============================================================
+        function getLocalDateString(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateText(dateStr) {
+            const parts = dateStr.split('-');
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        function getWeekBoundsFromActiveDate(dateStr) {
+            const date = new Date(dateStr);
+            const dayOfWeek = date.getDay();
+            const diff = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+            const start = new Date(date);
+            start.setDate(date.getDate() - diff);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+            return { start, end };
+        }
+
+        function getLocalDateFromStr(dateStr) {
+            return new Date(dateStr + 'T00:00:00');
+        }
+
+        // ============================================================
+        // 4. FIREBASE (nowa konfiguracja)
         // ============================================================
         import { initializeApp } from 'firebase/app';
-        import { initializeFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+        import { 
+            initializeFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            onSnapshot, 
+            runTransaction,
+            persistentLocalCache,
+            persistentMultipleTabManager
+        } from 'firebase/firestore';
 
         const firebaseConfig = {
             apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
@@ -640,25 +706,39 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = initializeFirestore(app, { cacheSizeBytes: 1048576 });
+        const db = initializeFirestore(app, {
+            localCache: persistentLocalCache({
+                tabManager: persistentMultipleTabManager()
+            })
+        });
         const docRef = doc(db, 'registry/shared');
 
-        // ----- ELEMENTY UI STATUSU -----
+        // ----- UI STATUSU -----
         const statusDot = document.getElementById('connection-status-dot');
+        const offlineBadge = document.getElementById('offline-badge');
 
         function setStatusOnline() {
             statusDot.className = 'status-dot online';
             statusDot.title = 'Połączono z Firebase';
+            offlineBadge.classList.add('hidden');
         }
 
         function setStatusOffline() {
             statusDot.className = 'status-dot offline';
             statusDot.title = 'Brak połączenia';
+            offlineBadge.classList.remove('hidden');
         }
 
         function setStatusConnecting() {
             statusDot.className = 'status-dot connecting';
             statusDot.title = 'Łączenie...';
+            offlineBadge.classList.add('hidden');
+        }
+
+        function setStatusPending() {
+            statusDot.className = 'status-dot pending';
+            statusDot.title = 'Oczekiwanie na synchronizację';
+            offlineBadge.classList.remove('hidden');
         }
 
         // ----- SŁOWNIK DOMYŚLNY -----
@@ -667,45 +747,45 @@
                 group: "Zarobek (+)",
                 type: "positive",
                 items: [
-                    { name: "Masaż stóp", points: 5 },
-                    { name: "Mycie naczyń", points: 5 },
-                    { name: "Dzień w pasie cnoty", points: 10 },
-                    { name: "Wywieszenie prania", points: 10 },
-                    { name: "Złożenie prania", points: 10 },
-                    { name: "Prasowanie", points: 10 },
-                    { name: "Zadanie wykonał w bieliźnie", points: 10 },
-                    { name: "Zadanie wykonał nago", points: 15 },
-                    { name: "Masaż pleców", points: 15 },
-                    { name: "Obiad", points: 25 },
-                    { name: "Sprzątanie domu", points: 25 },
-                    { name: "Zlizanie nasienia", points: 25 },
-                    { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25 },
-                    { name: "Orgazm dla żony", points: 50 }
+                    { name: "Masaż stóp", points: 5, basePoints: 5 },
+                    { name: "Mycie naczyń", points: 5, basePoints: 5 },
+                    { name: "Dzień w pasie cnoty", points: 10, basePoints: 10 },
+                    { name: "Wywieszenie prania", points: 10, basePoints: 10 },
+                    { name: "Złożenie prania", points: 10, basePoints: 10 },
+                    { name: "Prasowanie", points: 10, basePoints: 10 },
+                    { name: "Zadanie wykonał w bieliźnie", points: 10, basePoints: 10 },
+                    { name: "Zadanie wykonał nago", points: 15, basePoints: 15 },
+                    { name: "Masaż pleców", points: 15, basePoints: 15 },
+                    { name: "Obiad", points: 25, basePoints: 25 },
+                    { name: "Sprzątanie domu", points: 25, basePoints: 25 },
+                    { name: "Zlizanie nasienia", points: 25, basePoints: 25 },
+                    { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25, basePoints: 25 },
+                    { name: "Orgazm dla żony", points: 50, basePoints: 50 }
                 ]
             },
             {
                 group: "Kary (-)",
                 type: "negative",
                 items: [
-                    { name: "Marudzenie", points: -20 },
-                    { name: "Złe zachowanie", points: -50 },
-                    { name: "Pyskowanie", points: -100 },
-                    { name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150 },
-                    { name: "Dojście bez pozwolenia", points: -500 }
+                    { name: "Marudzenie", points: -20, basePoints: -20 },
+                    { name: "Złe zachowanie", points: -50, basePoints: -50 },
+                    { name: "Pyskowanie", points: -100, basePoints: -100 },
+                    { name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150, basePoints: -150 },
+                    { name: "Dojście bez pozwolenia", points: -500, basePoints: -500 }
                 ]
             },
             {
                 group: "Wykup (-)",
                 type: "negative",
                 items: [
-                    { name: "Masturbacja bez obecności żony bez orgazmu", points: -100 },
-                    { name: "Orgazm zrujnowany", points: -150 },
-                    { name: "Orgazm w gumce", points: -250 },
-                    { name: "Baty", points: -250 },
-                    { name: "Orgazm na stopy", points: -300 },
-                    { name: "Orgazm na dłoń", points: -300 },
-                    { name: "Masturbacja nago przed ubraną żoną", points: -350 },
-                    { name: "Lodzik", points: -500 }
+                    { name: "Masturbacja bez obecności żony bez orgazmu", points: -100, basePoints: -100 },
+                    { name: "Orgazm zrujnowany", points: -150, basePoints: -150 },
+                    { name: "Orgazm w gumce", points: -250, basePoints: -250 },
+                    { name: "Baty", points: -250, basePoints: -250 },
+                    { name: "Orgazm na stopy", points: -300, basePoints: -300 },
+                    { name: "Orgazm na dłoń", points: -300, basePoints: -300 },
+                    { name: "Masturbacja nago przed ubraną żoną", points: -350, basePoints: -350 },
+                    { name: "Lodzik", points: -500, basePoints: -500 }
                 ]
             }
         ];
@@ -714,7 +794,7 @@
         let eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
         let balance = 0;
         let historyEntries = [];
-        let activeDate = new Date().toISOString().split('T')[0];
+        let activeDate = getLocalDateString(new Date());
         let currentTab = 0;
         let currentModalType = 'add';
         let activeReduction = null;
@@ -724,6 +804,9 @@
         let calendarYear = new Date().getFullYear();
         let calendarMonth = new Date().getMonth();
         let isLocalUpdate = false;
+        let localVersion = 0;
+        let pendingSync = false;
+        let pendingUpdates = [];
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -734,20 +817,260 @@
             const toast = document.getElementById('toast');
             toast.innerText = text;
             toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 1500);
+            setTimeout(() => { toast.style.opacity = '0'; }, 4000);
         }
 
-        function formatDateText(dateStr) {
-            const parts = dateStr.split('-');
-            return `${parts[2]}.${parts[1]}.${parts[0]}`;
-        }
-
-        // ----- AKTUALIZACJA LICZBY NA IKONIE -----
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
+            const coinSvg = document.getElementById('balance-coin-svg');
             if (balanceEl) {
                 balanceEl.textContent = balance;
             }
+            if (coinSvg) {
+                if (balance > 0) {
+                    coinSvg.classList.add('glow-coin-positive');
+                } else {
+                    coinSvg.classList.remove('glow-coin-positive');
+                }
+            }
+        }
+
+        // ----- ZARZĄDZANIE BACKUPEM I SYNCHRONIZACJĄ -----
+        function saveToLocalBackup() {
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary,
+                sortModes: sortModes,
+                _version: localVersion,
+                _timestamp: Date.now()
+            };
+            try {
+                localStorage.setItem('flr_backup', JSON.stringify(dataObj));
+            } catch (e) {
+                console.warn('Nie udało się zapisać backupu lokalnego', e);
+            }
+        }
+
+        function loadFromLocalBackup() {
+            try {
+                const raw = localStorage.getItem('flr_backup');
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (typeof data.balance !== 'number' || !Array.isArray(data.history) || !data.dictionary) {
+                    console.warn('Backup ma niekompletną strukturę');
+                    return null;
+                }
+                data.dictionary = data.dictionary.map(group => ({
+                    ...group,
+                    items: group.items.map(item => ({
+                        ...item,
+                        basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                    }))
+                }));
+                return data;
+            } catch (e) {
+                console.warn('Błąd odczytu backupu', e);
+                return null;
+            }
+        }
+
+        function setPendingFlag(flag) {
+            pendingSync = flag;
+            localStorage.setItem('flr_pending', flag ? 'true' : 'false');
+            if (flag) {
+                setStatusPending();
+            } else {
+                if (navigator.onLine) {
+                    setStatusOnline();
+                } else {
+                    setStatusOffline();
+                }
+            }
+        }
+
+        function getPendingFlag() {
+            return localStorage.getItem('flr_pending') === 'true';
+        }
+
+        async function saveDataToFirestore() {
+            localVersion++;
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary,
+                sortModes: sortModes,
+                _version: localVersion,
+                _timestamp: Date.now()
+            };
+
+            saveToLocalBackup();
+
+            if (!navigator.onLine) {
+                setPendingFlag(true);
+                showToast('📡 Brak połączenia – zmiany zapisane lokalnie');
+                return;
+            }
+
+            isLocalUpdate = true;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    if (docSnap.exists()) {
+                        const remoteVersion = docSnap.data()._version || 0;
+                        if (remoteVersion > localVersion) {
+                            throw new Error('Ktoś inny zmienił dane. Odśwież stronę.');
+                        }
+                    }
+                    transaction.set(docRef, dataObj);
+                });
+                isLocalUpdate = false;
+                setPendingFlag(false);
+                if (pendingUpdates.length > 0) {
+                    const latestUpdate = pendingUpdates[pendingUpdates.length - 1];
+                    pendingUpdates = [];
+                    const remoteVersion = latestUpdate._version || 0;
+                    if (remoteVersion > localVersion) {
+                        showToast('📥 Wczytano nowsze dane z chmury');
+                        updateStateFromFirestore(latestUpdate, true);
+                    }
+                }
+                showToast('Zapisano!');
+                setStatusOnline();
+            } catch (err) {
+                isLocalUpdate = false;
+                if (err.message && err.message.includes('Ktoś inny')) {
+                    showToast('⚠️ ' + err.message);
+                    try {
+                        const snap = await getDoc(docRef);
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data(), true);
+                        }
+                    } catch (e) {
+                        console.warn('Nie udało się odświeżyć danych', e);
+                    }
+                } else {
+                    console.error("Błąd zapisu:", err);
+                    setPendingFlag(true);
+                    showToast('❌ Błąd zapisu – zapisano lokalnie');
+                    setStatusOffline();
+                }
+            }
+        }
+
+        async function syncPendingChanges() {
+            if (!getPendingFlag()) return;
+            if (!navigator.onLine) return;
+
+            const backup = loadFromLocalBackup();
+            if (!backup) {
+                setPendingFlag(false);
+                return;
+            }
+
+            try {
+                const snap = await getDoc(docRef);
+                if (snap.exists()) {
+                    const remoteData = snap.data();
+                    const remoteVersion = remoteData._version || 0;
+                    if (remoteVersion > backup._version) {
+                        showToast('⚠️ Wykryto nowsze dane w chmurze. Twoje lokalne zmiany nie zostały wysłane.');
+                        setPendingFlag(true);
+                        updateStateFromFirestore(remoteData, true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Nie udało się sprawdzić wersji przed synchronizacją', err);
+            }
+
+            isLocalUpdate = true;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    if (docSnap.exists()) {
+                        const remoteVersion = docSnap.data()._version || 0;
+                        if (remoteVersion > backup._version) {
+                            throw new Error('Ktoś inny zmienił dane podczas synchronizacji.');
+                        }
+                    }
+                    transaction.set(docRef, backup);
+                });
+                isLocalUpdate = false;
+                setPendingFlag(false);
+                updateStateFromFirestore(backup, true);
+                showToast('Zapisano!');
+                setStatusOnline();
+            } catch (err) {
+                isLocalUpdate = false;
+                if (err.message && err.message.includes('Ktoś inny')) {
+                    showToast('⚠️ ' + err.message + ' Odśwież stronę.');
+                    try {
+                        const snap = await getDoc(docRef);
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data(), true);
+                        }
+                    } catch (e) {
+                        console.warn('Nie udało się odświeżyć danych', e);
+                    }
+                } else {
+                    console.error('Błąd synchronizacji:', err);
+                    setStatusOffline();
+                    showToast('❌ Błąd synchronizacji – spróbuj ponownie później');
+                }
+            }
+        }
+
+        window.addEventListener('online', () => {
+            setStatusConnecting();
+            syncPendingChanges().then(() => {
+                if (!getPendingFlag()) {
+                    getDoc(docRef).then(snap => {
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data());
+                        }
+                    }).catch(() => {});
+                }
+            });
+        });
+
+        window.addEventListener('offline', () => {
+            setStatusOffline();
+            showToast('📡 Brak połączenia – zmiany będą zapisywane lokalnie');
+        });
+
+        // ----- AKTUALIZACJA STANU -----
+        function updateStateFromFirestore(data, force = false) {
+            if (!data) return;
+            const incomingVersion = data._version || 0;
+            if (!force && incomingVersion <= localVersion && localVersion > 0) {
+                return;
+            }
+
+            balance = data.balance ?? 0;
+            historyEntries = data.history ?? [];
+            activeReduction = data.activeReduction ?? null;
+            sortModes = data.sortModes || { 0: 0, 1: 0, 2: 0 };
+            if (data.dictionary) {
+                eventDictionary = data.dictionary.map(group => ({
+                    ...group,
+                    items: group.items.map(item => ({
+                        ...item,
+                        basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                    }))
+                }));
+            } else {
+                eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
+            }
+            localVersion = incomingVersion;
+            saveToLocalBackup();
+            if (!getPendingFlag()) {
+                setPendingFlag(false);
+            }
+            updateUI();
+            setStatusOnline();
         }
 
         // ----- RENDEROWANIE KALENDARZA -----
@@ -769,13 +1092,15 @@
                 grid.appendChild(document.createElement('div'));
             }
 
+            const todayStr = getLocalDateString(new Date());
+
             for (let day = 1; day <= totalDays; day++) {
                 const monthStr = String(calendarMonth + 1).padStart(2, '0');
                 const dayStr = String(day).padStart(2, '0');
                 const dateStr = `${calendarYear}-${monthStr}-${dayStr}`;
 
                 const isSelected = dateStr === activeDate;
-                const isToday = dateStr === new Date().toISOString().split('T')[0];
+                const isToday = dateStr === todayStr;
 
                 const btn = document.createElement('button');
                 btn.className = `h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center click-anim ${
@@ -790,7 +1115,75 @@
             }
         }
 
-        // ----- RENDEROWANIE KATALOGU (AKCJE) -----
+        // ----- RENDEROWANIE KATALOGU -----
+        function createActionRow(item, renderIdx, totalItems, actionLabel, isNegative, pointColor, affordabilityClass, sortMode, tabIdx, group, balance) {
+            const row = document.createElement('div');
+            row.className = `flex items-center justify-between p-3 rounded-xl border transition-all relative ${affordabilityClass}`;
+
+            const sign = item.points > 0 ? '+' : '';
+
+            const leftDiv = document.createElement('div');
+            leftDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer pr-2';
+            leftDiv.onclick = () => window.tryExecuteEvent(item.name, item.points);
+
+            const pointsSpan = document.createElement('span');
+            pointsSpan.className = `${pointColor} font-black text-xs min-w-[36px]`;
+            pointsSpan.textContent = `${sign}${item.points}`;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'text-xs font-medium text-zinc-200';
+            nameSpan.textContent = item.name;
+
+            leftDiv.appendChild(pointsSpan);
+            leftDiv.appendChild(nameSpan);
+
+            const rightDiv = document.createElement('div');
+            rightDiv.className = 'flex items-center gap-1.5';
+
+            if (sortMode === 0) {
+                const upBtn = document.createElement('button');
+                upBtn.className = renderIdx === 0 ? 'text-zinc-700 cursor-not-allowed text-xs px-0.5' : 'text-zinc-400 hover:text-zinc-200 text-xs px-0.5';
+                upBtn.textContent = '▲';
+                upBtn.title = 'Przesuń w górę';
+                upBtn.disabled = renderIdx === 0;
+                upBtn.onclick = () => window.moveItem(item.originalIndex, -1);
+                rightDiv.appendChild(upBtn);
+
+                const downBtn = document.createElement('button');
+                downBtn.className = renderIdx === totalItems - 1 ? 'text-zinc-700 cursor-not-allowed text-xs px-0.5' : 'text-zinc-400 hover:text-zinc-200 text-xs px-0.5';
+                downBtn.textContent = '▼';
+                downBtn.title = 'Przesuń w dół';
+                downBtn.disabled = renderIdx === totalItems - 1;
+                downBtn.onclick = () => window.moveItem(item.originalIndex, 1);
+                rightDiv.appendChild(downBtn);
+            }
+
+            const actionBtn = document.createElement('button');
+            actionBtn.className = 'text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-lg text-zinc-300 font-medium click-anim ml-1';
+            actionBtn.textContent = actionLabel;
+            actionBtn.onclick = () => window.tryExecuteEvent(item.name, item.points);
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'text-zinc-500 hover:text-zinc-300 text-xs px-1';
+            editBtn.textContent = '✏️';
+            editBtn.title = 'Edytuj';
+            editBtn.onclick = () => window.openEditCatalogModal(tabIdx, item.originalIndex);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'text-zinc-500 hover:text-red-400 text-xs px-1';
+            delBtn.textContent = '✕';
+            delBtn.title = 'Usuń z katalogu';
+            delBtn.onclick = () => window.deleteCatalogItem(tabIdx, item.originalIndex);
+
+            rightDiv.appendChild(actionBtn);
+            rightDiv.appendChild(editBtn);
+            rightDiv.appendChild(delBtn);
+
+            row.appendChild(leftDiv);
+            row.appendChild(rightDiv);
+            return row;
+        }
+
         function renderActions() {
             const listContainer = document.getElementById('action-list');
             listContainer.innerHTML = '';
@@ -813,8 +1206,9 @@
                 itemsToRender.sort((a, b) => b.points - a.points);
             }
 
+            const totalItems = itemsToRender.length;
+
             itemsToRender.forEach((item, renderIdx) => {
-                const row = document.createElement('div');
                 let affordabilityClass = isNegative ? 'bg-bloodbg/15 border-blood/20 text-zinc-200' : 'bg-card border-bordercolor text-zinc-200';
                 if (currentTab === 2 && item.points < 0) {
                     const cost = Math.abs(item.points);
@@ -822,43 +1216,23 @@
                         affordabilityClass = 'bg-emerald-950/30 border-emerald-500/50 text-zinc-200 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
                     }
                 }
-                row.className = `flex items-center justify-between p-3 rounded-xl border transition-all relative ${affordabilityClass}`;
 
-                const sign = item.points > 0 ? '+' : '';
                 const pointColor = isNegative ? 'text-red-400' : (activeReduction && currentTab === 0 ? 'text-amber-400' : 'text-zinc-100');
 
-                let moveButtonsHTML = '';
-                if (sortMode === 0) {
-                    moveButtonsHTML = `
-                        <button onclick="window.moveItem(${item.originalIndex}, -1)" ${renderIdx === 0 ? 'disabled class="text-zinc-700 cursor-not-allowed text-xs px-0.5"' : 'class="text-zinc-400 hover:text-zinc-200 text-xs px-0.5"'} title="Przesuń w górę">▲</button>
-                        <button onclick="window.moveItem(${item.originalIndex}, 1)" ${renderIdx === itemsToRender.length - 1 ? 'disabled class="text-zinc-700 cursor-not-allowed text-xs px-0.5"' : 'class="text-zinc-400 hover:text-zinc-200 text-xs px-0.5"'} title="Przesuń w dół">▼</button>
-                    `;
-                }
-
-                const escapedName = item.name.replace(/'/g, "\\'");
-
-                row.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1 cursor-pointer pr-2" onclick="window.tryExecuteEvent('${escapedName}', ${item.points})">
-                        <span class="${pointColor} font-black text-xs min-w-[36px]">${sign}${item.points}</span>
-                        <span class="text-xs font-medium text-zinc-200">${item.name}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                        ${moveButtonsHTML}
-                        <button onclick="window.tryExecuteEvent('${escapedName}', ${item.points})" class="text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-lg text-zinc-300 font-medium click-anim ml-1">${actionLabel}</button>
-                        <button onclick="window.openEditCatalogModal(${currentTab}, ${item.originalIndex})" class="text-zinc-500 hover:text-zinc-300 text-xs px-1" title="Edytuj">✏️</button>
-                        <button onclick="window.deleteCatalogItem(${currentTab}, ${item.originalIndex})" class="text-zinc-500 hover:text-red-400 text-xs px-1" title="Usuń z katalogu">✕</button>
-                    </div>
-                `;
+                const row = createActionRow(
+                    item, renderIdx, totalItems, actionLabel, isNegative,
+                    pointColor, affordabilityClass, sortMode, currentTab, group, balance
+                );
                 listContainer.appendChild(row);
             });
 
             const addRow = document.createElement('button');
             addRow.className = `w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800/50 text-zinc-400 text-xs font-medium transition-all click-anim mt-1`;
-            addRow.onclick = () => window.openAddCatalogModal();
             addRow.innerHTML = `
                 <span class="text-base font-bold">+</span>
                 <span>Dodaj nowe zdarzenie do katalogu</span>
             `;
+            addRow.onclick = () => window.openAddCatalogModal();
             listContainer.appendChild(addRow);
         }
 
@@ -869,13 +1243,13 @@
             else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
         }
 
-        // ----- RENDEROWANIE "MOŻESZ PROSIĆ O:" -----
+        // ----- RENDEROWANIE "DOZWOLONE PRZYJEMNOŚCI" -----
         function renderRewards() {
             const listContainer = document.getElementById('rewards-list');
             const emptyContainer = document.getElementById('rewards-empty');
             listContainer.innerHTML = '';
 
-            const rewardsGroup = eventDictionary[2]; // Wykup
+            const rewardsGroup = eventDictionary[2];
             const available = rewardsGroup.items.filter(item => item.points < 0 && balance >= Math.abs(item.points));
 
             if (available.length === 0) {
@@ -888,18 +1262,22 @@
                 const cost = Math.abs(item.points);
                 const row = document.createElement('div');
                 row.className = 'reward-item';
-                row.innerHTML = `
-                    <span class="name">${item.name}</span>
-                    <span class="cost">✅ ${cost} pkt</span>
-                `;
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = item.name;
+                const costSpan = document.createElement('span');
+                costSpan.className = 'cost';
+                costSpan.textContent = `✅ ${cost} pkt`;
+                row.appendChild(nameSpan);
+                row.appendChild(costSpan);
                 listContainer.appendChild(row);
             });
         }
 
         // ============================================================
-        // LOGIKA STATYSTYK ZDARZEŃ (DYNAMICZNA WZGLĘDEM ZAKRESU)
+        // STATYSTYKI
         // ============================================================
-        let statsRange = 'month'; // 'year' | 'month' | 'week'
+        let statsRange = 'month';
 
         window.switchStatsRange = function(range) {
             statsRange = range;
@@ -916,24 +1294,33 @@
             renderStats();
         };
 
-        function getWeekBoundsFromActiveDate(dateStr) {
-            const end = new Date(dateStr);
-            end.setHours(23, 59, 59, 999);
-            
-            const start = new Date(dateStr);
-            start.setDate(start.getDate() - 6);
-            start.setHours(0, 0, 0, 0);
-            
-            return { start, end };
+        function filterDataByRange(data, viewType, referenceDateStr) {
+            const target = new Date(referenceDateStr);
+            return data.filter(entry => {
+                if (!entry.date) return false;
+                const entryDate = getLocalDateFromStr(entry.date);
+                if (viewType === 'year') {
+                    return entryDate.getFullYear() === target.getFullYear();
+                }
+                if (viewType === 'month') {
+                    return (
+                        entryDate.getFullYear() === target.getFullYear() &&
+                        entryDate.getMonth() === target.getMonth()
+                    );
+                }
+                if (viewType === 'week') {
+                    const { start, end } = getWeekBoundsFromActiveDate(referenceDateStr);
+                    return entryDate >= start && entryDate <= end;
+                }
+                return true;
+            });
         }
 
-        // Funkcja pomocnicza do znajdowania najczęściej występującego elementu
         function getMostFrequent(arr) {
             if (!arr || arr.length === 0) return '-';
             const counts = {};
             let maxCount = 0;
             let mostFrequent = '-';
-
             for (const item of arr) {
                 if (!item) continue;
                 counts[item] = (counts[item] || 0) + 1;
@@ -945,38 +1332,24 @@
             return `${mostFrequent} (${maxCount}x)`;
         }
 
-        // Funkcja filtrująca dane na podstawie wybranego widoku (rok, miesiąc, tydzień)
-        function filterDataByRange(data, viewType, referenceDateStr) {
-            const target = new Date(referenceDateStr);
-            
-            return data.filter(entry => {
-                if (!entry.date) return false;
-                const entryDate = new Date(entry.date);
-                
-                if (viewType === 'year') {
-                    return entryDate.getFullYear() === target.getFullYear();
-                } 
-                
-                if (viewType === 'month') {
-                    return (
-                        entryDate.getFullYear() === target.getFullYear() &&
-                        entryDate.getMonth() === target.getMonth()
-                    );
-                } 
-                
-                if (viewType === 'week') {
-                    const { start, end } = getWeekBoundsFromActiveDate(referenceDateStr);
-                    return entryDate >= start && entryDate <= end;
+        function filterHistoryByType(history, type, dictionary) {
+            return history.filter(entry => {
+                if (type === 'earn') return entry.points > 0;
+                if (type === 'pen') {
+                    if (entry.points >= 0) return false;
+                    return dictionary[1].items.some(i => i.name.toLowerCase() === entry.name.toLowerCase());
                 }
-                
-                return true;
+                if (type === 'buy') {
+                    if (entry.points >= 0) return false;
+                    return dictionary[2].items.some(i => i.name.toLowerCase() === entry.name.toLowerCase());
+                }
+                return false;
             });
         }
 
         function renderStats() {
             const activeD = new Date(activeDate);
             let rangeLabelStr = "";
-
             if (statsRange === 'year') {
                 rangeLabelStr = `Rok ${activeD.getFullYear()}`;
             } else if (statsRange === 'month') {
@@ -986,54 +1359,40 @@
                 const { start, end } = getWeekBoundsFromActiveDate(activeDate);
                 rangeLabelStr = `${formatDateText(start.toISOString().split('T')[0])} - ${formatDateText(end.toISOString().split('T')[0])}`;
             }
-
             document.getElementById('stats-range-label').innerText = `Zakres: ${rangeLabelStr}`;
 
-            // Filtrowanie danych przy użyciu zintegrowanej logiki zakresów
             const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
 
-            let sumEarn = 0;
-            let sumPen = 0;
-            let sumBuy = 0;
+            const earnEntries = filteredHistory.filter(e => e.points > 0);
+            const penEntries = filterHistoryByType(filteredHistory, 'pen', eventDictionary);
+            const buyEntries = filterHistoryByType(filteredHistory, 'buy', eventDictionary);
 
-            filteredHistory.forEach(e => {
-                if (e.points > 0) {
-                    sumEarn += e.points;
-                } else if (e.points < 0) {
-                    const isPen = eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
-                    const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
-                    
-                    if (isPen) {
-                        sumPen += Math.abs(e.points);
-                    } else if (isBuy) {
-                        sumBuy += Math.abs(e.points);
-                    } else {
-                        sumPen += Math.abs(e.points);
-                    }
-                }
-            });
+            const sumEarn = earnEntries.reduce((acc, e) => acc + e.points, 0);
+            const sumPen = penEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
+            const sumBuy = buyEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
 
             document.getElementById('stats-val-earn').innerText = `+${sumEarn}`;
             document.getElementById('stats-val-pen').innerText = `-${sumPen}`;
             document.getElementById('stats-val-buy').innerText = `-${sumBuy}`;
 
-            // Ostatnie aktywności (z całej historii)
             const orgasmEntry = historyEntries.find(e => e.name.toLowerCase().includes("orgazm dla żony"));
             if (orgasmEntry) {
-                const daysAgo = Math.floor((new Date() - new Date(orgasmEntry.date)) / (1000 * 60 * 60 * 24));
+                const orgasmDate = getLocalDateFromStr(orgasmEntry.date);
+                const today = new Date();
+                const daysAgo = Math.floor((today - orgasmDate) / (1000 * 60 * 60 * 24));
                 let agoText = daysAgo === 0 ? "dzisiaj" : daysAgo === 1 ? "wczoraj" : `${daysAgo} dni temu`;
-                document.getElementById('stat-last-orgasm').innerText = `${formatDateText(orgasmEntry.date)} (${agoText})`;
+                document.getElementById('stat-last-orgasm').textContent = `${formatDateText(orgasmEntry.date)} (${agoText})`;
             } else {
-                document.getElementById('stat-last-orgasm').innerText = "Brak w historii";
+                document.getElementById('stat-last-orgasm').textContent = "Brak w historii";
             }
 
             const lastEarn = historyEntries.find(e => e.points > 0);
             if (lastEarn) {
-                document.getElementById('stat-last-earn').innerText = lastEarn.name;
-                document.getElementById('stat-last-earn-pts').innerText = `+${lastEarn.points} pkt`;
+                document.getElementById('stat-last-earn').textContent = lastEarn.name;
+                document.getElementById('stat-last-earn-pts').textContent = `+${lastEarn.points} pkt`;
             } else {
-                document.getElementById('stat-last-earn').innerText = "-";
-                document.getElementById('stat-last-earn-pts').innerText = "0 pkt";
+                document.getElementById('stat-last-earn').textContent = "-";
+                document.getElementById('stat-last-earn-pts').textContent = "0 pkt";
             }
 
             const lastPen = historyEntries.find(e => {
@@ -1041,11 +1400,11 @@
                 return eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase()) || !eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
             });
             if (lastPen) {
-                document.getElementById('stat-last-pen').innerText = lastPen.name;
-                document.getElementById('stat-last-pen-pts').innerText = `${lastPen.points} pkt`;
+                document.getElementById('stat-last-pen').textContent = lastPen.name;
+                document.getElementById('stat-last-pen-pts').textContent = `${lastPen.points} pkt`;
             } else {
-                document.getElementById('stat-last-pen').innerText = "-";
-                document.getElementById('stat-last-pen-pts').innerText = "0 pkt";
+                document.getElementById('stat-last-pen').textContent = "-";
+                document.getElementById('stat-last-pen-pts').textContent = "0 pkt";
             }
 
             const lastBuy = historyEntries.find(e => {
@@ -1053,27 +1412,20 @@
                 return eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
             });
             if (lastBuy) {
-                document.getElementById('stat-last-buy').innerText = lastBuy.name;
-                document.getElementById('stat-last-buy-pts').innerText = `${lastBuy.points} pkt`;
+                document.getElementById('stat-last-buy').textContent = lastBuy.name;
+                document.getElementById('stat-last-buy-pts').textContent = `${lastBuy.points} pkt`;
             } else {
-                document.getElementById('stat-last-buy').innerText = "-";
-                document.getElementById('stat-last-buy-pts').innerText = "0 pkt";
+                document.getElementById('stat-last-buy').textContent = "-";
+                document.getElementById('stat-last-buy-pts').textContent = "0 pkt";
             }
 
-            // Najczęściej w wybranym zakresie (dynamiczne względem wybranego roku, miesiąca lub tygodnia)
-            const earnItemsFiltered = filteredHistory.filter(e => e.points > 0).map(e => e.name);
-            const penItemsFiltered = filteredHistory.filter(e => {
-                if (e.points >= 0) return false;
-                return eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
-            }).map(e => e.name);
-            const buyItemsFiltered = filteredHistory.filter(e => {
-                if (e.points >= 0) return false;
-                return eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
-            }).map(e => e.name);
+            const earnNames = earnEntries.map(e => e.name);
+            const penNames = penEntries.map(e => e.name);
+            const buyNames = buyEntries.map(e => e.name);
 
-            document.getElementById('stat-freq-earn').innerText = getMostFrequent(earnItemsFiltered);
-            document.getElementById('stat-freq-pen').innerText = getMostFrequent(penItemsFiltered);
-            document.getElementById('stat-freq-buy').innerText = getMostFrequent(buyItemsFiltered);
+            document.getElementById('stat-freq-earn').textContent = getMostFrequent(earnNames);
+            document.getElementById('stat-freq-pen').textContent = getMostFrequent(penNames);
+            document.getElementById('stat-freq-buy').textContent = getMostFrequent(buyNames);
         }
 
         // ----- AKTUALIZACJA UI -----
@@ -1103,14 +1455,28 @@
                     const isNegative = entry.points < 0;
                     const sign = entry.points > 0 ? '+' : '';
                     const item = document.createElement('div');
-                    item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl";
-                    item.innerHTML = `
-                        <span class="text-xs font-medium text-zinc-200">${entry.name}</span>
-                        <div class="flex items-center gap-3">
-                            <span class="font-black text-sm ${isNegative ? 'text-red-400' : 'text-zinc-100'}">${sign}${entry.points}</span>
-                            <button onclick="window.deleteEntry('${entry.id}')" class="text-zinc-600 hover:text-red-500 text-xs px-1">✕</button>
-                        </div>
-                    `;
+                    item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl flr-history-item";
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'text-xs font-medium text-zinc-200';
+                    nameSpan.textContent = entry.name;
+
+                    const ptsSpan = document.createElement('span');
+                    ptsSpan.className = `font-black text-sm ${isNegative ? 'text-red-400' : 'text-zinc-100'}`;
+                    ptsSpan.textContent = `${sign}${entry.points}`;
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'text-zinc-600 hover:text-red-500 text-xs px-1';
+                    delBtn.textContent = '✕';
+                    delBtn.onclick = () => window.deleteEntry(entry.id);
+
+                    const rightDiv = document.createElement('div');
+                    rightDiv.className = 'flex items-center gap-3';
+                    rightDiv.appendChild(ptsSpan);
+                    rightDiv.appendChild(delBtn);
+
+                    item.appendChild(nameSpan);
+                    item.appendChild(rightDiv);
                     historyList.appendChild(item);
                 });
             }
@@ -1118,132 +1484,12 @@
             renderCalendar();
             renderActions();
             renderRewards();
-            renderStats(); // Odświeżenie statystyk
+            renderStats();
         }
 
-        // ----- ZAPIS DO FIRESTORE -----
-        function saveDataToFirestore() {
-            const dataObj = {
-                balance,
-                history: historyEntries,
-                activeReduction,
-                dictionary: eventDictionary,
-                sortModes: sortModes
-            };
-            isLocalUpdate = true;
-            setDoc(docRef, dataObj)
-                .then(() => { isLocalUpdate = false; })
-                .catch((err) => {
-                    console.error("Błąd zapisu do Firestore:", err);
-                    showToast("❌ Błąd zapisu!");
-                    isLocalUpdate = false;
-                    setStatusOffline();
-                });
-        }
-
-        // ----- AKTUALIZACJA STANU Z FIRESTORE -----
-        function updateStateFromFirestore(data) {
-            if (!data) return;
-            balance = data.balance ?? 0;
-            historyEntries = data.history ?? [];
-            activeReduction = data.activeReduction ?? null;
-            sortModes = data.sortModes || { 0: 0, 1: 0, 2: 0 };
-            if (data.dictionary) {
-                eventDictionary = data.dictionary;
-            } else {
-                eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
-            }
-            updateUI();
-            setStatusOnline();
-        }
-
-        // ----- INICJALIZACJA -----
-        let retryCount = 0;
-        const MAX_RETRIES = 10;
-
-        function initApp() {
-            setStatusConnecting();
-            loadingIndicator.innerText = "⏳ Ładowanie danych...";
-
-            getDoc(docRef)
-                .then((snap) => {
-                    retryCount = 0;
-                    if (snap.exists()) {
-                        updateStateFromFirestore(snap.data());
-                    } else {
-                        const defaultData = {
-                            balance: 0,
-                            history: [],
-                            activeReduction: null,
-                            dictionary: JSON.parse(JSON.stringify(originalDictionary)),
-                            sortModes: { 0: 0, 1: 0, 2: 0 }
-                        };
-                        setDoc(docRef, defaultData)
-                            .then(() => {
-                                updateStateFromFirestore(defaultData);
-                            })
-                            .catch((err) => {
-                                console.error("Błąd tworzenia dokumentu:", err);
-                                showToast("❌ Błąd inicjalizacji bazy");
-                                loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
-                                setStatusOffline();
-                            });
-                    }
-                    loadingIndicator.classList.add('hidden');
-                    mainContent.classList.remove('hidden');
-                    setStatusOnline();
-                    resetBadge();
-                    isInitialSnapshot = false;
-                    loadCollapseStates();
-                })
-                .catch((err) => {
-                    console.error("Błąd odczytu dokumentu:", err);
-                    loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
-                    loadingIndicator.innerHTML = `
-                        <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
-                        <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
-                            <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
-                            <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
-                            <p>3. Czy masz połączenie z internetem?</p>
-                            <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
-                        </div>
-                    `;
-                    showToast("❌ Błąd połączenia");
-                    setStatusOffline();
-
-                    if (retryCount < MAX_RETRIES) {
-                        retryCount++;
-                        setTimeout(() => {
-                            initApp();
-                        }, 5000);
-                    } else {
-                        loadingIndicator.innerHTML = `
-                            <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
-                            <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
-                                <p>Sprawdź konfigurację Firebase w konsoli.</p>
-                                <p>Upewnij się, że adres URL projektu jest poprawny.</p>
-                            </div>
-                        `;
-                        setStatusOffline();
-                    }
-                });
-
-            onSnapshot(docRef, (snapshot) => {
-                if (isLocalUpdate) return;
-                if (snapshot.exists()) {
-                    if (!isInitialSnapshot) {
-                        incrementBadge();
-                    }
-                    updateStateFromFirestore(snapshot.data());
-                }
-            }, (error) => {
-                console.error("Błąd nasłuchu:", error);
-                showToast("❌ Błąd synchronizacji");
-                setStatusOffline();
-            });
-        }
-
-        // ----- FUNKCJE GLOBALNE -----
+        // ============================================================
+        // FUNKCJE GLOBALNE
+        // ============================================================
         window.changeMonth = function(direction) {
             calendarMonth += direction;
             if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
@@ -1319,8 +1565,17 @@
                 return;
             }
             if (editingGroupIdx !== null && editingItemIdx !== null) {
-                eventDictionary[editingGroupIdx].items[editingItemIdx].name = newName;
-                eventDictionary[editingGroupIdx].items[editingItemIdx].points = newPoints;
+                const item = eventDictionary[editingGroupIdx].items[editingItemIdx];
+                item.name = newName;
+                item.points = newPoints;
+                if (item.basePoints === undefined) {
+                    item.basePoints = newPoints;
+                }
+                if (editingGroupIdx === 0 && activeReduction) {
+                    const percent = activeReduction.percent;
+                    const reduced = Math.round(item.basePoints * (1 - percent / 100));
+                    item.points = reduced > 0 ? reduced : 1;
+                }
                 saveDataToFirestore();
                 renderActions();
                 window.closeEditCatalogModal();
@@ -1347,7 +1602,6 @@
                 alert("Podaj poprawną nazwę oraz liczbę punktów.");
                 return;
             }
-
             if (points > 0 && (currentTab === 1 || currentTab === 2)) {
                 if (!confirm(
                     `⚠️ Dodajesz dodatnie punkty (+${points}) w zakładce "${eventDictionary[currentTab].group}".\n\n` +
@@ -1359,7 +1613,13 @@
             }
 
             const targetGroupIdx = currentTab;
-            eventDictionary[targetGroupIdx].items.push({ name, points });
+            const newItem = { name, points, basePoints: points };
+            if (targetGroupIdx === 0 && activeReduction) {
+                const percent = activeReduction.percent;
+                const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
+                newItem.points = reduced > 0 ? reduced : 1;
+            }
+            eventDictionary[targetGroupIdx].items.push(newItem);
             saveDataToFirestore();
             renderActions();
             window.closeAddCatalogModal();
@@ -1381,7 +1641,7 @@
             saveDataToFirestore();
             renderActions();
             updateUI();
-            showToast("Zapisano w rejestrze!");
+            showToast("Zapisano!");
             incrementBadge();
         };
 
@@ -1452,9 +1712,13 @@
                 return;
             }
             activeReduction = { percent, endDate };
-            eventDictionary[0].items = originalDictionary[0].items.map(item => {
-                const reduced = Math.round(item.points * (1 - percent / 100));
-                return { name: item.name, points: reduced > 0 ? reduced : 1 };
+            const earnGroup = eventDictionary[0];
+            earnGroup.items.forEach(item => {
+                if (item.basePoints === undefined) {
+                    item.basePoints = item.points;
+                }
+                const reduced = Math.round(item.basePoints * (1 - percent / 100));
+                item.points = reduced > 0 ? reduced : 1;
             });
             saveDataToFirestore();
             renderActions();
@@ -1464,8 +1728,17 @@
         };
 
         window.cancelReduction = function(silent = false) {
+            if (!activeReduction) {
+                if (!silent) showToast("Brak aktywnej redukcji.");
+                return;
+            }
             activeReduction = null;
-            eventDictionary[0] = JSON.parse(JSON.stringify(originalDictionary[0]));
+            const earnGroup = eventDictionary[0];
+            earnGroup.items.forEach(item => {
+                if (item.basePoints !== undefined) {
+                    item.points = item.basePoints;
+                }
+            });
             saveDataToFirestore();
             renderActions();
             updateUI();
@@ -1485,7 +1758,7 @@
                 saveDataToFirestore();
                 renderActions();
                 updateUI();
-                showToast("Bilans wyzerowany! Wpis dodany do historii.");
+                showToast("Bilans wyzerowany!");
                 incrementBadge();
             }
         };
@@ -1496,12 +1769,13 @@
                 history: historyEntries,
                 activeReduction,
                 dictionary: eventDictionary,
-                sortModes: sortModes
+                sortModes: sortModes,
+                _version: localVersion
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `rejestr_flr_${new Date().toISOString().split('T')[0]}.json`);
+            downloadAnchor.setAttribute("download", `rejestr_flr_${getLocalDateString(new Date())}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -1523,8 +1797,17 @@
                         balance = parsed.balance;
                         historyEntries = parsed.history;
                         activeReduction = parsed.activeReduction || null;
-                        if (parsed.dictionary) eventDictionary = parsed.dictionary;
+                        if (parsed.dictionary) {
+                            eventDictionary = parsed.dictionary.map(group => ({
+                                ...group,
+                                items: group.items.map(item => ({
+                                    ...item,
+                                    basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                                }))
+                            }));
+                        }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
+                        localVersion = parsed._version || 0;
                         saveDataToFirestore();
                         renderActions();
                         updateUI();
@@ -1542,20 +1825,153 @@
         };
 
         // ============================================================
-        // REJESTRACJA SERVICE WORKERA
+        // INICJALIZACJA
         // ============================================================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/FLRpoints/service-worker.js', { scope: '/FLRpoints/' })
-                    .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
-                    .catch(err => console.error('❌ Błąd rejestracji SW:', err));
-            });
+        let retryCount = 0;
+        const MAX_RETRIES = 10;
+
+        function initApp() {
+            setStatusConnecting();
+            loadingIndicator.innerText = "⏳ Ładowanie danych...";
+
+            const pending = getPendingFlag();
+            if (pending && navigator.onLine) {
+                syncPendingChanges().then(() => {
+                    loadFromFirestore();
+                }).catch(() => {
+                    loadFromFirestore();
+                });
+            } else {
+                loadFromFirestore();
+            }
+
+            function loadFromFirestore() {
+                getDoc(docRef)
+                    .then((snap) => {
+                        retryCount = 0;
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data());
+                        } else {
+                            const defaultData = {
+                                balance: 0,
+                                history: [],
+                                activeReduction: null,
+                                dictionary: JSON.parse(JSON.stringify(originalDictionary)),
+                                sortModes: { 0: 0, 1: 0, 2: 0 },
+                                _version: 0
+                            };
+                            setDoc(docRef, defaultData)
+                                .then(() => {
+                                    updateStateFromFirestore(defaultData);
+                                })
+                                .catch((err) => {
+                                    console.error("Błąd tworzenia dokumentu:", err);
+                                    showToast("❌ Błąd inicjalizacji bazy");
+                                    loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
+                                    setStatusOffline();
+                                });
+                        }
+                        loadingIndicator.classList.add('hidden');
+                        mainContent.classList.remove('hidden');
+                        if (getPendingFlag()) {
+                            setStatusPending();
+                        } else {
+                            setStatusOnline();
+                        }
+                        resetBadge();
+                        isFirstSnapshot = true;
+                        loadCollapseStates();
+                    })
+                    .catch((err) => {
+                        console.error("Błąd odczytu dokumentu:", err);
+                        const backup = loadFromLocalBackup();
+                        if (backup) {
+                            updateStateFromFirestore(backup, true);
+                            setPendingFlag(true);
+                            showToast('📡 Wczytano dane lokalne – synchronizacja w toku');
+                            loadingIndicator.classList.add('hidden');
+                            mainContent.classList.remove('hidden');
+                            loadCollapseStates();
+                        } else {
+                            loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
+                            loadingIndicator.innerHTML = `
+                                <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
+                                <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                    <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
+                                    <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
+                                    <p>3. Czy masz połączenie z internetem?</p>
+                                    <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
+                                </div>
+                            `;
+                            showToast("❌ Błąd połączenia");
+                            setStatusOffline();
+
+                            if (retryCount < MAX_RETRIES) {
+                                retryCount++;
+                                setTimeout(() => {
+                                    initApp();
+                                }, 5000);
+                            } else {
+                                loadingIndicator.innerHTML = `
+                                    <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
+                                    <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                        <p>Sprawdź konfigurację Firebase w konsoli.</p>
+                                        <p>Upewnij się, że adres URL projektu jest poprawny.</p>
+                                    </div>
+                                `;
+                                setStatusOffline();
+                            }
+                        }
+                    });
+
+                onSnapshot(docRef, (snapshot) => {
+                    if (isLocalUpdate) return;
+                    if (getPendingFlag()) {
+                        pendingUpdates.push(snapshot.data());
+                        if (pendingUpdates.length > 1) {
+                            pendingUpdates = [pendingUpdates[pendingUpdates.length - 1]];
+                        }
+                        return;
+                    }
+                    if (snapshot.exists()) {
+                        if (!isFirstSnapshot) {
+                            incrementBadge();
+                        }
+                        isFirstSnapshot = false;
+                        updateStateFromFirestore(snapshot.data());
+                    }
+                }, (error) => {
+                    console.error("Błąd nasłuchu:", error);
+                    showToast("❌ Błąd synchronizacji");
+                    setStatusOffline();
+                });
+            }
         }
 
         // ============================================================
-        // WERSJONOWANIE
+        // SERVICE WORKER – z zabezpieczeniem dla środowiska lokalnego
         // ============================================================
-        const APP_VERSION = '1.0.3';
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const isSecureContext = window.location.protocol === 'https:' || 
+                                        window.location.hostname === 'localhost' ||
+                                        window.location.hostname === '127.0.0.1';
+                if (isSecureContext) {
+                    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+                        .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
+                        .catch(err => {
+                            console.error('❌ Błąd rejestracji SW:', err);
+                            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                                showToast('⚠️ Tryb offline może być ograniczony. Sprawdź konsolę.');
+                            }
+                        });
+                } else {
+                    console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
+                }
+            });
+        }
+
+        const APP_VERSION = '1.0.5';
 
         setInterval(() => {
             checkForUpdate();
@@ -1602,7 +2018,7 @@
         }
 
         // ============================================================
-        // START APLIKACJI
+        // START
         // ============================================================
         mainContent.classList.add('hidden');
         initApp();
