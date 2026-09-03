@@ -240,6 +240,14 @@
         #offline-banner {
             transition: all 0.3s ease;
         }
+
+        /* ===== MODAL ROLI ===== */
+        #role-modal .role-btn {
+            transition: all 0.3s ease;
+        }
+        #role-modal .role-btn:hover {
+            transform: scale(1.02);
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -319,6 +327,7 @@
                         <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
                         <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
                         <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
+                        <button onclick="openRoleModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">🔄 Zmień rolę</button>
                         <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
                     </div>
                 </div>
@@ -527,6 +536,23 @@
         </div>
     </div>
 
+    <!-- ===== MODAL WYBORU ROLI ===== -->
+    <div id="role-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-card border border-bordercolor rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-center">
+            <h2 class="text-xl font-bold text-zinc-200 flr-title">👑 FLR Slave Points</h2>
+            <p class="text-sm text-zinc-400">Wybierz swoją rolę w związku:</p>
+            <div class="flex flex-col gap-3 mt-2">
+                <button onclick="setRole('mistress')" class="role-btn bg-blood/10 hover:bg-blood/20 border border-blood/30 p-4 rounded-xl text-lg font-bold text-blood transition-all">
+                    👠 Pani
+                </button>
+                <button onclick="setRole('slave')" class="role-btn bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-4 rounded-xl text-lg font-bold text-zinc-200 transition-all">
+                    🔒 Sługa
+                </button>
+            </div>
+            <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
+        </div>
+    </div>
+
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
     <!-- Import map z dodanym messaging -->
@@ -588,6 +614,7 @@
         // ============================================================
         let newEventsCount = 0;
         let isFirstSnapshot = true;
+        let migrationDone = false;
 
         function updateBadge() {
             if ('setAppBadge' in navigator) {
@@ -695,7 +722,9 @@
             onSnapshot, 
             runTransaction,
             persistentLocalCache,
-            persistentMultipleTabManager
+            persistentMultipleTabManager,
+            getDocs,
+            collection
         } from 'firebase/firestore';
 
         const firebaseConfig = {
@@ -809,6 +838,7 @@
         let localVersion = 0;
         let pendingSync = false;
         let pendingUpdates = [];
+        let isImporting = false; // Flaga dla importu JSON
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -1028,7 +1058,7 @@
         window.addEventListener('online', () => {
             setStatusConnecting();
             syncPendingChanges().then(() => {
-                if (!getPendingFlag()) {
+                if (!getPendingFlag() && !isImporting) {
                     getDoc(docRef).then(snap => {
                         if (snap.exists()) {
                             updateStateFromFirestore(snap.data());
@@ -1046,6 +1076,11 @@
         // ----- AKTUALIZACJA STANU -----
         function updateStateFromFirestore(data, force = false) {
             if (!data) return;
+            // Jeśli trwa import, pomijamy aktualizację z Firestore, aby nie nadpisać zaimportowanych danych
+            if (isImporting) {
+                console.log('⏳ Import w toku – pomijam aktualizację z Firestore');
+                return;
+            }
             const incomingVersion = data._version || 0;
             if (!force && incomingVersion <= localVersion && localVersion > 0) {
                 return;
@@ -1073,6 +1108,33 @@
             }
             updateUI();
             setStatusOnline();
+        }
+
+        // ----- MIGRACJA DANYCH (dodanie pola 'type') -----
+        async function migrateHistoryTypes() {
+            if (migrationDone) return;
+            let changed = 0;
+            for (const entry of historyEntries) {
+                if (!entry.type) {
+                    let eventType = 'earn';
+                    if (entry.points < 0) {
+                        const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === entry.name.toLowerCase());
+                        eventType = isBuy ? 'buy' : 'pen';
+                    }
+                    entry.type = eventType;
+                    changed++;
+                }
+            }
+            if (changed > 0) {
+                migrationDone = true;
+                await saveDataToFirestore();
+                console.log(`✅ Zaktualizowano ${changed} wpisów – dodano pole 'type'`);
+                showToast(`📊 Zaktualizowano ${changed} wpisów w historii`);
+                updateUI();
+            } else {
+                migrationDone = true;
+                console.log('✅ Wszystkie wpisy mają już pole type');
+            }
         }
 
         // ----- RENDEROWANIE KALENDARZA -----
@@ -1475,6 +1537,38 @@
         }
 
         // ============================================================
+        // ROLA UŻYTKOWNIKA
+        // ============================================================
+        function getRole() {
+            return localStorage.getItem('flr_role') || null;
+        }
+
+        window.getRole = getRole;
+
+        window.setRole = async function(role) {
+            localStorage.setItem('flr_role', role);
+            const userId = getUserId();
+            await setDoc(doc(db, 'users', userId), { role }, { merge: true });
+            document.getElementById('role-modal').style.display = 'none';
+            showToast(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`);
+            // Po zapisaniu roli, ponownie rejestrujemy token (aby zaktualizować dane w Firestore)
+            await registerForNotifications();
+        };
+
+        window.openRoleModal = function() {
+            document.getElementById('role-modal').style.display = 'flex';
+        };
+
+        function checkRole() {
+            const role = getRole();
+            if (!role) {
+                document.getElementById('role-modal').style.display = 'flex';
+            } else {
+                document.getElementById('role-modal').style.display = 'none';
+            }
+        }
+
+        // ============================================================
         // FUNKCJE GLOBALNE
         // ============================================================
         window.changeMonth = function(direction) {
@@ -1638,7 +1732,7 @@
                 name,
                 points,
                 date: activeDate,
-                type: eventType  // <-- DODANE POLE
+                type: eventType
             };
 
             balance += points;
@@ -1700,7 +1794,7 @@
                 name,
                 points,
                 date: activeDate,
-                type: eventType  // <-- DODANE POLE
+                type: eventType
             };
 
             balance += points;
@@ -1814,7 +1908,11 @@
             reader.onload = function(e) {
                 try {
                     const parsed = JSON.parse(e.target.result);
-                    if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
+                    if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history) && parsed.dictionary) {
+                        // Ustaw flagę importu, aby zablokować synchronizację z Firestore
+                        isImporting = true;
+                        isLocalUpdate = true;
+                        
                         balance = parsed.balance;
                         historyEntries = parsed.history;
                         activeReduction = parsed.activeReduction || null;
@@ -1829,16 +1927,42 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         localVersion = parsed._version || 0;
-                        saveDataToFirestore();
-                        renderActions();
-                        updateUI();
-                        showToast("Wczytano dane pomyślnie!");
-                        incrementBadge();
+                        
+                        // Zapisz do Firestore i lokalnie
+                        const dataObj = {
+                            balance,
+                            history: historyEntries,
+                            activeReduction,
+                            dictionary: eventDictionary,
+                            sortModes: sortModes,
+                            _version: localVersion,
+                            _timestamp: Date.now()
+                        };
+                        saveToLocalBackup();
+                        
+                        // Wyślij do Firestore (nadpisanie)
+                        setDoc(docRef, dataObj)
+                            .then(() => {
+                                isImporting = false;
+                                isLocalUpdate = false;
+                                showToast("✅ Wczytano dane pomyślnie!");
+                                updateUI();
+                                incrementBadge();
+                                // Wymuś migrację typów
+                                migrateHistoryTypes();
+                            })
+                            .catch((err) => {
+                                isImporting = false;
+                                isLocalUpdate = false;
+                                console.error("Błąd zapisu importu:", err);
+                                showToast("❌ Błąd zapisu importowanych danych");
+                            });
                     } else {
-                        alert("Nieprawidłowy format pliku JSON.");
+                        alert("Nieprawidłowy format pliku JSON. Upewnij się, że zawiera pola: balance, history, dictionary.");
                     }
                 } catch (err) {
                     alert("Błąd podczas odczytu pliku JSON.");
+                    console.error(err);
                 }
                 event.target.value = '';
             };
@@ -1897,7 +2021,8 @@
                 }
 
                 const userId = getUserId();
-                await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
+                const role = getRole();
+                await setDoc(doc(db, 'users', userId), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
             } catch (error) {
                 console.error('Błąd rejestracji tokenu:', error);
@@ -1915,17 +2040,41 @@
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
-            const partnerUserId = 'user_partner';
-            const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
             try {
+                const myRole = getRole();
+                if (!myRole) {
+                    console.warn('❌ Brak roli – nie można wysłać powiadomienia');
+                    return;
+                }
+
+                // Określ docelową rolę (przeciwną)
+                const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
+
+                // Pobierz wszystkich użytkowników z Firestore
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let targetUserId = null;
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (userData.role === targetRole && doc.id !== getUserId()) {
+                        targetUserId = doc.id;
+                    }
+                });
+
+                if (!targetUserId) {
+                    console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
+                    showToast('⚠️ Brak drugiej osoby o przeciwnej roli.');
+                    return;
+                }
+
+                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetUserId: partnerUserId, title, body, data }),
+                    body: JSON.stringify({ targetUserId, title, body, data }),
                 });
                 const result = await response.json();
                 if (result.success) {
-                    console.log('✅ Powiadomienie wysłane');
+                    console.log('✅ Powiadomienie wysłane do:', targetUserId);
                 } else {
                     console.warn('❌ Błąd wysyłki:', result.error);
                 }
@@ -2022,6 +2171,14 @@
                         resetBadge();
                         isFirstSnapshot = true;
                         loadCollapseStates();
+
+                        // Sprawdź, czy rola jest ustawiona
+                        checkRole();
+                        
+                        // Wykonaj migrację danych (dodanie pola 'type' do starych wpisów)
+                        setTimeout(async () => {
+                            await migrateHistoryTypes();
+                        }, 500);
                     })
                     .catch((err) => {
                         console.error("Błąd odczytu dokumentu:", err);
@@ -2033,6 +2190,10 @@
                             loadingIndicator.classList.add('hidden');
                             mainContent.classList.remove('hidden');
                             loadCollapseStates();
+                            checkRole();
+                            setTimeout(async () => {
+                                await migrateHistoryTypes();
+                            }, 500);
                         } else {
                             loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
                             loadingIndicator.innerHTML = `
@@ -2066,6 +2227,11 @@
                     });
 
                 onSnapshot(docRef, (snapshot) => {
+                    // Pomijamy aktualizację, jeśli trwa import
+                    if (isImporting) {
+                        console.log('⏳ Import w toku – pomijam snapshot');
+                        return;
+                    }
                     if (isLocalUpdate) return;
                     if (getPendingFlag()) {
                         pendingUpdates.push(snapshot.data());
@@ -2091,9 +2257,10 @@
 
         const APP_VERSION = '1.0.9';
 
-        setInterval(() => {
-            checkForUpdate();
-        }, 30000);
+        // Wyłączamy sprawdzanie aktualizacji, żeby nie przeszkadzało
+        // setInterval(() => {
+        //     checkForUpdate();
+        // }, 30000);
 
         async function checkForUpdate() {
             try {
