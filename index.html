@@ -1846,36 +1846,48 @@
         }
 
         async function registerForNotifications() {
-            try {
-                const permission = await Notification.requestPermission();
-                if (permission !== 'granted') {
-                    console.warn('Brak zgody na powiadomienia');
-                    showToast('🔕 Powiadomienia wyłączone');
-                    return;
-                }
-
-                const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-                if (!token) {
-                    console.warn('Nie udało się pobrać tokenu FCM');
-                    return;
-                }
-
-                const userId = getUserId();
-                await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
-                console.log('✅ Token FCM zarejestrowany:', token);
-            } catch (error) {
-                console.error('Błąd rejestracji tokenu:', error);
-            }
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            console.warn('Brak zgody na powiadomienia');
+            showToast('🔕 Powiadomienia wyłączone');
+            return;
         }
 
-        registerForNotifications();
+        // 1. Sprawdź, czy SW dla FCM jest już zarejestrowany
+        let swRegistration = await navigator.serviceWorker.getRegistration('./firebase-messaging-sw.js');
+        if (!swRegistration) {
+            // Jeśli nie, zarejestruj go
+            swRegistration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
+            // Poczekaj na aktywację (ważne!)
+            await new Promise((resolve) => {
+                if (swRegistration.active) {
+                    resolve();
+                } else {
+                    swRegistration.addEventListener('activate', resolve);
+                }
+            });
+        }
 
-        onMessage(messaging, (payload) => {
-            console.log('📩 Powiadomienie w pierwszym planie:', payload);
-            const title = payload.notification?.title || 'Nowe powiadomienie';
-            const body = payload.notification?.body || '';
-            showToast(`📩 ${title}: ${body}`);
+        // 2. Pobierz token, przekazując zarejestrowany SW
+        const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: swRegistration, // <-- kluczowe
         });
+
+        if (!token) {
+            console.warn('Nie udało się pobrać tokenu FCM');
+            return;
+        }
+
+        const userId = getUserId();
+        await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
+        console.log('✅ Token FCM zarejestrowany:', token);
+    } catch (error) {
+        console.error('Błąd rejestracji tokenu:', error);
+        showToast('❌ Błąd rejestracji powiadomień. Spróbuj ponownie.');
+    }
+}
 
         async function sendNotificationToPartner(title, body, data = {}) {
             // Ustaw docelowe ID partnera – zmień na odpowiednie!
@@ -1925,13 +1937,7 @@
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
 
-                    // 2. SW DLA FCM (powiadomienia) – wersja COMPAT
-navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
-    .then(reg => console.log('✅ FCM SW zarejestrowany:', reg.scope))
-    .catch(err => {
-        console.error('❌ Błąd FCM SW:', err);
-        // Nie wyświetlamy toasta – tylko log
-    });
+                    
                 } else {
                     console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
                 }
