@@ -2040,48 +2040,75 @@
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
-            try {
-                const myRole = getRole();
-                if (!myRole) {
-                    console.warn('❌ Brak roli – nie można wysłać powiadomienia');
-                    return;
-                }
-
-                // Określ docelową rolę (przeciwną)
-                const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
-
-                // Pobierz wszystkich użytkowników z Firestore
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                let targetUserId = null;
-                usersSnapshot.forEach(doc => {
-                    const userData = doc.data();
-                    if (userData.role === targetRole && doc.id !== getUserId()) {
-                        targetUserId = doc.id;
-                    }
-                });
-
-                if (!targetUserId) {
-                    console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
-                    showToast('⚠️ Brak drugiej osoby o przeciwnej roli.');
-                    return;
-                }
-
-                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
-                const response = await fetch(backendUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ targetUserId, title, body, data }),
-                });
-                const result = await response.json();
-                if (result.success) {
-                    console.log('✅ Powiadomienie wysłane do:', targetUserId);
-                } else {
-                    console.warn('❌ Błąd wysyłki:', result.error);
-                }
-            } catch (error) {
-                console.error('❌ Błąd połączenia z backendem:', error);
-            }
+    try {
+        const myRole = getRole();
+        if (!myRole) {
+            console.warn('❌ Brak roli – nie można wysłać powiadomienia');
+            return;
         }
+
+        // Określ docelową rolę (przeciwną)
+        const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
+
+        // Pobierz wszystkich użytkowników z Firestore
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        let targetUserId = null;
+        let targetUserData = null;
+        
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            if (userData.role === targetRole && doc.id !== getUserId()) {
+                targetUserId = doc.id;
+                targetUserData = userData;
+            }
+        });
+
+        if (!targetUserId) {
+            console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
+            // Sprawdź, czy w ogóle są jacyś użytkownicy
+            const allUsers = [];
+            usersSnapshot.forEach(doc => {
+                allUsers.push({ id: doc.id, role: doc.data().role });
+            });
+            console.log('👥 Wszyscy użytkownicy:', allUsers);
+            showToast('⚠️ Brak drugiej osoby o przeciwnej roli.');
+            return;
+        }
+
+        // 🔥 KONWERSJA data na STRINGI – Firebase wymaga stringów
+        const stringData = {};
+        if (data) {
+            Object.keys(data).forEach(key => {
+                if (data[key] !== undefined && data[key] !== null) {
+                    stringData[key] = String(data[key]);
+                }
+            });
+        }
+
+        const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
+        const response = await fetch(backendUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                targetUserId, 
+                title, 
+                body, 
+                data: stringData  // <-- TYLKO STRINGI!
+            }),
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            console.log('✅ Powiadomienie wysłane do:', targetUserId);
+        } else {
+            console.warn('❌ Błąd wysyłki:', result.error);
+            showToast('⚠️ Błąd wysyłki powiadomienia: ' + result.error);
+        }
+    } catch (error) {
+        console.error('❌ Błąd połączenia z backendem:', error);
+        showToast('❌ Nie udało się wysłać powiadomienia');
+    }
+}
 
         // Nadpisanie tryExecuteEvent z wysyłką powiadomienia
         const originalTryExecuteEvent = window.tryExecuteEvent;
@@ -2255,7 +2282,7 @@
             }
         }
 
-        const APP_VERSION = '1.0.1';
+        const APP_VERSION = '1.0.9';
 
         // Wyłączamy sprawdzanie aktualizacji, żeby nie przeszkadzało
         // setInterval(() => {
