@@ -1830,7 +1830,7 @@
         // 5. FCM – POWIADOMIENIA PUSH
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-        import { doc, setDoc } from 'firebase/firestore';
+        // UWAGA: doc i setDoc są już zaimportowane na górze – nie importujemy ich ponownie!
 
         const messaging = getMessaging(app);
         // VAPID key podany przez użytkownika
@@ -1878,10 +1878,10 @@
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
-            // Ustaw docelowe ID partnera – zmień na odpowiednie!
+            // 🔥 Ustaw ID partnera – sprawdź w Firestore kolekcji 'users'
             const partnerUserId = 'user_partner';
-            // Podmień URL na adres swojego backendu na Railway
-            const backendUrl = 'https://twoj-backend.railway.app/send-notification';
+            // 🔥 PODMIEŃ TEN ADRES NA SWÓJ Z RAILWAY
+            const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
             try {
                 const response = await fetch(backendUrl, {
                     method: 'POST',
@@ -2059,7 +2059,7 @@
             }
         }
 
-        const APP_VERSION = '1.0.2';
+        const APP_VERSION = '1.0.6';
 
         setInterval(() => {
             checkForUpdate();
