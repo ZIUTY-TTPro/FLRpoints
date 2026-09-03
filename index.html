@@ -1925,13 +1925,13 @@
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
 
-                    // 2. SW DLA FCM (powiadomienia) – PRAWIDŁOWA ŚCIEŻKA
-                    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
-                        .then(reg => console.log('✅ FCM SW zarejestrowany:', reg.scope))
-                        .catch(err => {
-                            console.error('❌ Błąd FCM SW:', err);
-                            // Nie wyświetlajmy toasta, żeby nie denerwować użytkownika
-                        });
+                    // 2. SW DLA FCM (powiadomienia) – wersja COMPAT
+navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
+    .then(reg => console.log('✅ FCM SW zarejestrowany:', reg.scope))
+    .catch(err => {
+        console.error('❌ Błąd FCM SW:', err);
+        // Nie wyświetlamy toasta – tylko log
+    });
                 } else {
                     console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
                 }
