@@ -1,12 +1,11 @@
-// server.js
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
 const app = express();
 
-
+// CORS – zezwól na GitHub Pages
 app.use(cors({
-    origin: ['https://ziuty-ttpro.github.io', 'http://localhost:3000', 'https://flrpoints-production.up.railway.app'],
+    origin: ['https://ziuty-ttpro.github.io', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -16,62 +15,120 @@ app.use(express.json());
 
 let serviceAccount;
 try {
-  serviceAccount = require('./service-account.json');
+    serviceAccount = require('./service-account.json');
 } catch (e) {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  } else {
-    console.error('Brak danych uwierzytelniających Firebase!');
-    process.exit(1);
-  }
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+        console.error('❌ Brak danych uwierzytelniających Firebase!');
+        process.exit(1);
+    }
 }
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(serviceAccount),
 });
 
+const db = admin.firestore();
+
+// ============================================================
+// ENDPOINT: wysyłka powiadomienia
+// ============================================================
 app.post('/send-notification', async (req, res) => {
-  const { targetUserId, title, body, data } = req.body;
-  if (!targetUserId || !title || !body) {
-    return res.status(400).json({ error: 'Brak wymaganych pól' });
-  }
-  try {
-    const db = admin.firestore();
-    const userDoc = await db.collection('users').doc(targetUserId).get();
-    if (!userDoc.exists) {
-      return res.status(404).json({ error: 'Użytkownik nie istnieje' });
+    const { targetUserId, title, body, data } = req.body;
+
+    console.log('📩 Otrzymano żądanie:', { targetUserId, title, body, data });
+
+    // Walidacja
+    if (!targetUserId || !title || !body) {
+        console.error('❌ Brak wymaganych pól');
+        return res.status(400).json({ error: 'Brak wymaganych pól: targetUserId, title, body' });
     }
-    const fcmToken = userDoc.data().fcmToken;
-    if (!fcmToken) {
-      return res.status(404).json({ error: 'Brak tokenu FCM' });
+
+    try {
+        // Sprawdź, czy użytkownik istnieje
+        const userDoc = await db.collection('users').doc(targetUserId).get();
+        if (!userDoc.exists) {
+            console.error('❌ Użytkownik nie istnieje:', targetUserId);
+            return res.status(404).json({ error: 'Użytkownik nie istnieje' });
+        }
+
+        const fcmToken = userDoc.data().fcmToken;
+        if (!fcmToken) {
+            console.error('❌ Brak tokenu FCM dla:', targetUserId);
+            return res.status(404).json({ error: 'Brak tokenu FCM dla tego użytkownika' });
+        }
+
+        // 🔥 KONWERSJA data na STRINGI – Firebase wymaga stringów
+        const stringData = {};
+        if (data) {
+            Object.keys(data).forEach(key => {
+                if (data[key] !== undefined && data[key] !== null) {
+                    stringData[key] = String(data[key]);
+                }
+            });
+        }
+
+        // Konstruuj wiadomość
+        const message = {
+            notification: { title, body },
+            data: stringData,
+            token: fcmToken,
+        };
+
+        console.log('📤 Wysyłam powiadomienie do:', targetUserId);
+        const response = await admin.messaging().send(message);
+        console.log('✅ Powiadomienie wysłane:', response);
+
+        res.json({ success: true, messageId: response });
+
+    } catch (error) {
+        console.error('❌ Błąd wysyłki powiadomienia:', error);
+        res.status(500).json({ error: error.message });
     }
-    const message = {
-      notification: { title, body },
-      data: data || {},
-      token: fcmToken,
-    };
-    const response = await admin.messaging().send(message);
-    res.json({ success: true, messageId: response });
-  } catch (error) {
-    console.error('Błąd wysyłki:', error);
-    res.status(500).json({ error: error.message });
-  }
 });
 
+// ============================================================
+// ENDPOINT: rejestracja tokenu
+// ============================================================
 app.post('/register-token', async (req, res) => {
-  const { userId, fcmToken } = req.body;
-  if (!userId || !fcmToken) {
-    return res.status(400).json({ error: 'Brak userId lub fcmToken' });
-  }
-  try {
-    const db = admin.firestore();
-    await db.collection('users').doc(userId).set({ fcmToken }, { merge: true });
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Błąd zapisu tokenu:', error);
-    res.status(500).json({ error: error.message });
-  }
+    const { userId, fcmToken, role } = req.body;
+
+    if (!userId || !fcmToken) {
+        return res.status(400).json({ error: 'Brak userId lub fcmToken' });
+    }
+
+    try {
+        const data = { fcmToken };
+        if (role) data.role = role;
+
+        await db.collection('users').doc(userId).set(data, { merge: true });
+        console.log('✅ Token zarejestrowany dla:', userId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Błąd zapisu tokenu:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================================
+// ENDPOINT: lista użytkowników
+// ============================================================
+app.get('/users', async (req, res) => {
+    try {
+        const snapshot = await db.collection('users').get();
+        const users = [];
+        snapshot.forEach(doc => {
+            users.push({ id: doc.id, ...doc.data() });
+        });
+        res.json({ users });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Serwer działa na porcie ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`✅ Serwer działa na porcie ${PORT}`);
+    console.log(`📍 Adres: https://flrpoints-production.up.railway.app`);
+});
