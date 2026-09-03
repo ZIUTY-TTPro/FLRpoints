@@ -1334,19 +1334,9 @@
             return `${mostFrequent} (${maxCount}x)`;
         }
 
-        function filterHistoryByType(history, type, dictionary) {
-            return history.filter(entry => {
-                if (type === 'earn') return entry.points > 0;
-                if (type === 'pen') {
-                    if (entry.points >= 0) return false;
-                    return dictionary[1].items.some(i => i.name.toLowerCase() === entry.name.toLowerCase());
-                }
-                if (type === 'buy') {
-                    if (entry.points >= 0) return false;
-                    return dictionary[2].items.some(i => i.name.toLowerCase() === entry.name.toLowerCase());
-                }
-                return false;
-            });
+        // Poprawiona funkcja filterHistoryByType – używa pola `type`
+        function filterHistoryByType(history, type) {
+            return history.filter(entry => entry.type === type);
         }
 
         function renderStats() {
@@ -1365,9 +1355,10 @@
 
             const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
 
-            const earnEntries = filteredHistory.filter(e => e.points > 0);
-            const penEntries = filterHistoryByType(filteredHistory, 'pen', eventDictionary);
-            const buyEntries = filterHistoryByType(filteredHistory, 'buy', eventDictionary);
+            // Używamy pola `type`
+            const earnEntries = filterHistoryByType(filteredHistory, 'earn');
+            const penEntries = filterHistoryByType(filteredHistory, 'pen');
+            const buyEntries = filterHistoryByType(filteredHistory, 'buy');
 
             const sumEarn = earnEntries.reduce((acc, e) => acc + e.points, 0);
             const sumPen = penEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
@@ -1397,10 +1388,7 @@
                 document.getElementById('stat-last-earn-pts').textContent = "0 pkt";
             }
 
-            const lastPen = historyEntries.find(e => {
-                if (e.points >= 0) return false;
-                return eventDictionary[1].items.some(i => i.name.toLowerCase() === e.name.toLowerCase()) || !eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
-            });
+            const lastPen = historyEntries.find(e => e.type === 'pen');
             if (lastPen) {
                 document.getElementById('stat-last-pen').textContent = lastPen.name;
                 document.getElementById('stat-last-pen-pts').textContent = `${lastPen.points} pkt`;
@@ -1409,10 +1397,7 @@
                 document.getElementById('stat-last-pen-pts').textContent = "0 pkt";
             }
 
-            const lastBuy = historyEntries.find(e => {
-                if (e.points >= 0) return false;
-                return eventDictionary[2].items.some(i => i.name.toLowerCase() === e.name.toLowerCase());
-            });
+            const lastBuy = historyEntries.find(e => e.type === 'buy');
             if (lastBuy) {
                 document.getElementById('stat-last-buy').textContent = lastBuy.name;
                 document.getElementById('stat-last-buy-pts').textContent = `${lastBuy.points} pkt`;
@@ -1629,6 +1614,9 @@
             incrementBadge();
         };
 
+        // ============================================================
+        // POPRAWIONE FUNKCJE: tryExecuteEvent i submitCustomModal
+        // ============================================================
         window.tryExecuteEvent = function(name, points) {
             if (points < 0) {
                 const requiredAbs = Math.abs(points);
@@ -1637,7 +1625,22 @@
                     return;
                 }
             }
-            const entry = { id: Date.now().toString(), name, points, date: activeDate };
+
+            // Określ typ zdarzenia
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                name,
+                points,
+                date: activeDate,
+                type: eventType  // <-- DODANE POLE
+            };
+
             balance += points;
             historyEntries.unshift(entry);
             saveDataToFirestore();
@@ -1684,7 +1687,22 @@
                     return;
                 }
             }
-            const entry = { id: Date.now().toString(), name, points, date: activeDate };
+
+            // Określ typ dla ręcznie dodawanego zdarzenia
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                name,
+                points,
+                date: activeDate,
+                type: eventType  // <-- DODANE POLE
+            };
+
             balance += points;
             historyEntries.unshift(entry);
             saveDataToFirestore();
@@ -1753,7 +1771,8 @@
                     id: Date.now().toString(),
                     name: "🔄 Wyzerowanie bilansu",
                     points: 0,
-                    date: activeDate
+                    date: activeDate,
+                    type: 'earn'
                 };
                 historyEntries.unshift(entry);
                 balance = 0;
@@ -1827,13 +1846,11 @@
         };
 
         // ============================================================
-        // 5. FCM – POWIADOMIENIA PUSH
+        // 5. FCM – POWIADOMIENIA PUSH (poprawiona rejestracja)
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-        // doc i setDoc są już zaimportowane na górze – NIE IMPORTUJEMY PONOWNIE!
 
         const messaging = getMessaging(app);
-        // VAPID key podany przez użytkownika
         const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
 
         function getUserId() {
@@ -1846,53 +1863,59 @@
         }
 
         async function registerForNotifications() {
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-            console.warn('Brak zgody na powiadomienia');
-            showToast('🔕 Powiadomienia wyłączone');
-            return;
-        }
-
-        // 1. Sprawdź, czy SW dla FCM jest już zarejestrowany
-        let swRegistration = await navigator.serviceWorker.getRegistration('./firebase-messaging-sw.js');
-        if (!swRegistration) {
-            // Jeśli nie, zarejestruj go
-            swRegistration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
-            // Poczekaj na aktywację (ważne!)
-            await new Promise((resolve) => {
-                if (swRegistration.active) {
-                    resolve();
-                } else {
-                    swRegistration.addEventListener('activate', resolve);
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    console.warn('Brak zgody na powiadomienia');
+                    showToast('🔕 Powiadomienia wyłączone');
+                    return;
                 }
-            });
+
+                // 1. Zarejestruj FCM SW ręcznie z odpowiednim scope
+                let swRegistration = await navigator.serviceWorker.getRegistration('./firebase-messaging-sw.js');
+                if (!swRegistration) {
+                    swRegistration = await navigator.serviceWorker.register('/FLRpoints/firebase-messaging-sw.js', {
+                        scope: '/FLRpoints/'
+                    });
+                    // Poczekaj na aktywację
+                    if (!swRegistration.active) {
+                        await new Promise((resolve) => {
+                            swRegistration.addEventListener('activate', resolve);
+                        });
+                    }
+                }
+
+                // 2. Pobierz token z przekazaniem SW
+                const token = await getToken(messaging, {
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration: swRegistration,
+                });
+
+                if (!token) {
+                    console.warn('Nie udało się pobrać tokenu FCM');
+                    return;
+                }
+
+                const userId = getUserId();
+                await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
+                console.log('✅ Token FCM zarejestrowany:', token);
+            } catch (error) {
+                console.error('Błąd rejestracji tokenu:', error);
+                showToast('❌ Błąd rejestracji powiadomień. Spróbuj ponownie.');
+            }
         }
 
-        // 2. Pobierz token, przekazując zarejestrowany SW
-        const token = await getToken(messaging, {
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: swRegistration, // <-- kluczowe
+        registerForNotifications();
+
+        onMessage(messaging, (payload) => {
+            console.log('📩 Powiadomienie w pierwszym planie:', payload);
+            const title = payload.notification?.title || 'Nowe powiadomienie';
+            const body = payload.notification?.body || '';
+            showToast(`📩 ${title}: ${body}`);
         });
 
-        if (!token) {
-            console.warn('Nie udało się pobrać tokenu FCM');
-            return;
-        }
-
-        const userId = getUserId();
-        await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
-        console.log('✅ Token FCM zarejestrowany:', token);
-    } catch (error) {
-        console.error('Błąd rejestracji tokenu:', error);
-        showToast('❌ Błąd rejestracji powiadomień. Spróbuj ponownie.');
-    }
-}
-
         async function sendNotificationToPartner(title, body, data = {}) {
-            // Ustaw docelowe ID partnera – zmień na odpowiednie!
             const partnerUserId = 'user_partner';
-            // Podmień URL na adres swojego backendu na Railway
             const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
             try {
                 const response = await fetch(backendUrl, {
@@ -1911,7 +1934,7 @@
             }
         }
 
-        // Nadpisanie tryExecuteEvent
+        // Nadpisanie tryExecuteEvent z wysyłką powiadomienia
         const originalTryExecuteEvent = window.tryExecuteEvent;
         window.tryExecuteEvent = function(name, points) {
             originalTryExecuteEvent(name, points);
@@ -1923,7 +1946,7 @@
         };
 
         // ============================================================
-        // SERVICE WORKER – rejestracja dwóch SW (POPRAWIONE ŚCIEŻKI)
+        // SERVICE WORKER – tylko główny (cache)
         // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -1932,12 +1955,10 @@
                                         window.location.hostname === '127.0.0.1';
 
                 if (isSecureContext) {
-                    // 1. GŁÓWNY SW (cache) – z pominięciem Firebase
+                    // Tylko główny SW – FCM rejestrujemy ręcznie w registerForNotifications
                     navigator.serviceWorker.register('./service-worker.js', { scope: './' })
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
-
-                    
                 } else {
                     console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
                 }
