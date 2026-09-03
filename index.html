@@ -529,11 +529,13 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
+    <!-- Import map z dodanym messaging -->
     <script type="importmap">
         {
             "imports": {
                 "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
-                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js",
+                "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"
             }
         }
     </script>
@@ -682,7 +684,7 @@
         }
 
         // ============================================================
-        // 4. FIREBASE (nowa konfiguracja)
+        // 4. FIREBASE
         // ============================================================
         import { initializeApp } from 'firebase/app';
         import { 
@@ -1825,6 +1827,115 @@
         };
 
         // ============================================================
+        // 5. FCM – POWIADOMIENIA PUSH
+        // ============================================================
+        import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+        import { doc, setDoc } from 'firebase/firestore';
+
+        const messaging = getMessaging(app);
+        // VAPID key podany przez użytkownika
+        const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
+
+        function getUserId() {
+            let userId = localStorage.getItem('flr_userId');
+            if (!userId) {
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                localStorage.setItem('flr_userId', userId);
+            }
+            return userId;
+        }
+
+        async function registerForNotifications() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    console.warn('Brak zgody na powiadomienia');
+                    showToast('🔕 Powiadomienia wyłączone');
+                    return;
+                }
+
+                const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+                if (!token) {
+                    console.warn('Nie udało się pobrać tokenu FCM');
+                    return;
+                }
+
+                const userId = getUserId();
+                await setDoc(doc(db, 'users', userId), { fcmToken: token }, { merge: true });
+                console.log('✅ Token FCM zarejestrowany:', token);
+            } catch (error) {
+                console.error('Błąd rejestracji tokenu:', error);
+            }
+        }
+
+        registerForNotifications();
+
+        onMessage(messaging, (payload) => {
+            console.log('📩 Powiadomienie w pierwszym planie:', payload);
+            const title = payload.notification?.title || 'Nowe powiadomienie';
+            const body = payload.notification?.body || '';
+            showToast(`📩 ${title}: ${body}`);
+        });
+
+        async function sendNotificationToPartner(title, body, data = {}) {
+            // Ustaw docelowe ID partnera – zmień na odpowiednie!
+            const partnerUserId = 'user_partner';
+            // Podmień URL na adres swojego backendu na Railway
+            const backendUrl = 'https://twoj-backend.railway.app/send-notification';
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetUserId: partnerUserId, title, body, data }),
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log('✅ Powiadomienie wysłane');
+                } else {
+                    console.warn('❌ Błąd wysyłki:', result.error);
+                }
+            } catch (error) {
+                console.error('❌ Błąd połączenia z backendem:', error);
+            }
+        }
+
+        // Nadpisanie tryExecuteEvent
+        const originalTryExecuteEvent = window.tryExecuteEvent;
+        window.tryExecuteEvent = function(name, points) {
+            originalTryExecuteEvent(name, points);
+            if (points !== 0) {
+                const title = points > 0 ? '➕ Nowy zarobek' : '➖ Nowa kara / wykup';
+                const body = `${name} (${points > 0 ? '+' : ''}${points} pkt)`;
+                sendNotificationToPartner(title, body, { type: points > 0 ? 'earn' : 'penalty', points });
+            }
+        };
+
+        // ============================================================
+        // SERVICE WORKER – rejestracja dwóch SW
+        // ============================================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const isSecureContext = window.location.protocol === 'https:' ||
+                                        window.location.hostname === 'localhost' ||
+                                        window.location.hostname === '127.0.0.1';
+
+                if (isSecureContext) {
+                    // 1. GŁÓWNY SW (cache)
+                    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+                        .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
+                        .catch(err => console.error('❌ Błąd głównego SW:', err));
+
+                    // 2. SW DLA FCM (powiadomienia)
+                    navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
+                        .then(reg => console.log('✅ FCM SW zarejestrowany:', reg.scope))
+                        .catch(err => console.error('❌ Błąd FCM SW:', err));
+                } else {
+                    console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
+                }
+            });
+        }
+
+        // ============================================================
         // INICJALIZACJA
         // ============================================================
         let retryCount = 0;
@@ -1948,30 +2059,7 @@
             }
         }
 
-        // ============================================================
-        // SERVICE WORKER – z zabezpieczeniem dla środowiska lokalnego
-        // ============================================================
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const isSecureContext = window.location.protocol === 'https:' || 
-                                        window.location.hostname === 'localhost' ||
-                                        window.location.hostname === '127.0.0.1';
-                if (isSecureContext) {
-                    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-                        .then(reg => console.log('✅ Service Worker zarejestrowany:', reg.scope))
-                        .catch(err => {
-                            console.error('❌ Błąd rejestracji SW:', err);
-                            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                                showToast('⚠️ Tryb offline może być ograniczony. Sprawdź konsolę.');
-                            }
-                        });
-                } else {
-                    console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
-                }
-            });
-        }
-
-        const APP_VERSION = '1.0.5';
+        const APP_VERSION = '1.0.2';
 
         setInterval(() => {
             checkForUpdate();
