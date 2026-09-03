@@ -1830,7 +1830,7 @@
         // 5. FCM – POWIADOMIENIA PUSH
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-        // UWAGA: doc i setDoc są już zaimportowane na górze – nie importujemy ich ponownie!
+        // doc i setDoc są już zaimportowane na górze – NIE IMPORTUJEMY PONOWNIE!
 
         const messaging = getMessaging(app);
         // VAPID key podany przez użytkownika
@@ -1878,9 +1878,9 @@
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
-            // 🔥 Ustaw ID partnera – sprawdź w Firestore kolekcji 'users'
+            // Ustaw docelowe ID partnera – zmień na odpowiednie!
             const partnerUserId = 'user_partner';
-            // 🔥 PODMIEŃ TEN ADRES NA SWÓJ Z RAILWAY
+            // Podmień URL na adres swojego backendu na Railway
             const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
             try {
                 const response = await fetch(backendUrl, {
@@ -1911,7 +1911,7 @@
         };
 
         // ============================================================
-        // SERVICE WORKER – rejestracja dwóch SW
+        // SERVICE WORKER – rejestracja dwóch SW (POPRAWIONE ŚCIEŻKI)
         // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -1920,15 +1920,18 @@
                                         window.location.hostname === '127.0.0.1';
 
                 if (isSecureContext) {
-                    // 1. GŁÓWNY SW (cache)
+                    // 1. GŁÓWNY SW (cache) – z pominięciem Firebase
                     navigator.serviceWorker.register('./service-worker.js', { scope: './' })
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
 
-                    // 2. SW DLA FCM (powiadomienia)
+                    // 2. SW DLA FCM (powiadomienia) – PRAWIDŁOWA ŚCIEŻKA
                     navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' })
                         .then(reg => console.log('✅ FCM SW zarejestrowany:', reg.scope))
-                        .catch(err => console.error('❌ Błąd FCM SW:', err));
+                        .catch(err => {
+                            console.error('❌ Błąd FCM SW:', err);
+                            // Nie wyświetlajmy toasta, żeby nie denerwować użytkownika
+                        });
                 } else {
                     console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
                 }
@@ -2059,7 +2062,7 @@
             }
         }
 
-        const APP_VERSION = '1.0.6';
+        const APP_VERSION = '1.0.2';
 
         setInterval(() => {
             checkForUpdate();
