@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flr-slave-points-v1.0.6';
+const CACHE_NAME = 'flr-slave-points-v1.0.1';
 const urlsToCache = [
   './',
   './index.html',
@@ -37,29 +37,26 @@ self.addEventListener('activate', event => {
 });
 
 // ==========================
-// FETCH SUPPORT (z pominięciem Firebase)
+// FETCH – Z POMINIĘCIEM WSZYSTKICH ZEWNĘTRZNYCH ZAPYTAŃ
 // ==========================
 self.addEventListener('fetch', event => {
   const url = event.request.url;
 
-  // ?? POMIŃ zapytania do Firebase – nie przechwytuj ich przez cache
-  if (url.includes('firestore.googleapis.com') || 
-      url.includes('googleapis.com') || 
-      url.includes('firebase')) {
-    event.respondWith(fetch(event.request));
+  // ?? KLUCZOWA POPRAWKA: CAŁKOWICIE POMIŃ zapytania poza origin (Firebase, Google APIs itp.)
+  if (!url.startsWith(self.location.origin)) {
+    // Nie dotykamy zewnętrznych zapytań – przepuszczamy je bez ingerencji
     return;
   }
 
+  // Dla zapytań do własnego origin – obsługa cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
           const copy = response.clone();
-          if (url.startsWith('http')) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, copy);
-            });
-          }
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, copy);
+          });
           return response;
         })
         .catch(async () => {
