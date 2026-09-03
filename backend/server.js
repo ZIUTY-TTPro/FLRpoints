@@ -1,7 +1,17 @@
 // server.js
 const express = require('express');
 const admin = require('firebase-admin');
+const cors = require('cors'); // <-- DODAJ
 const app = express();
+
+// DODAJ CORS – zezwól na zapytania z GitHub Pages
+app.use(cors({
+    origin: ['https://ziuty-ttpro.github.io', 'http://localhost:3000', 'https://flrpoints-production.up.railway.app'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
 app.use(express.json());
 
 let serviceAccount;
