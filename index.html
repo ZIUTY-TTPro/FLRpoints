@@ -546,7 +546,7 @@
                     <span class="text-2xl">👠</span> Pani
                 </button>
                 <button onclick="setRole('slave')" class="role-btn bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-4 rounded-xl text-lg font-bold text-zinc-200 transition-all flex items-center justify-center gap-3">
-                    <span class="text-2xl">⛓️</span> Sługa
+                    <span class="text-2xl">🔗</span> Sługa
                 </button>
             </div>
             <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
@@ -1675,11 +1675,9 @@
         };
 
         // ============================================================
-        // GŁÓWNA FUNKCJA WYKONANIA ZDARZENIA – z powiadomieniami
+        // POPRAWIONE FUNKCJE: tryExecuteEvent i submitCustomModal
         // ============================================================
         window.tryExecuteEvent = function(name, points) {
-            console.log('🎯 tryExecuteEvent wywołane:', { name, points });
-
             if (points < 0) {
                 const requiredAbs = Math.abs(points);
                 if (balance < requiredAbs) {
@@ -1883,14 +1881,21 @@
             document.getElementById('import-file-input').click();
         };
 
+        // ============================================================
+        // POPRAWIONA FUNKCJA importData – blokada synchronizacji
+        // ============================================================
         window.importData = function(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const parsed = JSON.parse(e.target.result);
                     if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
+                        // 🔥 BLOKUJ SYNCHRONIZACJĘ
+                        isLocalUpdate = true;
+                        setPendingFlag(false);
+
                         balance = parsed.balance;
                         historyEntries = parsed.history;
                         activeReduction = parsed.activeReduction || null;
@@ -1905,7 +1910,14 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         localVersion = parsed._version || 0;
-                        saveDataToFirestore();
+
+                        // Zapisz do Firestore
+                        await saveDataToFirestore();
+
+                        // 🔥 ODBLOKUJ SYNCHRONIZACJĘ
+                        isLocalUpdate = false;
+                        setPendingFlag(false);
+
                         renderActions();
                         updateUI();
                         showToast("Wczytano dane pomyślnie!");
@@ -1922,7 +1934,7 @@
         };
 
         // ============================================================
-        // 5. FCM – POWIADOMIENIA PUSH
+        // 5. FCM – POWIADOMIENIA PUSH (POPRAWIONA REJESTRACJA SW)
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -1947,24 +1959,32 @@
                     return;
                 }
 
-                // 1. Zarejestruj FCM SW ręcznie z odpowiednim scope
-                let swRegistration = await navigator.serviceWorker.getRegistration('./firebase-messaging-sw.js');
-                if (!swRegistration) {
-                    swRegistration = await navigator.serviceWorker.register('/FLRpoints/firebase-messaging-sw.js', {
-                        scope: '/FLRpoints/'
+                // 🔥 POPRAWIONA REJESTRACJA SW – użycie względnej ścieżki
+                let swRegistration = await navigator.serviceWorker.ready;
+                
+                // Sprawdź, czy FCM SW jest zarejestrowany
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                let fcmReg = null;
+                for (const reg of registrations) {
+                    if (reg.active && reg.active.scriptURL.includes('firebase-messaging-sw.js')) {
+                        fcmReg = reg;
+                        break;
+                    }
+                }
+
+                if (!fcmReg) {
+                    // Jeśli nie ma, zarejestruj ręcznie
+                    fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+                        scope: './'
                     });
                     // Poczekaj na aktywację
-                    if (!swRegistration.active) {
-                        await new Promise((resolve) => {
-                            swRegistration.addEventListener('activate', resolve);
-                        });
-                    }
+                    await navigator.serviceWorker.ready;
                 }
 
                 // 2. Pobierz token z przekazaniem SW
                 const token = await getToken(messaging, {
                     vapidKey: VAPID_KEY,
-                    serviceWorkerRegistration: swRegistration,
+                    serviceWorkerRegistration: fcmReg,
                 });
 
                 if (!token) {
@@ -1976,6 +1996,7 @@
                 const role = getRole();
                 await setDoc(doc(db, 'users', userId), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
+                showToast('✅ Powiadomienia włączone');
             } catch (error) {
                 console.error('Błąd rejestracji tokenu:', error);
                 showToast('❌ Błąd rejestracji powiadomień. Spróbuj ponownie.');
@@ -1991,18 +2012,8 @@
             showToast(`📩 ${title}: ${body}`);
         });
 
-        // ⏱️ Zabezpieczenie przed duplikatami powiadomień
-        let lastNotificationTime = 0;
-
         async function sendNotificationToPartner(title, body, data = {}) {
             console.log('📤 Wysyłanie powiadomienia:', { title, body, data });
-
-            const now = Date.now();
-            if (now - lastNotificationTime < 2000) {
-                console.log('⏳ Pomijam duplikat powiadomienia (za szybko)');
-                return;
-            }
-            lastNotificationTime = now;
 
             try {
                 const myRole = getRole();
@@ -2017,24 +2028,16 @@
                 // Pobierz wszystkich użytkowników z Firestore
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 let targetUserId = null;
-                let targetUserData = null;
                 
                 usersSnapshot.forEach(doc => {
                     const userData = doc.data();
                     if (userData.role === targetRole && doc.id !== getUserId()) {
                         targetUserId = doc.id;
-                        targetUserData = userData;
                     }
                 });
 
                 if (!targetUserId) {
                     console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
-                    // Sprawdź, czy w ogóle są jacyś użytkownicy
-                    const allUsers = [];
-                    usersSnapshot.forEach(doc => {
-                        allUsers.push({ id: doc.id, role: doc.data().role });
-                    });
-                    console.log('👥 Wszyscy użytkownicy:', allUsers);
                     showToast('⚠️ Brak drugiej osoby o przeciwnej roli.');
                     return;
                 }
@@ -2222,7 +2225,12 @@
             }
         }
 
-        const APP_VERSION = '1.0.2';
+        const APP_VERSION = '1.0.6';
+
+        // Wyłączamy sprawdzanie aktualizacji (już nie przeszkadza)
+        // setInterval(() => {
+        //     checkForUpdate();
+        // }, 30000);
 
         // ============================================================
         // START
