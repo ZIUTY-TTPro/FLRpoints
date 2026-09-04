@@ -42,13 +42,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = event.request.url;
 
-  // ?? KLUCZOWA POPRAWKA: CAŁKOWICIE POMIŃ zapytania poza origin (Firebase, Google APIs itp.)
+  // CAŁKOWICIE POMIŃ zapytania poza origin
   if (!url.startsWith(self.location.origin)) {
-    // Nie dotykamy zewnętrznych zapytań – przepuszczamy je bez ingerencji
     return;
   }
 
-  // Dla zapytań do własnego origin – obsługa cache
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -77,10 +75,13 @@ self.addEventListener('fetch', event => {
 });
 
 // ==========================
-// MESSAGE HANDLER
+// MESSAGE HANDLER – POPRAWIONY
 // ==========================
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    event.respondWith(new Promise((resolve) => {
+      self.skipWaiting();
+      resolve();
+    }));
   }
 });
