@@ -3,7 +3,6 @@ const admin = require('firebase-admin');
 const cors = require('cors');
 const app = express();
 
-// CORS – zezwól na GitHub Pages
 app.use(cors({
     origin: ['https://ziuty-ttpro.github.io', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -32,7 +31,7 @@ admin.initializeApp({
 const db = admin.firestore();
 
 // ============================================================
-// ENDPOINT: wysyłka powiadomienia (TYLKO data, BEZ notification)
+// ENDPOINT: wysyłka powiadomienia (z wysokim priorytetem)
 // ============================================================
 app.post('/send-notification', async (req, res) => {
     const { targetUserId, title, body, data } = req.body;
@@ -57,7 +56,6 @@ app.post('/send-notification', async (req, res) => {
             return res.status(404).json({ error: 'Brak tokenu FCM dla tego użytkownika' });
         }
 
-        // 🔥 WYSYŁAMY TYLKO data – BEZ notification
         const stringData = { title, body };
         if (data) {
             Object.keys(data).forEach(key => {
@@ -67,12 +65,22 @@ app.post('/send-notification', async (req, res) => {
             });
         }
 
+        // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH
         const message = {
             data: stringData,
             token: fcmToken,
+            android: {
+                priority: 'high',
+                ttl: 3600 * 1000, // 1 godzina
+            },
+            webpush: {
+                headers: {
+                    Urgency: 'high',
+                },
+            },
         };
 
-        console.log('📤 Wysyłam powiadomienie do:', targetUserId);
+        console.log('📤 Wysyłam powiadomienie (priorytet HIGH) do:', targetUserId);
         const response = await admin.messaging().send(message);
         console.log('✅ Powiadomienie wysłane:', response);
 
@@ -110,5 +118,4 @@ app.post('/register-token', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`✅ Serwer działa na porcie ${PORT}`);
-    console.log(`📍 Adres: https://flrpoints-production.up.railway.app`);
 });
