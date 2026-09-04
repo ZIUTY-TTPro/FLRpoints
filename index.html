@@ -9,13 +9,10 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 
-    <!-- Google Font: Cinzel (FLR) -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -102,7 +99,6 @@
         .rotate-180 { transform: rotate(180deg); }
         .transition-transform { transition: transform 0.3s ease; }
         
-        /* ===== KLIMATYCZNE DODATKI WIZUALNE FLR ===== */
         .glow-coin {
             filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.4));
             transition: filter 0.3s ease;
@@ -115,16 +111,12 @@
             border-left: 2px solid #dc2626;
             padding-left: 8px;
         }
-
-        /* ===== CZCIONKA FLR DLA NAGŁÓWKÓW ===== */
         .flr-title {
             font-family: 'Cinzel', serif;
             font-weight: 700;
             letter-spacing: 0.1em;
             text-transform: uppercase;
         }
-
-        /* ===== POWIĘKSZONA MONETA ===== */
         .balance-icon {
             width: 180px;
             height: 180px;
@@ -143,7 +135,6 @@
                 height: 260px;
             }
         }
-
         .flr-history-item {
             border-left: 2px solid #27272a;
             transition: border-color 0.2s;
@@ -151,7 +142,6 @@
         .flr-history-item:hover {
             border-color: #dc2626;
         }
-
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -240,16 +230,12 @@
         #offline-banner {
             transition: all 0.3s ease;
         }
-
-        /* ===== MODAL ROLI ===== */
         #role-modal .role-btn {
             transition: all 0.3s ease;
         }
         #role-modal .role-btn:hover {
             transform: scale(1.02);
         }
-
-        /* ===== WERSJA ===== */
         .app-version {
             font-size: 0.6rem;
             color: #71717a;
@@ -268,12 +254,10 @@
 
     <main class="w-full max-w-md p-4 flex flex-col gap-5">
 
-        <!-- Stan ładowania -->
         <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
             ⏳ Ładowanie danych...
         </div>
 
-        <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
             <!-- BILANS -->
@@ -282,7 +266,6 @@
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
                     <span id="offline-badge" class="hidden text-[8px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Offline</span>
                 </div>
-                <!-- POWIĘKSZONA MONETA -->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" class="balance-icon glow-coin" id="balance-coin-svg">
                     <g transform="translate(200, 200)">
                         <circle cx="0" cy="0" r="130" fill="#1a1410" stroke="#dc2626" stroke-width="8" />
@@ -325,7 +308,7 @@
                 <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
             </div>
 
-            <!-- OPCJE DODATKOWE (z wersją i przywróconą aktualizacją) -->
+            <!-- OPCJE DODATKOWE -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">Opcje Dodatkowe</span>
@@ -345,9 +328,8 @@
                         <button onclick="checkForUpdate()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">🔍 Sprawdź aktualizacje</button>
                         <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
                     </div>
-                    <!-- WERSJA APLIKACJI -->
                     <div class="app-version">
-                        📱 Wersja: <span id="app-version-text">1.0.6</span>
+                        📱 Wersja: <span id="app-version-text">1.1.1</span>
                     </div>
                 </div>
             </section>
@@ -480,22 +462,22 @@
                         </div>
                     </div>
                     <div class="flex flex-col gap-1.5">
-    <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
-    <div class="grid grid-cols-1 gap-1.5 text-xs">
-        <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-            <span class="text-zinc-400">➕ Najczęstszy zarobek:</span>
-            <strong id="stat-freq-earn" class="text-zinc-200 text-right truncate pl-2">-</strong>
-        </div>
-        <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-            <span class="text-zinc-400">❌ Najczęstsza kara:</span>
-            <strong id="stat-freq-pen" class="text-zinc-200 text-right truncate pl-2">-</strong>
-        </div>
-        <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-            <span class="text-zinc-400">🛒 Najczęstszy wykup:</span>
-            <strong id="stat-freq-buy" class="text-zinc-200 text-right truncate pl-2">-</strong>
-        </div>
-    </div>
-</div>
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">➕ Najczęstszy zarobek:</span>
+                                <strong id="stat-freq-earn" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">❌ Najczęstsza kara:</span>
+                                <strong id="stat-freq-pen" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">🛒 Najczęstszy wykup:</span>
+                                <strong id="stat-freq-buy" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -555,7 +537,7 @@
         </div>
     </div>
 
-    <!-- ===== MODAL WYBORU ROLI ===== -->
+    <!-- MODAL WYBORU ROLI -->
     <div id="role-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-card border border-bordercolor rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-center">
             <h2 class="text-xl font-bold text-zinc-200 flr-title">👑 FLR Slave Points</h2>
@@ -574,7 +556,6 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
-    <!-- Import map z dodanym messaging -->
     <script type="importmap">
         {
             "imports": {
@@ -1381,7 +1362,6 @@
             return `${mostFrequent} (${maxCount}x)`;
         }
 
-        // Poprawiona funkcja filterHistoryByType – używa pola `type`
         function filterHistoryByType(history, type) {
             return history.filter(entry => entry.type === type);
         }
@@ -1402,7 +1382,6 @@
 
             const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
 
-            // Używamy pola `type`
             const earnEntries = filterHistoryByType(filteredHistory, 'earn');
             const penEntries = filterHistoryByType(filteredHistory, 'pen');
             const buyEntries = filterHistoryByType(filteredHistory, 'buy');
@@ -1536,7 +1515,6 @@
             await setDoc(doc(db, 'users', userId), { role }, { merge: true });
             document.getElementById('role-modal').style.display = 'none';
             showToast(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`);
-            // Po zapisaniu roli, ponownie rejestrujemy token (aby zaktualizować dane w Firestore)
             await registerForNotifications();
         };
 
@@ -1705,7 +1683,6 @@
                 }
             }
 
-            // Określ typ zdarzenia
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -1728,11 +1705,26 @@
             showToast("Zapisano!");
             incrementBadge();
 
-            // === WYSYŁKA POWIADOMIENIA ===
             if (points !== 0) {
-                const title = points > 0 ? '➕ Nowy zarobek' : '➖ Nowa kara / wykup';
-                const body = `${name} (${points > 0 ? '+' : ''}${points} pkt)`;
-                sendNotificationToPartner(title, body, { type: points > 0 ? 'earn' : 'penalty', points });
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') {
+                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                    }
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
             }
         };
 
@@ -1774,7 +1766,6 @@
                 }
             }
 
-            // Określ typ dla ręcznie dodawanego zdarzenia
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -1796,12 +1787,27 @@
             updateUI();
             window.closeCustomModal();
             incrementBadge();
-            
-            // Wyślij powiadomienie po ręcznym dodaniu
+
             if (points !== 0) {
-                const title = points > 0 ? '➕ Ręczny zarobek' : '➖ Ręczna kara / wykup';
-                const body = `${name} (${points > 0 ? '+' : ''}${points} pkt)`;
-                sendNotificationToPartner(title, body, { type: points > 0 ? 'earn' : 'penalty', points });
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') {
+                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                    }
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
             }
         };
 
@@ -1900,9 +1906,6 @@
             document.getElementById('import-file-input').click();
         };
 
-        // ============================================================
-        // POPRAWIONA FUNKCJA importData – blokada synchronizacji
-        // ============================================================
         window.importData = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1911,7 +1914,6 @@
                 try {
                     const parsed = JSON.parse(e.target.result);
                     if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
-                        // 🔥 BLOKUJ SYNCHRONIZACJĘ
                         isLocalUpdate = true;
                         setPendingFlag(false);
 
@@ -1930,10 +1932,8 @@
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         localVersion = parsed._version || 0;
 
-                        // Zapisz do Firestore
                         await saveDataToFirestore();
 
-                        // 🔥 ODBLOKUJ SYNCHRONIZACJĘ
                         isLocalUpdate = false;
                         setPendingFlag(false);
 
@@ -1953,7 +1953,7 @@
         };
 
         // ============================================================
-        // 5. FCM – POWIADOMIENIA PUSH (POPRAWIONA REJESTRACJA SW)
+        // 5. FCM – POWIADOMIENIA PUSH
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -1978,10 +1978,8 @@
                     return;
                 }
 
-                // 🔥 POPRAWIONA REJESTRACJA SW – użycie względnej ścieżki
                 let swRegistration = await navigator.serviceWorker.ready;
                 
-                // Sprawdź, czy FCM SW jest zarejestrowany
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 let fcmReg = null;
                 for (const reg of registrations) {
@@ -1992,15 +1990,12 @@
                 }
 
                 if (!fcmReg) {
-                    // Jeśli nie ma, zarejestruj ręcznie
                     fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
                         scope: './'
                     });
-                    // Poczekaj na aktywację
                     await navigator.serviceWorker.ready;
                 }
 
-                // 2. Pobierz token z przekazaniem SW
                 const token = await getToken(messaging, {
                     vapidKey: VAPID_KEY,
                     serviceWorkerRegistration: fcmReg,
@@ -2024,9 +2019,6 @@
 
         registerForNotifications();
 
-        // ============================================================
-        // POPRAWIONY onMessage – odczyt z payload.data (zgodnie z backendem)
-        // ============================================================
         onMessage(messaging, (payload) => {
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || 'Nowe powiadomienie';
@@ -2044,10 +2036,8 @@
                     return;
                 }
 
-                // Określ docelową rolę (przeciwną)
                 const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
 
-                // Pobierz wszystkich użytkowników z Firestore
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 let targetUserId = null;
                 
@@ -2064,7 +2054,6 @@
                     return;
                 }
 
-                // 🔥 KONWERSJA data na STRINGI – Firebase wymaga stringów
                 const stringData = {};
                 if (data) {
                     Object.keys(data).forEach(key => {
@@ -2109,7 +2098,6 @@
                                         window.location.hostname === '127.0.0.1';
 
                 if (isSecureContext) {
-                    // Tylko główny SW – FCM rejestrujemy ręcznie w registerForNotifications
                     navigator.serviceWorker.register('./service-worker.js', { scope: './' })
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
@@ -2120,14 +2108,12 @@
         }
 
         // ============================================================
-        // WERSJA I AKTUALIZACJE (przywrócone)
+        // WERSJA I AKTUALIZACJE
         // ============================================================
         const APP_VERSION = '1.1.1';
 
-        // Wyświetl wersję
         document.getElementById('app-version-text').textContent = APP_VERSION;
 
-        // Funkcja sprawdzania aktualizacji
         window.checkForUpdate = async function() {
             try {
                 const registration = await navigator.serviceWorker.getRegistration();
@@ -2174,10 +2160,9 @@
             });
         }
 
-        // Przywracamy automatyczne sprawdzanie co 5 minut
         setInterval(() => {
             checkForUpdate();
-        }, 300000); // 5 minut
+        }, 300000);
 
         // ============================================================
         // INICJALIZACJA
@@ -2236,8 +2221,6 @@
                         resetBadge();
                         isFirstSnapshot = true;
                         loadCollapseStates();
-
-                        // Sprawdź, czy rola jest ustawiona
                         checkRole();
                     })
                     .catch((err) => {
