@@ -26,13 +26,12 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // ============================================================
-// DODATKOWY HANDLER MESSAGE – usuwa błąd
+// HANDLER MESSAGE – usuwa błąd "listener indicated an asynchronous response"
 // ============================================================
 self.addEventListener('message', (event) => {
     if (event.data) {
-        // Jeśli strona przekazała port do odpowiedzi, odeślij status
-        if (event.ports && event.ports[0]) {
-            event.ports[0].postMessage({ status: 'OK' });
-        }
+        event.respondWith(new Promise((resolve) => {
+            resolve('OK');
+        }));
     }
 });
