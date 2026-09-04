@@ -13,13 +13,16 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Obsługa powiadomień w tle – odczyt z payload.data
 messaging.onBackgroundMessage((payload) => {
-    const notificationTitle = payload.notification?.title || 'Nowe powiadomienie';
+    console.log('?? [SW] Powiadomienie w tle:', payload);
+    const notificationTitle = payload.data?.title || 'Nowe powiadomienie';
     const notificationOptions = {
-        body: payload.notification?.body || '',
+        body: payload.data?.body || '',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
+        // Możesz dodać więcej opcji, np. sound, actions, itp.
     };
     self.registration.showNotification(notificationTitle, notificationOptions);
 });
