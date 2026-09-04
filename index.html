@@ -248,6 +248,20 @@
         #role-modal .role-btn:hover {
             transform: scale(1.02);
         }
+
+        /* ===== WERSJA ===== */
+        .app-version {
+            font-size: 0.6rem;
+            color: #71717a;
+            text-align: center;
+            padding: 4px 0;
+            border-top: 1px solid #27272a;
+            margin-top: 4px;
+        }
+        .app-version span {
+            color: #a1a1aa;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -311,7 +325,7 @@
                 <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
             </div>
 
-            <!-- OPCJE DODATKOWE -->
+            <!-- OPCJE DODATKOWE (z wersją i przywróconą aktualizacją) -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">Opcje Dodatkowe</span>
@@ -328,7 +342,12 @@
                         <button onclick="exportData()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📥 Zapisz plik JSON</button>
                         <button onclick="triggerImport()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">📤 Wczytaj plik JSON</button>
                         <button onclick="openRoleModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">🔄 Zmień rolę</button>
+                        <button onclick="checkForUpdate()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">🔍 Sprawdź aktualizacje</button>
                         <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
+                    </div>
+                    <!-- WERSJA APLIKACJI -->
+                    <div class="app-version">
+                        📱 Wersja: <span id="app-version-text">1.0.6</span>
                     </div>
                 </div>
             </section>
@@ -546,7 +565,7 @@
                     <span class="text-2xl">👠</span> Pani
                 </button>
                 <button onclick="setRole('slave')" class="role-btn bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-4 rounded-xl text-lg font-bold text-zinc-200 transition-all flex items-center justify-center gap-3">
-                    <span class="text-2xl">🔗</span> Sługa
+                    <span class="text-2xl">🐕</span> Sługa
                 </button>
             </div>
             <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
@@ -2005,10 +2024,13 @@
 
         registerForNotifications();
 
+        // ============================================================
+        // POPRAWIONY onMessage – odczyt z payload.data (zgodnie z backendem)
+        // ============================================================
         onMessage(messaging, (payload) => {
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
-            const title = payload.notification?.title || 'Nowe powiadomienie';
-            const body = payload.notification?.body || '';
+            const title = payload.data?.title || 'Nowe powiadomienie';
+            const body = payload.data?.body || '';
             showToast(`📩 ${title}: ${body}`);
         });
 
@@ -2096,6 +2118,66 @@
                 }
             });
         }
+
+        // ============================================================
+        // WERSJA I AKTUALIZACJE (przywrócone)
+        // ============================================================
+        const APP_VERSION = '1.1.1';
+
+        // Wyświetl wersję
+        document.getElementById('app-version-text').textContent = APP_VERSION;
+
+        // Funkcja sprawdzania aktualizacji
+        window.checkForUpdate = async function() {
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) {
+                    showToast('⚠️ Service Worker nie jest zarejestrowany.');
+                    return;
+                }
+                const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
+                const manifest = await manifestResponse.json();
+                const newVersion = manifest.version || '1.0.0';
+                if (newVersion !== APP_VERSION) {
+                    showUpdateNotification(newVersion);
+                } else {
+                    showToast('✅ Masz najnowszą wersję.');
+                }
+            } catch (err) {
+                console.warn('Błąd sprawdzania aktualizacji:', err);
+                showToast('❌ Błąd sprawdzania aktualizacji.');
+            }
+        };
+
+        function showUpdateNotification(newVersion) {
+            if (document.getElementById('update-banner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'update-banner';
+            banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">🔄 Nowa wersja ${newVersion} dostępna!</span>
+                <button id="update-btn" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Zaktualizuj</button>
+                <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('update-btn').addEventListener('click', () => {
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    reg.update().then(() => {
+                        window.location.reload();
+                    });
+                });
+            });
+
+            document.getElementById('close-update-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        // Przywracamy automatyczne sprawdzanie co 5 minut
+        setInterval(() => {
+            checkForUpdate();
+        }, 300000); // 5 minut
 
         // ============================================================
         // INICJALIZACJA
@@ -2224,13 +2306,6 @@
                 });
             }
         }
-
-        const APP_VERSION = '1.0.6';
-
-        // Wyłączamy sprawdzanie aktualizacji (już nie przeszkadza)
-        // setInterval(() => {
-        //     checkForUpdate();
-        // }, 30000);
 
         // ============================================================
         // START
