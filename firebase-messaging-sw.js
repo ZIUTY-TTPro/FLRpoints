@@ -1,4 +1,4 @@
-// firebase-messaging-sw.js – wersja COMPAT
+// firebase-messaging-sw.js – wersja COMPAT z obsługą message
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
@@ -13,7 +13,6 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Obsługa powiadomień w tle – odczyt z payload.data
 messaging.onBackgroundMessage((payload) => {
     console.log('?? [SW] Powiadomienie w tle:', payload);
     const notificationTitle = payload.data?.title || 'Nowe powiadomienie';
@@ -22,7 +21,18 @@ messaging.onBackgroundMessage((payload) => {
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
-        // Możesz dodać więcej opcji, np. sound, actions, itp.
     };
     self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// ============================================================
+// DODATKOWY HANDLER MESSAGE – usuwa błąd
+// ============================================================
+self.addEventListener('message', (event) => {
+    // Obsługa wiadomości od strony – nie robimy nic, ale odpowiadamy
+    if (event.data) {
+        event.respondWith(new Promise((resolve) => {
+            resolve('OK');
+        }));
+    }
 });
