@@ -1697,44 +1697,58 @@
         // POPRAWIONE FUNKCJE: tryExecuteEvent i submitCustomModal
         // ============================================================
         window.tryExecuteEvent = function(name, points) {
-            if (points < 0) {
-                const requiredAbs = Math.abs(points);
-                if (balance < requiredAbs) {
-                    alert(`Brak wystarczającej liczby punktów! Masz ${balance} pkt, a ten koszt wynosi ${requiredAbs} pkt.`);
-                    return;
-                }
+    if (points < 0) {
+        const requiredAbs = Math.abs(points);
+        if (balance < requiredAbs) {
+            alert(`Brak wystarczającej liczby punktów! Masz ${balance} pkt, a ten koszt wynosi ${requiredAbs} pkt.`);
+            return;
+        }
+    }
+
+    let eventType = 'earn';
+    if (points < 0) {
+        const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+        eventType = isBuy ? 'buy' : 'pen';
+    }
+
+    const entry = {
+        id: Date.now().toString(),
+        name,
+        points,
+        date: activeDate,
+        type: eventType
+    };
+
+    balance += points;
+    historyEntries.unshift(entry);
+    saveDataToFirestore();
+    renderActions();
+    updateUI();
+    showToast("Zapisano!");
+    incrementBadge();
+
+    if (points !== 0) {
+        const myRole = getRole();
+        const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+
+        let title, body;
+        if (eventType === 'earn') {
+            title = '➕ Nowy zarobek';
+            body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+        } else if (eventType === 'pen') {
+            title = '❌ Nowa kara';
+            body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+        } else if (eventType === 'buy') {
+            title = '🛒 Nowy wykup';
+            if (myRole === 'mistress') {
+                body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+            } else {
+                body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
             }
-
-            // Określ typ zdarzenia
-            let eventType = 'earn';
-            if (points < 0) {
-                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
-                eventType = isBuy ? 'buy' : 'pen';
-            }
-
-            const entry = {
-                id: Date.now().toString(),
-                name,
-                points,
-                date: activeDate,
-                type: eventType
-            };
-
-            balance += points;
-            historyEntries.unshift(entry);
-            saveDataToFirestore();
-            renderActions();
-            updateUI();
-            showToast("Zapisano!");
-            incrementBadge();
-
-            // === WYSYŁKA POWIADOMIENIA ===
-            if (points !== 0) {
-                const title = points > 0 ? '➕ Nowy zarobek' : '➖ Nowa kara / wykup';
-                const body = `${name} (${points > 0 ? '+' : ''}${points} pkt)`;
-                sendNotificationToPartner(title, body, { type: points > 0 ? 'earn' : 'penalty', points });
-            }
-        };
+        }
+        sendNotificationToPartner(title, body, { type: eventType, points, name });
+    }
+};
 
         window.deleteEntry = function(id) {
             const index = historyEntries.findIndex(e => e.id === id);
@@ -1798,12 +1812,27 @@
             incrementBadge();
             
             // Wyślij powiadomienie po ręcznym dodaniu
-            if (points !== 0) {
-                const title = points > 0 ? '➕ Ręczny zarobek' : '➖ Ręczna kara / wykup';
-                const body = `${name} (${points > 0 ? '+' : ''}${points} pkt)`;
-                sendNotificationToPartner(title, body, { type: points > 0 ? 'earn' : 'penalty', points });
-            }
-        };
+if (points !== 0) {
+    const myRole = getRole();
+    const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+
+    let title, body;
+    if (eventType === 'earn') {
+        title = '➕ Nowy zarobek';
+        body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+    } else if (eventType === 'pen') {
+        title = '❌ Nowa kara';
+        body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+    } else if (eventType === 'buy') {
+        title = '🛒 Nowy wykup';
+        if (myRole === 'mistress') {
+            body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+        } else {
+            body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+        }
+    }
+    sendNotificationToPartner(title, body, { type: eventType, points, name });
+}
 
         window.openReduceModal = function() {
             document.getElementById('reduce-percent').value = '';
