@@ -37,12 +37,11 @@ self.addEventListener('activate', event => {
 });
 
 // ==========================
-// FETCH – Z POMINIĘCIEM WSZYSTKICH ZEWNĘTRZNYCH ZAPYTAŃ
+// FETCH
 // ==========================
 self.addEventListener('fetch', event => {
   const url = event.request.url;
 
-  // CAŁKOWICIE POMIŃ zapytania poza origin (Firebase, Google APIs itp.)
   if (!url.startsWith(self.location.origin)) {
     return;
   }
@@ -73,12 +72,3 @@ self.addEventListener('fetch', event => {
     );
   }
 });
-
-// ==========================
-// MESSAGE HANDLER – USUNIĘTY (nie potrzebny)
-// ==========================
-// self.addEventListener('message', (event) => {
-//   if (event.data && event.data.type === 'SKIP_WAITING') {
-//     self.skipWaiting();
-//   }
-// });
