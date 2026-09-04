@@ -32,21 +32,19 @@ admin.initializeApp({
 const db = admin.firestore();
 
 // ============================================================
-// ENDPOINT: wysyłka powiadomienia
+// ENDPOINT: wysyłka powiadomienia (TYLKO data, BEZ notification)
 // ============================================================
 app.post('/send-notification', async (req, res) => {
     const { targetUserId, title, body, data } = req.body;
 
     console.log('📩 Otrzymano żądanie:', { targetUserId, title, body, data });
 
-    // Walidacja
     if (!targetUserId || !title || !body) {
         console.error('❌ Brak wymaganych pól');
         return res.status(400).json({ error: 'Brak wymaganych pól: targetUserId, title, body' });
     }
 
     try {
-        // Sprawdź, czy użytkownik istnieje
         const userDoc = await db.collection('users').doc(targetUserId).get();
         if (!userDoc.exists) {
             console.error('❌ Użytkownik nie istnieje:', targetUserId);
@@ -59,8 +57,8 @@ app.post('/send-notification', async (req, res) => {
             return res.status(404).json({ error: 'Brak tokenu FCM dla tego użytkownika' });
         }
 
-        // 🔥 KONWERSJA data na STRINGI – Firebase wymaga stringów
-        const stringData = {};
+        // 🔥 WYSYŁAMY TYLKO data – BEZ notification
+        const stringData = { title, body };
         if (data) {
             Object.keys(data).forEach(key => {
                 if (data[key] !== undefined && data[key] !== null) {
@@ -69,9 +67,7 @@ app.post('/send-notification', async (req, res) => {
             });
         }
 
-        // Konstruuj wiadomość
         const message = {
-            notification: { title, body },
             data: stringData,
             token: fcmToken,
         };
@@ -107,22 +103,6 @@ app.post('/register-token', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('❌ Błąd zapisu tokenu:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ============================================================
-// ENDPOINT: lista użytkowników
-// ============================================================
-app.get('/users', async (req, res) => {
-    try {
-        const snapshot = await db.collection('users').get();
-        const users = [];
-        snapshot.forEach(doc => {
-            users.push({ id: doc.id, ...doc.data() });
-        });
-        res.json({ users });
-    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
