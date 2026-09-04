@@ -9,11 +9,13 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 
+    <!-- Google Font: Cinzel (FLR) -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE (bez zmian) ===== */
+        /* ===== STYLE ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -100,6 +102,7 @@
         .rotate-180 { transform: rotate(180deg); }
         .transition-transform { transition: transform 0.3s ease; }
         
+        /* ===== KLIMATYCZNE DODATKI WIZUALNE FLR ===== */
         .glow-coin {
             filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.4));
             transition: filter 0.3s ease;
@@ -112,12 +115,16 @@
             border-left: 2px solid #dc2626;
             padding-left: 8px;
         }
+
+        /* ===== CZCIONKA FLR DLA NAGŁÓWKÓW ===== */
         .flr-title {
             font-family: 'Cinzel', serif;
             font-weight: 700;
             letter-spacing: 0.1em;
             text-transform: uppercase;
         }
+
+        /* ===== POWIĘKSZONA MONETA ===== */
         .balance-icon {
             width: 180px;
             height: 180px;
@@ -136,6 +143,7 @@
                 height: 260px;
             }
         }
+
         .flr-history-item {
             border-left: 2px solid #27272a;
             transition: border-color 0.2s;
@@ -143,6 +151,7 @@
         .flr-history-item:hover {
             border-color: #dc2626;
         }
+
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -231,12 +240,16 @@
         #offline-banner {
             transition: all 0.3s ease;
         }
+
+        /* ===== MODAL ROLI ===== */
         #role-modal .role-btn {
             transition: all 0.3s ease;
         }
         #role-modal .role-btn:hover {
             transform: scale(1.02);
         }
+
+        /* ===== WERSJA ===== */
         .app-version {
             font-size: 0.6rem;
             color: #71717a;
@@ -255,10 +268,12 @@
 
     <main class="w-full max-w-md p-4 flex flex-col gap-5">
 
+        <!-- Stan ładowania -->
         <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
             ⏳ Ładowanie danych...
         </div>
 
+        <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
             <!-- BILANS -->
@@ -267,6 +282,7 @@
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
                     <span id="offline-badge" class="hidden text-[8px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Offline</span>
                 </div>
+                <!-- POWIĘKSZONA MONETA -->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" class="balance-icon glow-coin" id="balance-coin-svg">
                     <g transform="translate(200, 200)">
                         <circle cx="0" cy="0" r="130" fill="#1a1410" stroke="#dc2626" stroke-width="8" />
@@ -522,13 +538,15 @@
         </div>
     </div>
 
+    <!-- POPRAWIONY MODAL REDUKCJI – z id i for -->
     <div id="reduce-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 class="text-sm font-bold text-zinc-200">Zredukuj punkty zarabiania</h3>
             <p class="text-xs text-zinc-400">Podaj o ile procent (%) obniżyć punkty oraz datę, do której ma obowiązywać redukcja:</p>
             <input type="number" id="reduce-percent" placeholder="Obniżka w % (np. 15)" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
             <div class="flex flex-col gap-1">
-                <label class="text-[10px] text-zinc-400 font-semibold">Obowiązuje do dnia:</label>
+                <!-- POPRAWIONE: dodano for="reduce-date" i id="reduce-date" -->
+                <label for="reduce-date" class="text-[10px] text-zinc-400 font-semibold">Obowiązuje do dnia:</label>
                 <input type="date" id="reduce-date" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
             </div>
             <div class="flex gap-2 mt-1">
@@ -538,7 +556,7 @@
         </div>
     </div>
 
-    <!-- MODAL WYBORU ROLI -->
+    <!-- ===== MODAL WYBORU ROLI ===== -->
     <div id="role-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-card border border-bordercolor rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-center">
             <h2 class="text-xl font-bold text-zinc-200 flr-title">👑 FLR Slave Points</h2>
@@ -557,6 +575,7 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
+    <!-- Import map z dodanym messaging -->
     <script type="importmap">
         {
             "imports": {
@@ -1363,6 +1382,7 @@
             return `${mostFrequent} (${maxCount}x)`;
         }
 
+        // Poprawiona funkcja filterHistoryByType – używa pola `type`
         function filterHistoryByType(history, type) {
             return history.filter(entry => entry.type === type);
         }
@@ -1383,6 +1403,7 @@
 
             const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
 
+            // Używamy pola `type`
             const earnEntries = filterHistoryByType(filteredHistory, 'earn');
             const penEntries = filterHistoryByType(filteredHistory, 'pen');
             const buyEntries = filterHistoryByType(filteredHistory, 'buy');
@@ -1684,6 +1705,7 @@
                 }
             }
 
+            // Określ typ zdarzenia
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -1706,6 +1728,7 @@
             showToast("Zapisano!");
             incrementBadge();
 
+            // === WYSYŁKA POWIADOMIENIA ===
             if (points !== 0) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -1767,6 +1790,7 @@
                 }
             }
 
+            // Określ typ dla ręcznie dodawanego zdarzenia
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -1788,7 +1812,8 @@
             updateUI();
             window.closeCustomModal();
             incrementBadge();
-
+            
+            // Wyślij powiadomienie po ręcznym dodaniu
             if (points !== 0) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -1908,7 +1933,7 @@
         };
 
         // ============================================================
-        // POPRAWIONA FUNKCJA importData – z wymuszeniem wyższej wersji
+        // POPRAWIONA FUNKCJA importData – blokada synchronizacji
         // ============================================================
         window.importData = function(event) {
             const file = event.target.files[0];
@@ -1918,7 +1943,7 @@
                 try {
                     const parsed = JSON.parse(e.target.result);
                     if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
-                        // BLOKUJ SYNCHRONIZACJĘ
+                        // 🔥 BLOKUJ SYNCHRONIZACJĘ
                         isLocalUpdate = true;
                         setPendingFlag(false);
 
@@ -1936,25 +1961,25 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         
-                        // 🔥 KLUCZOWA POPRAWKA: ustaw wersję na WYŻSZĄ niż w chmurze
+                        // 🔥 Ustaw wersję na WYŻSZĄ niż w chmurze
                         try {
                             const snap = await getDoc(docRef);
                             const currentVersion = snap.exists() ? (snap.data()._version || 0) : 0;
                             localVersion = currentVersion + 1;
                         } catch (err) {
-                            localVersion = Date.now(); // fallback – unikalna wartość
+                            localVersion = Date.now();
                         }
 
                         // Zapisz do Firestore
                         await saveDataToFirestore();
 
-                        // ODBLOKUJ SYNCHRONIZACJĘ
+                        // 🔥 ODBLOKUJ SYNCHRONIZACJĘ
                         isLocalUpdate = false;
                         setPendingFlag(false);
 
                         renderActions();
                         updateUI();
-                        showToast("✅ Wczytano dane pomyślnie!");
+                        showToast("Wczytano dane pomyślnie!");
                         incrementBadge();
                     } else {
                         alert("Nieprawidłowy format pliku JSON.");
@@ -1968,7 +1993,7 @@
         };
 
         // ============================================================
-        // 5. FCM – POWIADOMIENIA PUSH
+        // 5. FCM – POWIADOMIENIA PUSH (POPRAWIONA REJESTRACJA SW)
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -1993,8 +2018,10 @@
                     return;
                 }
 
+                // 🔥 POPRAWIONA REJESTRACJA SW – użycie względnej ścieżki
                 let swRegistration = await navigator.serviceWorker.ready;
                 
+                // Sprawdź, czy FCM SW jest zarejestrowany
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 let fcmReg = null;
                 for (const reg of registrations) {
@@ -2005,12 +2032,15 @@
                 }
 
                 if (!fcmReg) {
+                    // Jeśli nie ma, zarejestruj ręcznie
                     fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
                         scope: './'
                     });
+                    // Poczekaj na aktywację
                     await navigator.serviceWorker.ready;
                 }
 
+                // 2. Pobierz token z przekazaniem SW
                 const token = await getToken(messaging, {
                     vapidKey: VAPID_KEY,
                     serviceWorkerRegistration: fcmReg,
@@ -2034,6 +2064,9 @@
 
         registerForNotifications();
 
+        // ============================================================
+        // POPRAWIONY onMessage – odczyt z payload.data (zgodnie z backendem)
+        // ============================================================
         onMessage(messaging, (payload) => {
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || 'Nowe powiadomienie';
@@ -2051,8 +2084,10 @@
                     return;
                 }
 
+                // Określ docelową rolę (przeciwną)
                 const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
 
+                // Pobierz wszystkich użytkowników z Firestore
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 let targetUserId = null;
                 
@@ -2069,6 +2104,7 @@
                     return;
                 }
 
+                // 🔥 KONWERSJA data na STRINGI – Firebase wymaga stringów
                 const stringData = {};
                 if (data) {
                     Object.keys(data).forEach(key => {
@@ -2113,6 +2149,7 @@
                                         window.location.hostname === '127.0.0.1';
 
                 if (isSecureContext) {
+                    // Tylko główny SW – FCM rejestrujemy ręcznie w registerForNotifications
                     navigator.serviceWorker.register('./service-worker.js', { scope: './' })
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
@@ -2127,8 +2164,10 @@
         // ============================================================
         const APP_VERSION = '1.1.1';
 
+        // Wyświetl wersję
         document.getElementById('app-version-text').textContent = APP_VERSION;
 
+        // Funkcja sprawdzania aktualizacji (ręczne wywołanie)
         window.checkForUpdate = async function() {
             try {
                 const registration = await navigator.serviceWorker.getRegistration();
@@ -2237,6 +2276,8 @@
                         resetBadge();
                         isFirstSnapshot = true;
                         loadCollapseStates();
+
+                        // Sprawdź, czy rola jest ustawiona
                         checkRole();
                     })
                     .catch((err) => {
