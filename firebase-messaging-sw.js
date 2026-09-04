@@ -29,10 +29,10 @@ messaging.onBackgroundMessage((payload) => {
 // DODATKOWY HANDLER MESSAGE – usuwa błąd
 // ============================================================
 self.addEventListener('message', (event) => {
-    // Obsługa wiadomości od strony – nie robimy nic, ale odpowiadamy
     if (event.data) {
-        event.respondWith(new Promise((resolve) => {
-            resolve('OK');
-        }));
+        // Jeśli strona przekazała port do odpowiedzi, odeślij status
+        if (event.ports && event.ports[0]) {
+            event.ports[0].postMessage({ status: 'OK' });
+        }
     }
 });
