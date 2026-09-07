@@ -1,74 +1,2974 @@
-const CACHE_NAME = 'flr-slave-points-v1.2.0';
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
-];
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#09090b" />
+    <title>FLR Slave Points</title>
 
-const offlineFallbackPage = './index.html';
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
 
-// ==========================
-// INSTALL
-// ==========================
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
-  self.skipWaiting();
-});
+    <!-- Google Font: Cinzel (FLR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-// ==========================
-// ACTIVATE
-// ==========================
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
-  );
-});
+    <style>
+        /* ===== STYLE (skrócone dla czytelności, bez zmian) ===== */
+        body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glow-red { text-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
+        .glow-white { text-shadow: 0 0 20px rgba(228, 228, 231, 0.4); }
+        .click-anim:active { transform: scale(0.98); }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .status-dot.online { background-color: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.6); }
+        .status-dot.offline { background-color: #ef4444; box-shadow: 0 0 12px rgba(239,68,68,0.6); }
+        .status-dot.connecting { background-color: #eab308; box-shadow: 0 0 12px rgba(234,179,8,0.6); }
+        .status-dot.pending { background-color: #f59e0b; box-shadow: 0 0 12px rgba(245,158,11,0.8); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .bg-card { background-color: #18181b; }
+        .border-bordercolor { border-color: #27272a; }
+        .bg-app { background-color: #09090b; }
+        .text-zinc-950 { color: #09090b; }
+        .text-zinc-200 { color: #e4e4e7; }
+        .text-zinc-300 { color: #d4d4d8; }
+        .text-zinc-400 { color: #a1a1aa; }
+        .text-zinc-500 { color: #71717a; }
+        .text-zinc-600 { color: #52525b; }
+        .text-zinc-100 { color: #f4f4f5; }
+        .border-zinc-700 { border-color: #3f3f46; }
+        .bg-zinc-700 { background-color: #3f3f46; }
+        .bg-zinc-800 { background-color: #27272a; }
+        .bg-zinc-800\/60 { background-color: rgba(39,39,42,0.6); }
+        .bg-zinc-900\/40 { background-color: rgba(24,24,27,0.4); }
+        .bg-zinc-100 { background-color: #f4f4f5; }
+        .hover\:bg-zinc-700:hover { background-color: #3f3f46; }
+        .hover\:bg-zinc-800\/50:hover { background-color: rgba(39,39,42,0.5); }
+        .hover\:bg-blood\/20:hover { background-color: rgba(220,38,38,0.2); }
+        .bg-blood\/10 { background-color: rgba(220,38,38,0.1); }
+        .border-blood\/30 { border-color: rgba(220,38,38,0.3); }
+        .bg-bloodbg\/15 { background-color: rgba(69,10,10,0.15); }
+        .border-blood\/20 { border-color: rgba(220,38,38,0.2); }
+        .bg-emerald-950\/30 { background-color: rgba(5,46,22,0.3); }
+        .border-emerald-500\/50 { border-color: rgba(16,185,129,0.5); }
+        .bg-amber-500\/10 { background-color: rgba(245,158,11,0.1); }
+        .border-amber-500\/30 { border-color: rgba(245,158,11,0.3); }
+        .bg-amber-500\/20 { background-color: rgba(245,158,11,0.2); }
+        .hover\:bg-amber-500\/30:hover { background-color: rgba(245,158,11,0.3); }
+        .text-amber-500 { color: #f59e0b; }
+        .text-amber-400 { color: #fbbf24; }
+        .text-amber-300 { color: #fcd34d; }
+        .text-blood { color: #dc2626; }
+        .shadow-\[0_0_15px_rgba\(16\,185\,129\,0\.15\)\] { box-shadow: 0 0 15px rgba(16,185,129,0.15); }
+        .bg-zinc-200 { background-color: #e4e4e7; }
+        .text-red-400 { color: #f87171; }
+        .border-zinc-500 { border-color: #71717a; }
+        .hover\:bg-zinc-800:hover { background-color: #27272a; }
+        .bg-black\/80 { background-color: rgba(0,0,0,0.8); }
+        .backdrop-blur-sm { backdrop-filter: blur(4px); }
+        .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .z-50 { z-index: 50; }
+        .whitespace-nowrap { white-space: nowrap; }
+        .border-dashed { border-style: dashed; }
+        .transition-collapse { transition: max-height 0.3s ease-in-out; overflow: hidden; max-height: 2000px; }
+        .transition-collapse.collapsed { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+        .rotate-180 { transform: rotate(180deg); }
+        .transition-transform { transition: transform 0.3s ease; }
+        .glow-coin { filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.4)); transition: filter 0.3s ease; }
+        .glow-coin-positive { filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.7)); }
+        .flr-ornament { letter-spacing: 0.1em; border-left: 2px solid #dc2626; padding-left: 8px; }
+        .flr-title { font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+        .balance-icon { width: 180px; height: 180px; display: block; margin: 0 auto; }
+        @media (min-width: 640px) { .balance-icon { width: 220px; height: 220px; } }
+        @media (min-width: 768px) { .balance-icon { width: 260px; height: 260px; } }
+        .flr-history-item { border-left: 2px solid #27272a; transition: border-color 0.2s; }
+        .flr-history-item:hover { border-color: #dc2626; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
+        .collapse-btn { background: none; border: none; color: #71717a; cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+        .collapse-btn:hover { color: #d4d4d8; }
+        .collapse-btn svg { width: 18px; height: 18px; transition: transform 0.3s ease; }
+        .collapse-btn svg.rotate-180 { transform: rotate(180deg); }
+        .reward-item { background-color: rgba(5,46,22,0.15); border: 1px solid rgba(16,185,129,0.2); border-radius: 0.75rem; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; color: #d4d4d8; }
+        .reward-item .name { font-size: 0.75rem; font-weight: 500; flex: 1; word-break: break-word; }
+        .reward-item .cost { font-size: 0.7rem; font-weight: 600; color: #34d399; white-space: nowrap; flex-shrink: 0; }
+        .rewards-empty { color: #71717a; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0; }
+        .bg-emerald-950\/20 { background-color: rgba(5,46,22,0.2); }
+        .border-emerald-500\/30 { border-color: rgba(16,185,129,0.3); }
+        .sort-btn { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
+        .history-date { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
+        #offline-banner { transition: all 0.3s ease; }
+        #role-modal .role-btn { transition: all 0.3s ease; }
+        #role-modal .role-btn:hover { transform: scale(1.02); }
+        .app-version { font-size: 0.6rem; color: #71717a; text-align: center; padding: 4px 0; border-top: 1px solid #27272a; margin-top: 4px; }
+        .app-version span { color: #a1a1aa; font-weight: 600; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #27272a; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 0.7rem; color: #a1a1aa; font-weight: 500; }
+        .setting-value { font-size: 0.75rem; font-weight: 600; color: #e4e4e7; }
+        .setting-value .role-badge { background: #27272a; padding: 2px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; color: #d4d4d8; }
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: #3f3f46; border-radius: 30px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
+        .toggle-switch.active { background: #22c55e; }
+        .toggle-switch .toggle-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform 0.3s; }
+        .toggle-switch.active .toggle-knob { transform: translateX(18px); }
+        .btn-copy { background: none; border: none; color: #71717a; cursor: pointer; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; transition: color 0.2s; }
+        .btn-copy:hover { color: #d4d4d8; }
+        .token-preview { font-family: monospace; font-size: 0.65rem; color: #a1a1aa; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-sm { font-size: 0.6rem; padding: 2px 10px; border-radius: 12px; background: #27272a; color: #d4d4d8; border: none; cursor: pointer; transition: background 0.2s; }
+        .btn-sm:hover { background: #3f3f46; }
+        .btn-sm.primary { background: #3f3f46; color: #e4e4e7; }
+        .btn-sm.primary:hover { background: #52525b; }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .pending-item { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 0.75rem; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; color: #d4d4d8; }
+        .pending-item .name { font-size: 0.75rem; font-weight: 500; flex: 1; word-break: break-word; }
+        .pending-item .points-display { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
+        .pending-item .actions { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
+        .pending-item .actions button { background: #27272a; border: none; border-radius: 12px; color: #d4d4d8; padding: 2px 8px; font-size: 0.6rem; cursor: pointer; transition: background 0.2s; }
+        .pending-item .actions button:hover { background: #3f3f46; }
+        .pending-item .actions button.approve { background: #22c55e20; color: #22c55e; }
+        .pending-item .actions button.approve:hover { background: #22c55e40; }
+        .pending-item .actions button.reject { background: #ef444420; color: #ef4444; }
+        .pending-item .actions button.reject:hover { background: #ef444440; }
+        .pending-item .actions button.delete { background: none; color: #71717a; font-size: 0.7rem; padding: 0 4px; }
+        .pending-item .actions button.delete:hover { color: #ef4444; }
+        .pending-item .points-input { width: 50px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 2px 4px; font-size: 0.7rem; color: #e4e4e7; text-align: center; }
+        .pending-item .points-input:focus { outline: none; border-color: #71717a; }
+        .pending-empty { color: #71717a; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0; }
+        .role-icon { font-size: 1.2rem; line-height: 1; }
+        .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-// ==========================
-// FETCH
-// ==========================
-self.addEventListener('fetch', event => {
-  const url = event.request.url;
+        /* ===== KONTENER POWIADOMIEŃ ===== */
+        #notification-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            gap: 0.3rem;
+            pointer-events: none;
+            z-index: 100;
+            max-height: 100vh;
+            overflow: hidden;
+        }
+        .notification-item {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #e4e4e7;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            max-width: 90%;
+            width: auto;
+            text-align: left;
+            animation: slideUp 0.3s ease-out;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: auto;
+        }
+        .notification-item.approved { border-left: 4px solid #22c55e; }
+        .notification-item.rejected { border-left: 4px solid #ef4444; }
+        .notification-item.info { border-left: 4px solid #fbbf24; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-  if (!url.startsWith(self.location.origin)) {
-    return;
-  }
+        /* ===== KOMUNIKAT DLA PANI (MYŚL PANI) – WEWNĄTRZ KONTENERA MONETY ===== */
+        #mistress-message-container {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(220, 38, 38, 0.08);
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            border-radius: 1rem;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #fca5a5;
+            letter-spacing: 0.02em;
+            line-height: 1.4;
+            min-height: 3rem;
+            display: none; /* domyślnie ukryte */
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #mistress-message-container.show {
+            display: flex;
+            opacity: 1;
+        }
+        #mistress-message-container .quote-mark {
+            font-size: 1.2rem;
+            color: #dc2626;
+            margin: 0 0.2rem;
+        }
+        #mistress-message-container .heart {
+            color: #dc2626;
+            margin: 0 0.3rem;
+        }
+        #mistress-message-container .message-text {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex justify-center pb-24">
 
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, copy);
-          });
-          return response;
-        })
-        .catch(async () => {
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResp = await cache.match(offlineFallbackPage);
-          return cachedResp;
-        })
-    );
-  } else {
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        return response || fetch(event.request).catch(() => {
-          return caches.match(offlineFallbackPage);
+    <!-- KONTENER POWIADOMIEŃ -->
+    <div id="notification-container"></div>
+
+    <main class="w-full max-w-md p-4 flex flex-col gap-5">
+
+        <!-- Stan ładowania -->
+        <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
+            ⏳ Ładowanie danych...
+        </div>
+
+        <!-- Główna treść -->
+        <div id="main-content" class="hidden flex flex-col gap-5">
+
+            <!-- BILANS + KOMUNIKAT DLA PANI -->
+            <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
+                <div class="absolute top-3 left-3 flex items-center gap-1">
+                    <span id="role-icon" class="role-icon">👤</span>
+                </div>
+                <div class="absolute top-3 right-3 flex items-center gap-2">
+                    <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
+                    <span id="offline-badge" class="hidden text-[8px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Offline</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" class="balance-icon glow-coin" id="balance-coin-svg">
+                    <g transform="translate(200, 200)">
+                        <circle cx="0" cy="0" r="130" fill="#1a1410" stroke="#dc2626" stroke-width="8" />
+                        <circle cx="0" cy="0" r="110" fill="none" stroke="#dc2626" stroke-width="2" opacity="0.5" />
+                        <g opacity="0.4">
+                            <circle cx="0" cy="-120" r="5" fill="#dc2626" />
+                            <circle cx="0" cy="120" r="5" fill="#dc2626" />
+                            <circle cx="-120" cy="0" r="5" fill="#dc2626" />
+                            <circle cx="120" cy="0" r="5" fill="#dc2626" />
+                            <circle cx="-85" cy="-85" r="5" fill="#dc2626" />
+                            <circle cx="85" cy="-85" r="5" fill="#dc2626" />
+                            <circle cx="-85" cy="85" r="5" fill="#dc2626" />
+                            <circle cx="85" cy="85" r="5" fill="#dc2626" />
+                        </g>
+                        <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
+                    </g>
+                </svg>
+                <!-- KOMUNIKAT DLA PANI (w środku kontenera monety) -->
+                <div id="mistress-message-container"></div>
+            </div>
+
+            <!-- ZDARZENIA DO ZATWIERDZENIA -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4" id="pending-section">
+                <div class="section-header">
+                    <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
+                    <button onclick="toggleCollapse('pending')" class="collapse-btn" id="collapse-btn-pending">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-pending" class="transition-collapse mt-2">
+                    <div id="pending-list" class="flex flex-col gap-2"></div>
+                    <div id="pending-empty" class="pending-empty">Brak oczekujących zdarzeń.</div>
+                </div>
+            </section>
+
+            <!-- DOZWOLONE PRZYJEMNOŚCI -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
+                    <button onclick="toggleCollapse('rewards')" class="collapse-btn" id="collapse-btn-rewards">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-rewards" class="transition-collapse mt-2">
+                    <div id="rewards-list" class="flex flex-col gap-1.5"></div>
+                    <div id="rewards-empty" class="rewards-empty">Wszystkie przyjemności są zablokowane.</div>
+                </div>
+            </section>
+
+            <!-- BANER REDUKCJI -->
+            <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex justify-between items-center">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
+                    <span id="reduction-info-text" class="text-xs text-zinc-300">Obniżka o 15% do 01.09.2026</span>
+                </div>
+                <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
+            </div>
+
+            <!-- ZARZĄDZANIE PUNKTAMI -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <span class="section-title flr-ornament flr-title">Zarządzanie punktami</span>
+                    <button onclick="toggleCollapse('points')" class="collapse-btn" id="collapse-btn-points">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-points" class="transition-collapse mt-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
+                        <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
+                        <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
+                        <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KALENDARZ -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <span class="section-title flr-ornament flr-title">Kalendarz</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
+                        <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200">Styczeń 2026</span>
+                        <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
+                        <button onclick="toggleCollapse('calendar')" class="collapse-btn" id="collapse-btn-calendar">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="collapse-content-calendar" class="transition-collapse mt-2">
+                    <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                        <span class="text-[10px] font-bold text-zinc-500">Pn</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Wt</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Śr</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Cz</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Pt</span>
+                        <span class="text-[10px] font-bold text-zinc-500">So</span>
+                        <span class="text-[10px] font-bold text-zinc-500">Nd</span>
+                    </div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+                    <div class="mt-3 text-center">
+                        <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KATALOG ZDARZEŃ -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <h2 class="section-title flr-ornament flr-title">Katalog Zdarzeń</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
+                        <button onclick="toggleCollapse('catalog')" class="collapse-btn" id="collapse-btn-catalog">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="collapse-content-catalog" class="transition-collapse mt-2">
+                    <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
+                        <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
+                        <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
+                        <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
+                    </div>
+                    <div id="action-list" class="flex flex-col gap-2"></div>
+                </div>
+            </section>
+
+            <!-- HISTORIA -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <h2 class="section-title flr-ornament flr-title">Historia z wybranego dnia</h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="history-date-label" class="history-date"></span>
+                        <button onclick="toggleCollapse('history')" class="collapse-btn" id="collapse-btn-history">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="collapse-content-history" class="transition-collapse mt-2">
+                    <div id="history-list" class="flex flex-col gap-2"></div>
+                </div>
+            </section>
+
+            <!-- STATYSTYKI -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4">
+                <div class="section-header">
+                    <div class="flex items-center gap-2">
+                        <h2 class="section-title flr-ornament flr-title">Statystyki Zdarzeń</h2>
+                    </div>
+                    <button onclick="toggleCollapse('stats')" class="collapse-btn" id="collapse-btn-stats">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-stats" class="transition-collapse mt-3 flex flex-col gap-3">
+                    <div class="flex gap-1 bg-app p-1 rounded-xl border border-bordercolor text-center">
+                        <button onclick="switchStatsRange('year')" id="stats-tab-year" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Rok</button>
+                        <button onclick="switchStatsRange('month')" id="stats-tab-month" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all bg-zinc-700 text-white shadow">Miesiąc</button>
+                        <button onclick="switchStatsRange('week')" id="stats-tab-week" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Tydzień</button>
+                    </div>
+                    <div class="text-center">
+                        <span id="stats-range-label" class="text-[11px] text-zinc-400 font-medium">Zakres: --</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Zarobek</span>
+                            <span id="stats-val-earn" class="text-xs font-black text-zinc-100">0</span>
+                        </div>
+                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Kary</span>
+                            <span id="stats-val-pen" class="text-xs font-black text-red-400">0</span>
+                        </div>
+                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Wykup</span>
+                            <span id="stats-val-buy" class="text-xs font-black text-amber-400">0</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-bordercolor my-0.5"></div>
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Ostatnie aktywności</span>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">❤️ Ostatni orgazm żony: <strong id="stat-last-orgasm" class="text-zinc-200">-</strong></span>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">➕ Ostatni zarobek: <strong id="stat-last-earn" class="text-zinc-200">-</strong></span>
+                                <span id="stat-last-earn-pts" class="font-bold text-zinc-100 shrink-0">0 pkt</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">❌ Ostatnia kara: <strong id="stat-last-pen" class="text-zinc-200">-</strong></span>
+                                <span id="stat-last-pen-pts" class="font-bold text-red-400 shrink-0">0 pkt</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400 truncate pr-2">🛒 Ostatni wykup: <strong id="stat-last-buy" class="text-zinc-200">-</strong></span>
+                                <span id="stat-last-buy-pts" class="font-bold text-amber-400 shrink-0">0 pkt</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
+                        <div class="grid grid-cols-1 gap-1.5 text-xs">
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">➕ Najczęstszy zarobek:</span>
+                                <strong id="stat-freq-earn" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">❌ Najczęstsza kara:</span>
+                                <strong id="stat-freq-pen" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                <span class="text-zinc-400">🛒 Najczęstszy wykup:</span>
+                                <strong id="stat-freq-buy" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- USTAWIENIA -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4" id="settings-section">
+                <div class="section-header">
+                    <span class="section-title flr-ornament flr-title">Ustawienia</span>
+                    <button onclick="toggleCollapse('settings')" class="collapse-btn" id="collapse-btn-settings">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
+                    <div class="setting-row">
+                        <span class="setting-label">📱 Wersja</span>
+                        <span class="setting-value" id="app-version-text">1.2.0</span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">📡 Stan aplikacji</span>
+                        <span class="setting-value" id="app-status-text">
+                            <span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
+                            Online
+                        </span>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">🔑 Token FCM</span>
+                        <div class="flex items-center gap-2">
+                            <span class="token-preview" id="fcm-token-preview">---</span>
+                            <button class="btn-copy" id="copy-token-btn" title="Kopiuj pełny token">📋</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">👤 Rola</span>
+                        <div class="flex items-center gap-2">
+                            <span class="setting-value role-badge" id="current-role-display">Nieustawiona</span>
+                            <button class="btn-sm primary" onclick="openRoleModal()">Zmień</button>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">🔔 Powiadomienia</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-zinc-400" id="notif-status-label">Włączone</span>
+                            <div class="toggle-switch active" id="notif-toggle" onclick="toggleNotifications()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">🔄 Aktualizacje</span>
+                        <button class="btn-sm primary" onclick="checkForUpdate()">Sprawdź</button>
+                    </div>
+                    <div class="setting-row" style="border-bottom: none; padding-bottom: 4px;">
+                        <span class="setting-label">💾 Dane</span>
+                        <div class="flex gap-2">
+                            <button class="btn-sm primary" onclick="exportData()">Eksport JSON</button>
+                            <button class="btn-sm primary" onclick="triggerImport()">Import JSON</button>
+                        </div>
+                    </div>
+                    <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODALE -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
+            <input type="text" id="modal-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <input type="number" id="modal-points" placeholder="Liczba punktów..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeCustomModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button onclick="submitCustomModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zatwierdź</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
+            <p class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
+            <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-zinc-200">Edytuj zdarzenie</h3>
+            <input type="text" id="edit-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <input type="number" id="edit-item-points" placeholder="Wartość punktowa..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeEditCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button onclick="submitEditCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reduce-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-zinc-200">Zredukuj punkty zarabiania</h3>
+            <p class="text-xs text-zinc-400">Podaj o ile procent (%) obniżyć punkty oraz datę, do której ma obowiązywać redukcja:</p>
+            <input type="number" id="reduce-percent" placeholder="Obniżka w % (np. 15)" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <div class="flex flex-col gap-1">
+                <label for="reduce-date" class="text-[10px] text-zinc-400 font-semibold">Obowiązuje do dnia:</label>
+                <input type="date" id="reduce-date" class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            </div>
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeReduceModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button onclick="submitReduce()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zastosuj</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="role-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="bg-card border border-bordercolor rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-center">
+            <h2 class="text-xl font-bold text-zinc-200 flr-title">👑 FLR Slave Points</h2>
+            <p class="text-sm text-zinc-400">Wybierz swoją rolę w związku:</p>
+            <div class="flex flex-col gap-3 mt-2">
+                <button onclick="setRole('mistress')" class="role-btn bg-blood/10 hover:bg-blood/20 border border-blood/30 p-4 rounded-xl text-lg font-bold text-blood transition-all flex items-center justify-center gap-3">
+                    <span class="text-2xl">👠</span> Pani
+                </button>
+                <button onclick="setRole('slave')" class="role-btn bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-4 rounded-xl text-lg font-bold text-zinc-200 transition-all flex items-center justify-center gap-3">
+                    <span class="text-2xl">🔐</span> Sługa
+                </button>
+            </div>
+            <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+
+    <!-- Import map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js",
+                "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ============================================================
+        // 0. beforeinstallprompt
+        // ============================================================
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBanner();
         });
-      })
-    );
-  }
-});
+
+        function showInstallBanner() {
+            if (document.getElementById('install-banner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'install-banner';
+            banner.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-card border border-bordercolor rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">📲 Zainstaluj aplikację</span>
+                <button id="install-btn" class="bg-zinc-100 text-zinc-950 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Instaluj</button>
+                <button id="close-install-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('install-btn').addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        showNotification('Aplikacja zainstalowana! 🎉', 'info');
+                    } else {
+                        showNotification('Instalacja anulowana.', 'info');
+                    }
+                    deferredPrompt = null;
+                    banner.remove();
+                }
+            });
+
+            document.getElementById('close-install-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        // ============================================================
+        // 1. BADGE
+        // ============================================================
+        let newEventsCount = 0;
+        let isFirstSnapshot = true;
+
+        function updateBadge() {
+            if ('setAppBadge' in navigator) {
+                if (newEventsCount > 0) {
+                    navigator.setAppBadge(newEventsCount).catch(() => {});
+                } else {
+                    navigator.clearAppBadge().catch(() => {});
+                }
+            }
+        }
+
+        function incrementBadge() {
+            newEventsCount++;
+            updateBadge();
+        }
+
+        function resetBadge() {
+            newEventsCount = 0;
+            updateBadge();
+        }
+
+        // ============================================================
+        // 2. ZWIJANIE
+        // ============================================================
+        window.toggleCollapse = function(sectionId) {
+            const content = document.getElementById(`collapse-content-${sectionId}`);
+            const btn = document.getElementById(`collapse-btn-${sectionId}`);
+            if (!content || !btn) return;
+
+            const isCollapsed = content.classList.contains('collapsed');
+            const svg = btn.querySelector('svg');
+            
+            if (isCollapsed) {
+                content.classList.remove('collapsed');
+                if (svg) svg.classList.remove('rotate-180');
+            } else {
+                content.classList.add('collapsed');
+                if (svg) svg.classList.add('rotate-180');
+            }
+            
+            localStorage.setItem(`flr_collapse_${sectionId}`, isCollapsed ? 'open' : 'collapsed');
+        };
+
+        function loadCollapseStates() {
+            const sections = ['pending', 'rewards', 'points', 'calendar', 'catalog', 'history', 'stats', 'settings'];
+            sections.forEach(id => {
+                const content = document.getElementById(`collapse-content-${id}`);
+                const btn = document.getElementById(`collapse-btn-${id}`);
+                if (!content || !btn) return;
+                const state = localStorage.getItem(`flr_collapse_${id}`);
+                const svg = btn.querySelector('svg');
+                
+                if (state === 'collapsed') {
+                    content.classList.add('collapsed');
+                    if (svg) svg.classList.add('rotate-180');
+                } else {
+                    content.classList.remove('collapsed');
+                    if (svg) svg.classList.remove('rotate-180');
+                }
+            });
+            const settingsContent = document.getElementById('collapse-content-settings');
+            const settingsBtn = document.getElementById('collapse-btn-settings');
+            if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
+                settingsContent.classList.add('collapsed');
+                const svg = settingsBtn?.querySelector('svg');
+                if (svg) svg.classList.add('rotate-180');
+                localStorage.setItem('flr_collapse_settings', 'collapsed');
+            }
+        }
+
+        // ============================================================
+        // 3. POMOCNICZE FUNKCJE DAT
+        // ============================================================
+        function getLocalDateString(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateText(dateStr) {
+            const parts = dateStr.split('-');
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        function getWeekBoundsFromActiveDate(dateStr) {
+            const date = new Date(dateStr);
+            const dayOfWeek = date.getDay();
+            const diff = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+            const start = new Date(date);
+            start.setDate(date.getDate() - diff);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            end.setHours(23, 59, 59, 999);
+            return { start, end };
+        }
+
+        function getLocalDateFromStr(dateStr) {
+            return new Date(dateStr + 'T00:00:00');
+        }
+
+        // ============================================================
+        // 4. FIREBASE
+        // ============================================================
+        import { initializeApp } from 'firebase/app';
+        import { 
+            initializeFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            onSnapshot, 
+            runTransaction,
+            persistentLocalCache,
+            persistentMultipleTabManager,
+            getDocs,
+            collection,
+            deleteField,
+            addDoc,
+            query,
+            where,
+            orderBy,
+            updateDoc,
+            serverTimestamp,
+            onSnapshot as onFirestoreSnapshot
+        } from 'firebase/firestore';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXkEhwVp9EkSEuQq1nwkiuNkXTRJk8-n0",
+            authDomain: "rejestflr.firebaseapp.com",
+            projectId: "rejestflr",
+            storageBucket: "rejestflr.firebasestorage.app",
+            messagingSenderId: "1017001684786",
+            appId: "1:1017001684786:web:1a440900555ed8340bf12b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = initializeFirestore(app, {
+            localCache: persistentLocalCache({
+                tabManager: persistentMultipleTabManager()
+            })
+        });
+        const docRef = doc(db, 'registry/shared');
+        const pendingCollection = collection(db, 'pending_events');
+        const notificationsCollection = collection(db, 'notifications');
+
+        // ----- UI STATUSU -----
+        const statusDot = document.getElementById('connection-status-dot');
+        const offlineBadge = document.getElementById('offline-badge');
+        const appStatusText = document.getElementById('app-status-text');
+        const roleIcon = document.getElementById('role-icon');
+
+        function setStatusOnline() {
+            statusDot.className = 'status-dot online';
+            statusDot.title = 'Połączono z Firebase';
+            offlineBadge.classList.add('hidden');
+            appStatusText.innerHTML = `<span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span> Online`;
+        }
+
+        function setStatusOffline() {
+            statusDot.className = 'status-dot offline';
+            statusDot.title = 'Brak połączenia';
+            offlineBadge.classList.remove('hidden');
+            appStatusText.innerHTML = `<span class="status-dot offline inline-block mr-1" style="width:8px;height:8px;"></span> Offline`;
+        }
+
+        function setStatusConnecting() {
+            statusDot.className = 'status-dot connecting';
+            statusDot.title = 'Łączenie...';
+            offlineBadge.classList.add('hidden');
+            appStatusText.innerHTML = `<span class="status-dot connecting inline-block mr-1" style="width:8px;height:8px;"></span> Łączenie...`;
+        }
+
+        function setStatusPending() {
+            statusDot.className = 'status-dot pending';
+            statusDot.title = 'Oczekiwanie na synchronizację';
+            offlineBadge.classList.remove('hidden');
+            appStatusText.innerHTML = `<span class="status-dot pending inline-block mr-1" style="width:8px;height:8px;"></span> Oczekiwanie...`;
+        }
+
+        function updateRoleIcon(role) {
+            if (role === 'mistress') {
+                roleIcon.textContent = '👠';
+            } else if (role === 'slave') {
+                roleIcon.textContent = '🔐';
+            } else {
+                roleIcon.textContent = '👤';
+            }
+        }
+
+        // ----- SŁOWNIK DOMYŚLNY -----
+        const originalDictionary = [
+            {
+                group: "Zarobek (+)",
+                type: "positive",
+                items: [
+                    { name: "Masaż stóp", points: 5, basePoints: 5 },
+                    { name: "Mycie naczyń", points: 5, basePoints: 5 },
+                    { name: "Dzień w pasie cnoty", points: 10, basePoints: 10 },
+                    { name: "Wywieszenie prania", points: 10, basePoints: 10 },
+                    { name: "Złożenie prania", points: 10, basePoints: 10 },
+                    { name: "Prasowanie", points: 10, basePoints: 10 },
+                    { name: "Zadanie wykonał w bieliźnie", points: 10, basePoints: 10 },
+                    { name: "Zadanie wykonał nago", points: 15, basePoints: 15 },
+                    { name: "Masaż pleców", points: 15, basePoints: 15 },
+                    { name: "Obiad", points: 25, basePoints: 25 },
+                    { name: "Sprzątanie domu", points: 25, basePoints: 25 },
+                    { name: "Zlizanie nasienia", points: 25, basePoints: 25 },
+                    { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25, basePoints: 25 },
+                    { name: "Orgazm dla żony", points: 50, basePoints: 50 }
+                ]
+            },
+            {
+                group: "Kary (-)",
+                type: "negative",
+                items: [
+                    { name: "Marudzenie", points: -20, basePoints: -20 },
+                    { name: "Złe zachowanie", points: -50, basePoints: -50 },
+                    { name: "Pyskowanie", points: -100, basePoints: -100 },
+                    { name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150, basePoints: -150 },
+                    { name: "Dojście bez pozwolenia", points: -500, basePoints: -500 }
+                ]
+            },
+            {
+                group: "Wykup (-)",
+                type: "negative",
+                items: [
+                    { name: "Masturbacja bez obecności żony bez orgazmu", points: -100, basePoints: -100 },
+                    { name: "Orgazm zrujnowany", points: -150, basePoints: -150 },
+                    { name: "Orgazm w gumce", points: -250, basePoints: -250 },
+                    { name: "Baty", points: -250, basePoints: -250 },
+                    { name: "Orgazm na stopy", points: -300, basePoints: -300 },
+                    { name: "Orgazm na dłoń", points: -300, basePoints: -300 },
+                    { name: "Masturbacja nago przed ubraną żoną", points: -350, basePoints: -350 },
+                    { name: "Lodzik", points: -500, basePoints: -500 }
+                ]
+            }
+        ];
+
+        // ----- STAN APLIKACJI -----
+        let eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
+        let balance = 0;
+        let historyEntries = [];
+        let activeDate = getLocalDateString(new Date());
+        let currentTab = 0;
+        let currentModalType = 'add';
+        let activeReduction = null;
+        let sortModes = { 0: 0, 1: 0, 2: 0 };
+        let editingGroupIdx = null;
+        let editingItemIdx = null;
+        let calendarYear = new Date().getFullYear();
+        let calendarMonth = new Date().getMonth();
+        let isLocalUpdate = false;
+        let localVersion = 0;
+        let pendingSync = false;
+        let pendingUpdates = [];
+        let currentFcmToken = null;
+        let notificationsEnabled = true;
+        let pendingEvents = [];
+        let userId = null;
+        let notificationTimers = {};
+
+        // ----- REFERENCJE DOM -----
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const mainContent = document.getElementById('main-content');
+
+        // ============================================================
+        // SYSTEM POWIADOMIEŃ
+        // ============================================================
+        function showNotification(text, type = 'info') {
+            const container = document.getElementById('notification-container');
+            
+            const existing = container.querySelectorAll('.notification-item');
+            for (const el of existing) {
+                if (el.textContent === text) {
+                    const timerId = el.dataset.timerId;
+                    if (timerId && notificationTimers[timerId]) {
+                        clearTimeout(notificationTimers[timerId]);
+                    }
+                    const newTimerId = Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                    el.dataset.timerId = newTimerId;
+                    notificationTimers[newTimerId] = setTimeout(() => {
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateY(10px)';
+                        setTimeout(() => {
+                            el.remove();
+                            delete notificationTimers[newTimerId];
+                        }, 300);
+                    }, 5000);
+                    return;
+                }
+            }
+
+            const el = document.createElement('div');
+            el.className = `notification-item ${type}`;
+            el.textContent = text;
+            
+            const timerId = Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            el.dataset.timerId = timerId;
+            
+            container.appendChild(el);
+            
+            notificationTimers[timerId] = setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    el.remove();
+                    delete notificationTimers[timerId];
+                }, 300);
+            }, 5000);
+        }
+
+        // ============================================================
+        // KOMUNIKATY DLA PANI
+        // ============================================================
+        const mistressMessages = [
+            // Ogólne – władza
+            "Pamiętaj – to Ty decydujesz, kiedy i czy Sługa zasługuje na nagrodę.",
+            "Sługa ma być posłuszny, a nie oczekiwać. Czas na małe otrzeźwienie.",
+            "Twoja surowość czyni go lepszym – nie bój się wymagać więcej.",
+            "Im trudniej, tym większa satysfakcja – zarówno Twoja, jak i jego.",
+            "Poniż go i nakarm jego uległość – to buduje więź.",
+            "Czy piesek całował dziś Twoje stopy? Jeśli nie, czas to zmienić.",
+            "Idzie weekend – penis w pas cnoty. Niech pamięta, kto rządzi.",
+            "Niech masuje, aż mu spuchną paluchy – wtedy dopiero poczuje, co to służba.",
+            "Puszcz sobie film, a Sługa niech klęczy u Twoich stóp – to jego miejsce.",
+            "Jego orgazm to historia – Twoja przyjemność to teraźniejszość.",
+            "Idź spać, a Sługa niech prasuje – rano ma być wszystko gotowe.",
+            "Nie pójdzie spać, dopóki nie skończy zadania – dyscyplina przede wszystkim.",
+            "Sługa ma prawo marzyć, ale Ty masz prawo decydować, czy jego marzenia się spełnią.",
+            "Twoja łaska to jego skarb – nie rozdawaj jej za darmo.",
+            "Bądź nieprzewidywalna – to go podnieca i utrzymuje w gotowości.",
+            // Kary
+            "Sługa od tygodnia nie dostał kary – czas na małą lekcję pokory.",
+            "Zbyt długo był grzeczny – to podejrzane. Zadbaj o dyscyplinę.",
+            "Kara to nie zemsta – to trening. Nie odkładaj jej na później.",
+            "Jeśli nie karzesz, to znaczy, że akceptujesz – a czy na pewno chcesz to robić?",
+            // Zarobki
+            "Punktów przybywa, ale czy naprawdę na nie zasłużył? Może za dużo dajesz za proste zadania.",
+            "Ostatnie zarobki były zbyt hojne – czas na obcięcie stawki. Niech się postara!",
+            "Sługa myśli, że ma łatwo? Zmień kryteria – niech każdy punkt kosztuje go wysiłek.",
+            "Czy aby na pewno każda czynność zasługuje na punkty? Bądź bardziej oszczędna w nagradzaniu.",
+            // Wykupy
+            "Ma wystarczająco punktów? To nie znaczy, że musi dostać to, czego chce. Odmowa też jest przyjemnością.",
+            "Przypomnij Słudze, że to Ty rozdajesz karty – nawet jeśli ma punkty, możesz mu odmówić.",
+            "Ostatni wykup był za łatwy – następnym razem powiedz NIE. Niech poczeka i pragnie.",
+            "Przyjemność to przywilej, a nie prawo. Odmawiaj częściej – doceni to bardziej.",
+            // Dodatkowe – ostrzejsze
+            "Sługa zaczyna być zbyt pewny siebie – czas na niespodziewane utrudnienie.",
+            "Spójrz na historię – czy ostatnio nie byłaś zbyt miła? Wróć do surowszego stylu.",
+            "Twoja rola to nie tylko nagradzanie – to także kształtowanie charakteru. Bądź stanowcza.",
+            "Sługa uwielbia, gdy jesteś nieprzewidywalna – zaskocz go odmową lub karą.",
+            "Niech poczuje smak porażki – to go wzmocni.",
+            "Bądź dla niego twarda, ale sprawiedliwa – wtedy będzie Ci wdzięczny.",
+            "Sługa potrzebuje granic – Ty jesteś ich strażniczką.",
+            "Nie daj mu zapomnieć, że jest Twoim własnością.",
+            "Twoje słowo jest prawem – niech to usłyszy głośno i wyraźnie.",
+            "Każdy punkt to przywilej, nie obowiązek – przypominaj mu o tym codziennie."
+        ];
+
+        function loadMistressMessage() {
+            const role = getRole();
+            const msgContainer = document.getElementById('mistress-message-container');
+            
+            // Jeśli rola nie jest Panią – ukryj całkowicie kontener
+            if (role !== 'mistress') {
+                msgContainer.classList.remove('show');
+                msgContainer.style.display = 'none';
+                return;
+            }
+
+            // Pokaż kontener
+            msgContainer.style.display = 'flex';
+
+            // Sprawdź, czy w sesji jest już komunikat
+            let msg = sessionStorage.getItem('flr_mistress_message');
+            if (!msg) {
+                const randomIndex = Math.floor(Math.random() * mistressMessages.length);
+                msg = mistressMessages[randomIndex];
+                sessionStorage.setItem('flr_mistress_message', msg);
+            }
+
+            msgContainer.innerHTML = `
+                <span class="quote-mark">❝</span>
+                <span class="message-text">${msg}</span>
+                <span class="quote-mark">❞</span>
+                <span class="heart">♥</span>
+            `;
+            // Dodaj klasę show po krótkim opóźnieniu (efekt fade-in)
+            setTimeout(() => {
+                msgContainer.classList.add('show');
+            }, 100);
+        }
+
+        // ============================================================
+        // AKTUALIZACJA BILANSU
+        // ============================================================
+        function updateBalanceOnIcon() {
+            const balanceEl = document.getElementById('balance-on-icon');
+            const coinSvg = document.getElementById('balance-coin-svg');
+            if (balanceEl) {
+                balanceEl.textContent = balance;
+            }
+            if (coinSvg) {
+                if (balance > 0) {
+                    coinSvg.classList.add('glow-coin-positive');
+                } else {
+                    coinSvg.classList.remove('glow-coin-positive');
+                }
+            }
+        }
+
+        // ============================================================
+        // ZARZĄDZANIE BACKUPEM I SYNCHRONIZACJĄ
+        // ============================================================
+        function saveToLocalBackup() {
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary,
+                sortModes: sortModes,
+                _version: localVersion,
+                _timestamp: Date.now(),
+                pendingEvents: pendingEvents
+            };
+            try {
+                localStorage.setItem('flr_backup', JSON.stringify(dataObj));
+            } catch (e) {
+                console.warn('Nie udało się zapisać backupu lokalnego', e);
+            }
+        }
+
+        function loadFromLocalBackup() {
+            try {
+                const raw = localStorage.getItem('flr_backup');
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (typeof data.balance !== 'number' || !Array.isArray(data.history) || !data.dictionary) {
+                    console.warn('Backup ma niekompletną strukturę');
+                    return null;
+                }
+                data.dictionary = data.dictionary.map(group => ({
+                    ...group,
+                    items: group.items.map(item => ({
+                        ...item,
+                        basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                    }))
+                }));
+                return data;
+            } catch (e) {
+                console.warn('Błąd odczytu backupu', e);
+                return null;
+            }
+        }
+
+        function setPendingFlag(flag) {
+            pendingSync = flag;
+            localStorage.setItem('flr_pending', flag ? 'true' : 'false');
+            if (flag) {
+                setStatusPending();
+            } else {
+                if (navigator.onLine) {
+                    setStatusOnline();
+                } else {
+                    setStatusOffline();
+                }
+            }
+        }
+
+        function getPendingFlag() {
+            return localStorage.getItem('flr_pending') === 'true';
+        }
+
+        async function saveDataToFirestore() {
+            localVersion++;
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary,
+                sortModes: sortModes,
+                _version: localVersion,
+                _timestamp: Date.now()
+            };
+
+            saveToLocalBackup();
+
+            if (!navigator.onLine) {
+                setPendingFlag(true);
+                showNotification('📡 Brak połączenia – zmiany zapisane lokalnie', 'info');
+                return;
+            }
+
+            isLocalUpdate = true;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    if (docSnap.exists()) {
+                        const remoteVersion = docSnap.data()._version || 0;
+                        if (remoteVersion > localVersion) {
+                            throw new Error('Ktoś inny zmienił dane. Odśwież stronę.');
+                        }
+                    }
+                    transaction.set(docRef, dataObj);
+                });
+                isLocalUpdate = false;
+                setPendingFlag(false);
+                if (pendingUpdates.length > 0) {
+                    const latestUpdate = pendingUpdates[pendingUpdates.length - 1];
+                    pendingUpdates = [];
+                    const remoteVersion = latestUpdate._version || 0;
+                    if (remoteVersion > localVersion) {
+                        showNotification('📥 Wczytano nowsze dane z chmury', 'info');
+                        updateStateFromFirestore(latestUpdate, true);
+                    }
+                }
+                setStatusOnline();
+            } catch (err) {
+                isLocalUpdate = false;
+                if (err.message && err.message.includes('Ktoś inny')) {
+                    showNotification('⚠️ ' + err.message, 'info');
+                    try {
+                        const snap = await getDoc(docRef);
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data(), true);
+                        }
+                    } catch (e) {
+                        console.warn('Nie udało się odświeżyć danych', e);
+                    }
+                } else {
+                    console.error("Błąd zapisu:", err);
+                    setPendingFlag(true);
+                    showNotification('❌ Błąd zapisu – zapisano lokalnie', 'info');
+                    setStatusOffline();
+                }
+            }
+        }
+
+        async function syncPendingChanges() {
+            if (!getPendingFlag()) return;
+            if (!navigator.onLine) return;
+
+            const backup = loadFromLocalBackup();
+            if (!backup) {
+                setPendingFlag(false);
+                return;
+            }
+
+            try {
+                const snap = await getDoc(docRef);
+                if (snap.exists()) {
+                    const remoteData = snap.data();
+                    const remoteVersion = remoteData._version || 0;
+                    if (remoteVersion > backup._version) {
+                        showNotification('⚠️ Wykryto nowsze dane w chmurze. Twoje lokalne zmiany nie zostały wysłane.', 'info');
+                        setPendingFlag(true);
+                        updateStateFromFirestore(remoteData, true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Nie udało się sprawdzić wersji przed synchronizacją', err);
+            }
+
+            isLocalUpdate = true;
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    if (docSnap.exists()) {
+                        const remoteVersion = docSnap.data()._version || 0;
+                        if (remoteVersion > backup._version) {
+                            throw new Error('Ktoś inny zmienił dane podczas synchronizacji.');
+                        }
+                    }
+                    transaction.set(docRef, backup);
+                });
+                isLocalUpdate = false;
+                setPendingFlag(false);
+                updateStateFromFirestore(backup, true);
+                setStatusOnline();
+            } catch (err) {
+                isLocalUpdate = false;
+                if (err.message && err.message.includes('Ktoś inny')) {
+                    showNotification('⚠️ ' + err.message + ' Odśwież stronę.', 'info');
+                    try {
+                        const snap = await getDoc(docRef);
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data(), true);
+                        }
+                    } catch (e) {
+                        console.warn('Nie udało się odświeżyć danych', e);
+                    }
+                } else {
+                    console.error('Błąd synchronizacji:', err);
+                    setStatusOffline();
+                    showNotification('❌ Błąd synchronizacji – spróbuj ponownie później', 'info');
+                }
+            }
+        }
+
+        window.addEventListener('online', () => {
+            setStatusConnecting();
+            syncPendingChanges().then(() => {
+                if (!getPendingFlag()) {
+                    getDoc(docRef).then(snap => {
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data());
+                        }
+                    }).catch(() => {});
+                }
+            });
+        });
+
+        window.addEventListener('offline', () => {
+            setStatusOffline();
+            showNotification('📡 Brak połączenia – zmiany będą zapisywane lokalnie', 'info');
+        });
+
+        // ----- AKTUALIZACJA STANU -----
+        function updateStateFromFirestore(data, force = false) {
+            if (!data) return;
+            const incomingVersion = data._version || 0;
+            if (!force && incomingVersion <= localVersion && localVersion > 0) {
+                return;
+            }
+
+            balance = data.balance ?? 0;
+            historyEntries = data.history ?? [];
+            activeReduction = data.activeReduction ?? null;
+            sortModes = data.sortModes || { 0: 0, 1: 0, 2: 0 };
+            if (data.dictionary) {
+                eventDictionary = data.dictionary.map(group => ({
+                    ...group,
+                    items: group.items.map(item => ({
+                        ...item,
+                        basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                    }))
+                }));
+            } else {
+                eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
+            }
+            localVersion = incomingVersion;
+            saveToLocalBackup();
+            if (!getPendingFlag()) {
+                setPendingFlag(false);
+            }
+            updateUI();
+            setStatusOnline();
+        }
+
+        // ============================================================
+        // POWIADOMIENIA WEWNĄTRZ APLIKACJI (notifications)
+        // ============================================================
+        function subscribeNotifications() {
+            const uid = getUserId();
+            if (!uid) return;
+            const q = query(notificationsCollection, where('targetUserId', '==', uid), where('read', '==', false));
+            onFirestoreSnapshot(q, (snapshot) => {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.message) {
+                        let type = 'info';
+                        if (data.message.includes('✅')) type = 'approved';
+                        else if (data.message.includes('❌')) type = 'rejected';
+                        showNotification(data.message, type);
+                        updateDoc(doc.ref, { read: true }).catch(() => {});
+                    }
+                });
+            }, (err) => {
+                console.warn('Błąd nasłuchu powiadomień:', err);
+            });
+        }
+
+        async function sendNotification(targetUserId, message) {
+            try {
+                await addDoc(notificationsCollection, {
+                    targetUserId: targetUserId,
+                    message: message,
+                    createdAt: serverTimestamp(),
+                    read: false
+                });
+            } catch (err) {
+                console.warn('Nie udało się wysłać powiadomienia wewnętrznego:', err);
+            }
+        }
+
+        // ============================================================
+        // ZDARZENIA OCZEKUJĄCE (PENDING)
+        // ============================================================
+        function renderPendingEvents() {
+            const list = document.getElementById('pending-list');
+            const empty = document.getElementById('pending-empty');
+            list.innerHTML = '';
+
+            if (!pendingEvents || pendingEvents.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            const role = getRole();
+            const isMistress = role === 'mistress';
+
+            pendingEvents.forEach(event => {
+                const div = document.createElement('div');
+                div.className = 'pending-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = event.name || 'Brak nazwy';
+
+                const actions = document.createElement('div');
+                actions.className = 'actions';
+
+                if (isMistress) {
+                    if (event.source === 'catalog') {
+                        const pointsDisplay = document.createElement('span');
+                        pointsDisplay.className = 'points-static';
+                        pointsDisplay.textContent = `${event.points || 0} pkt`;
+                        actions.appendChild(pointsDisplay);
+
+                        const approveBtn = document.createElement('button');
+                        approveBtn.className = 'approve';
+                        approveBtn.textContent = '✅';
+                        approveBtn.title = 'Zatwierdź';
+                        approveBtn.onclick = () => approvePendingEvent(event.id, event.points, event.source);
+                        actions.appendChild(approveBtn);
+
+                        const rejectBtn = document.createElement('button');
+                        rejectBtn.className = 'reject';
+                        rejectBtn.textContent = '❌';
+                        rejectBtn.title = 'Odrzuć';
+                        rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                        actions.appendChild(rejectBtn);
+                    } else {
+                        const pointsInput = document.createElement('input');
+                        pointsInput.type = 'number';
+                        pointsInput.className = 'points-input';
+                        pointsInput.placeholder = 'pkt';
+                        pointsInput.value = event.points || '';
+                        pointsInput.dataset.eventId = event.id;
+                        actions.appendChild(pointsInput);
+
+                        const approveBtn = document.createElement('button');
+                        approveBtn.className = 'approve';
+                        approveBtn.textContent = '✅';
+                        approveBtn.title = 'Zatwierdź i dodaj do katalogu';
+                        approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value, event.source);
+                        actions.appendChild(approveBtn);
+
+                        const rejectBtn = document.createElement('button');
+                        rejectBtn.className = 'reject';
+                        rejectBtn.textContent = '❌';
+                        rejectBtn.title = 'Odrzuć';
+                        rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                        actions.appendChild(rejectBtn);
+                    }
+                } else {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete';
+                    deleteBtn.textContent = '✕';
+                    deleteBtn.title = 'Anuluj propozycję';
+                    deleteBtn.onclick = () => deletePendingEvent(event.id);
+                    actions.appendChild(deleteBtn);
+                }
+
+                div.appendChild(nameSpan);
+                div.appendChild(actions);
+                list.appendChild(div);
+            });
+        }
+
+        async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
+            const role = getRole();
+            if (role !== 'slave') {
+                showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
+                return;
+            }
+
+            try {
+                const uid = getUserId();
+                await addDoc(pendingCollection, {
+                    name: name,
+                    points: points,
+                    proposedBy: uid,
+                    proposedAt: serverTimestamp(),
+                    status: 'waiting',
+                    source: source,
+                    type: source === 'catalog' ? 'existing' : 'new',
+                    tabIndex: tabIndex
+                });
+                showNotification('📨 Zgłoszono do zatwierdzenia!', 'info');
+            } catch (err) {
+                console.error('Błąd dodawania do pending:', err);
+                showNotification('❌ Błąd zgłaszania', 'info');
+            }
+        }
+
+        async function approvePendingEvent(eventId, pointsStr, source) {
+            const role = getRole();
+            if (role !== 'mistress') {
+                showNotification('⚠️ Tylko Pani może zatwierdzać.', 'info');
+                return;
+            }
+
+            let points = parseInt(pointsStr, 10);
+            if (isNaN(points)) {
+                showNotification('⚠️ Podaj poprawną liczbę punktów.', 'info');
+                return;
+            }
+
+            try {
+                const eventRef = doc(db, 'pending_events', eventId);
+                const eventSnap = await getDoc(eventRef);
+                if (!eventSnap.exists()) {
+                    showNotification('❌ Zdarzenie nie istnieje.', 'info');
+                    return;
+                }
+                const eventData = eventSnap.data();
+                const name = eventData.name || 'Zdarzenie';
+                const proposedBy = eventData.proposedBy;
+                const tabIndex = eventData.tabIndex !== undefined ? eventData.tabIndex : 0;
+
+                if ((tabIndex === 1 || tabIndex === 2) && points > 0) {
+                    points = -Math.abs(points);
+                }
+
+                await updateDoc(eventRef, { status: 'approved', resolved: true });
+
+                const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
+                await sendNotification(getUserId(), mistressMsg);
+
+                if (proposedBy) {
+                    const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
+                    await sendNotification(proposedBy, slaveMsg);
+                }
+
+                if (source === 'proposal') {
+                    const existing = eventDictionary.some(group => 
+                        group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
+                    );
+                    if (!existing) {
+                        const targetGroup = tabIndex;
+                        const newItem = { name, points, basePoints: points };
+                        if (targetGroup === 0 && activeReduction) {
+                            const percent = activeReduction.percent;
+                            const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
+                            newItem.points = reduced > 0 ? reduced : 1;
+                        }
+                        eventDictionary[targetGroup].items.push(newItem);
+                        await saveDataToFirestore();
+                        showNotification(`✅ Dodano nowe zdarzenie do katalogu: ${name} (${points} pkt)`, 'approved');
+                    } else {
+                        showNotification(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`, 'info');
+                    }
+                } else {
+                    const entry = {
+                        id: Date.now().toString(),
+                        name: name,
+                        points: points,
+                        date: activeDate,
+                        type: points > 0 ? 'earn' : (points < 0 ? (tabIndex === 2 ? 'buy' : 'pen') : 'earn'),
+                    };
+                    balance += points;
+                    historyEntries.unshift(entry);
+                    await saveDataToFirestore();
+                }
+
+                updateUI();
+                renderPendingEvents();
+            } catch (err) {
+                console.error('Błąd zatwierdzania:', err);
+                showNotification('❌ Błąd zatwierdzania', 'info');
+            }
+        }
+
+        async function rejectPendingEvent(eventId) {
+            const role = getRole();
+            if (role !== 'mistress') {
+                showNotification('⚠️ Tylko Pani może odrzucać.', 'info');
+                return;
+            }
+
+            try {
+                const eventRef = doc(db, 'pending_events', eventId);
+                const eventSnap = await getDoc(eventRef);
+                if (!eventSnap.exists()) {
+                    showNotification('❌ Zdarzenie nie istnieje.', 'info');
+                    return;
+                }
+                const eventData = eventSnap.data();
+                const name = eventData.name || 'Zdarzenie';
+                const proposedBy = eventData.proposedBy;
+
+                await updateDoc(eventRef, { status: 'rejected', resolved: true });
+
+                const mistressMsg = `❌ Odrzuciłaś: ${name}`;
+                await sendNotification(getUserId(), mistressMsg);
+
+                if (proposedBy) {
+                    const slaveMsg = `❌ Pani odrzuciła: ${name}`;
+                    await sendNotification(proposedBy, slaveMsg);
+                }
+
+                renderPendingEvents();
+            } catch (err) {
+                console.error('Błąd odrzucania:', err);
+                showNotification('❌ Błąd odrzucania', 'info');
+            }
+        }
+
+        async function deletePendingEvent(eventId) {
+            const role = getRole();
+            if (role !== 'slave') {
+                showNotification('⚠️ Tylko Sługa może anulować swoje propozycje.', 'info');
+                return;
+            }
+
+            if (!confirm('Czy na pewno chcesz anulować tę propozycję?')) return;
+
+            try {
+                const eventRef = doc(db, 'pending_events', eventId);
+                await updateDoc(eventRef, { status: 'cancelled', resolved: true });
+                showNotification('🗑️ Anulowano propozycję.', 'info');
+                renderPendingEvents();
+            } catch (err) {
+                console.error('Błąd anulowania:', err);
+                showNotification('❌ Błąd anulowania', 'info');
+            }
+        }
+
+        function subscribePendingEvents() {
+            const q = query(pendingCollection, where('status', '==', 'waiting'));
+            onFirestoreSnapshot(q, (snapshot) => {
+                const events = [];
+                snapshot.forEach(doc => {
+                    events.push({ id: doc.id, ...doc.data() });
+                });
+                pendingEvents = events;
+                renderPendingEvents();
+                saveToLocalBackup();
+            }, (err) => {
+                console.error('Błąd nasłuchu pending:', err);
+            });
+        }
+
+        // ============================================================
+        // RENDEROWANIE KALENDARZA
+        // ============================================================
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const label = document.getElementById('calendar-month-year');
+            const activeText = document.getElementById('active-date-text');
+            grid.innerHTML = '';
+
+            const monthsNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+            label.innerText = `${monthsNames[calendarMonth]} ${calendarYear}`;
+            activeText.innerText = formatDateText(activeDate);
+
+            const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
+            const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+            for (let i = 0; i < adjustedFirstDay; i++) {
+                grid.appendChild(document.createElement('div'));
+            }
+
+            const todayStr = getLocalDateString(new Date());
+
+            for (let day = 1; day <= totalDays; day++) {
+                const monthStr = String(calendarMonth + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const dateStr = `${calendarYear}-${monthStr}-${dayStr}`;
+
+                const isSelected = dateStr === activeDate;
+                const isToday = dateStr === todayStr;
+
+                const btn = document.createElement('button');
+                btn.className = `h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center click-anim ${
+                    isSelected ? 'bg-zinc-100 text-zinc-950 shadow' : isToday ? 'border border-zinc-500 text-zinc-200' : 'text-zinc-400 hover:bg-zinc-800'
+                }`;
+                btn.innerText = day;
+                btn.onclick = () => {
+                    activeDate = dateStr;
+                    updateUI();
+                };
+                grid.appendChild(btn);
+            }
+        }
+
+        // ----- RENDEROWANIE KATALOGU -----
+        function createActionRow(item, renderIdx, totalItems, actionLabel, isNegative, pointColor, affordabilityClass, sortMode, tabIdx, group, balance) {
+            const row = document.createElement('div');
+            row.className = `flex items-center justify-between p-3 rounded-xl border transition-all relative ${affordabilityClass}`;
+
+            const sign = item.points > 0 ? '+' : '';
+
+            const leftDiv = document.createElement('div');
+            leftDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer pr-2';
+            leftDiv.onclick = () => window.tryExecuteEvent(item.name, item.points);
+
+            const pointsSpan = document.createElement('span');
+            pointsSpan.className = `${pointColor} font-black text-xs min-w-[36px]`;
+            pointsSpan.textContent = `${sign}${item.points}`;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'text-xs font-medium text-zinc-200';
+            nameSpan.textContent = item.name;
+
+            leftDiv.appendChild(pointsSpan);
+            leftDiv.appendChild(nameSpan);
+
+            const rightDiv = document.createElement('div');
+            rightDiv.className = 'flex items-center gap-1.5';
+
+            if (sortMode === 0) {
+                const upBtn = document.createElement('button');
+                upBtn.className = renderIdx === 0 ? 'text-zinc-700 cursor-not-allowed text-xs px-0.5' : 'text-zinc-400 hover:text-zinc-200 text-xs px-0.5';
+                upBtn.textContent = '▲';
+                upBtn.title = 'Przesuń w górę';
+                upBtn.disabled = renderIdx === 0;
+                upBtn.onclick = () => window.moveItem(item.originalIndex, -1);
+                rightDiv.appendChild(upBtn);
+
+                const downBtn = document.createElement('button');
+                downBtn.className = renderIdx === totalItems - 1 ? 'text-zinc-700 cursor-not-allowed text-xs px-0.5' : 'text-zinc-400 hover:text-zinc-200 text-xs px-0.5';
+                downBtn.textContent = '▼';
+                downBtn.title = 'Przesuń w dół';
+                downBtn.disabled = renderIdx === totalItems - 1;
+                downBtn.onclick = () => window.moveItem(item.originalIndex, 1);
+                rightDiv.appendChild(downBtn);
+            }
+
+            const actionBtn = document.createElement('button');
+            actionBtn.className = 'text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-lg text-zinc-300 font-medium click-anim ml-1';
+            actionBtn.textContent = actionLabel;
+            actionBtn.onclick = () => window.tryExecuteEvent(item.name, item.points);
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'text-zinc-500 hover:text-zinc-300 text-xs px-1';
+            editBtn.textContent = '✏️';
+            editBtn.title = 'Edytuj';
+            editBtn.onclick = () => window.openEditCatalogModal(tabIdx, item.originalIndex);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'text-zinc-500 hover:text-red-400 text-xs px-1';
+            delBtn.textContent = '✕';
+            delBtn.title = 'Usuń z katalogu';
+            delBtn.onclick = () => window.deleteCatalogItem(tabIdx, item.originalIndex);
+
+            rightDiv.appendChild(actionBtn);
+            rightDiv.appendChild(editBtn);
+            rightDiv.appendChild(delBtn);
+
+            row.appendChild(leftDiv);
+            row.appendChild(rightDiv);
+            return row;
+        }
+
+        function renderActions() {
+            const listContainer = document.getElementById('action-list');
+            listContainer.innerHTML = '';
+
+            const group = eventDictionary[currentTab];
+            const isNegative = group.type === 'negative';
+
+            let actionLabel = "+ Dodaj";
+            if (currentTab === 1) actionLabel = "- zabierz";
+            else if (currentTab === 2) actionLabel = "- kup";
+
+            const sortMode = sortModes[currentTab] || 0;
+            updateSortButtonLabel(sortMode);
+
+            let itemsToRender = group.items.map((item, idx) => ({ ...item, originalIndex: idx }));
+
+            if (sortMode === 1) {
+                itemsToRender.sort((a, b) => a.points - b.points);
+            } else if (sortMode === 2) {
+                itemsToRender.sort((a, b) => b.points - a.points);
+            }
+
+            const totalItems = itemsToRender.length;
+
+            itemsToRender.forEach((item, renderIdx) => {
+                let affordabilityClass = isNegative ? 'bg-bloodbg/15 border-blood/20 text-zinc-200' : 'bg-card border-bordercolor text-zinc-200';
+                if (currentTab === 2 && item.points < 0) {
+                    const cost = Math.abs(item.points);
+                    if (balance >= cost) {
+                        affordabilityClass = 'bg-emerald-950/30 border-emerald-500/50 text-zinc-200 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+                    }
+                }
+
+                const pointColor = isNegative ? 'text-red-400' : (activeReduction && currentTab === 0 ? 'text-amber-400' : 'text-zinc-100');
+
+                const row = createActionRow(
+                    item, renderIdx, totalItems, actionLabel, isNegative,
+                    pointColor, affordabilityClass, sortMode, currentTab, group, balance
+                );
+                listContainer.appendChild(row);
+            });
+
+            const addRow = document.createElement('button');
+            addRow.className = `w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800/50 text-zinc-400 text-xs font-medium transition-all click-anim mt-1`;
+            addRow.innerHTML = `
+                <span class="text-base font-bold">+</span>
+                <span>Zgłoś nowe zdarzenie do katalogu</span>
+            `;
+            addRow.onclick = () => window.openAddCatalogModal();
+            listContainer.appendChild(addRow);
+        }
+
+        function updateSortButtonLabel(sortMode) {
+            const btn = document.getElementById('sort-mode-btn');
+            if (sortMode === 0) btn.innerText = "Sortowanie: Domyślne";
+            else if (sortMode === 1) btn.innerText = "Sortowanie: Rosnąco";
+            else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
+        }
+
+        // ----- RENDEROWANIE "DOZWOLONE PRZYJEMNOŚCI" -----
+        function renderRewards() {
+            const listContainer = document.getElementById('rewards-list');
+            const emptyContainer = document.getElementById('rewards-empty');
+            listContainer.innerHTML = '';
+
+            const rewardsGroup = eventDictionary[2];
+            const available = rewardsGroup.items.filter(item => item.points < 0 && balance >= Math.abs(item.points));
+
+            if (available.length === 0) {
+                emptyContainer.classList.remove('hidden');
+                return;
+            }
+            emptyContainer.classList.add('hidden');
+
+            available.forEach(item => {
+                const cost = Math.abs(item.points);
+                const row = document.createElement('div');
+                row.className = 'reward-item';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = item.name;
+                const costSpan = document.createElement('span');
+                costSpan.className = 'cost';
+                costSpan.textContent = `✅ ${cost} pkt`;
+                row.appendChild(nameSpan);
+                row.appendChild(costSpan);
+                listContainer.appendChild(row);
+            });
+        }
+
+        // ============================================================
+        // STATYSTYKI
+        // ============================================================
+        let statsRange = 'month';
+
+        window.switchStatsRange = function(range) {
+            statsRange = range;
+            ['year', 'month', 'week'].forEach(r => {
+                const btn = document.getElementById(`stats-tab-${r}`);
+                if (r === range) {
+                    btn.classList.add('bg-zinc-700', 'text-white', 'shadow');
+                    btn.classList.remove('text-zinc-400');
+                } else {
+                    btn.classList.remove('bg-zinc-700', 'text-white', 'shadow');
+                    btn.classList.add('text-zinc-400');
+                }
+            });
+            renderStats();
+        };
+
+        function filterDataByRange(data, viewType, referenceDateStr) {
+            const target = new Date(referenceDateStr);
+            return data.filter(entry => {
+                if (!entry.date) return false;
+                const entryDate = getLocalDateFromStr(entry.date);
+                if (viewType === 'year') {
+                    return entryDate.getFullYear() === target.getFullYear();
+                }
+                if (viewType === 'month') {
+                    return (
+                        entryDate.getFullYear() === target.getFullYear() &&
+                        entryDate.getMonth() === target.getMonth()
+                    );
+                }
+                if (viewType === 'week') {
+                    const { start, end } = getWeekBoundsFromActiveDate(referenceDateStr);
+                    return entryDate >= start && entryDate <= end;
+                }
+                return true;
+            });
+        }
+
+        function getMostFrequent(arr) {
+            if (!arr || arr.length === 0) return '-';
+            const counts = {};
+            let maxCount = 0;
+            let mostFrequent = '-';
+            for (const item of arr) {
+                if (!item) continue;
+                counts[item] = (counts[item] || 0) + 1;
+                if (counts[item] > maxCount) {
+                    maxCount = counts[item];
+                    mostFrequent = item;
+                }
+            }
+            return `${mostFrequent} (${maxCount}x)`;
+        }
+
+        function filterHistoryByType(history, type) {
+            return history.filter(entry => entry.type === type);
+        }
+
+        function renderStats() {
+            const activeD = new Date(activeDate);
+            let rangeLabelStr = "";
+            if (statsRange === 'year') {
+                rangeLabelStr = `Rok ${activeD.getFullYear()}`;
+            } else if (statsRange === 'month') {
+                const monthsNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+                rangeLabelStr = `${monthsNames[activeD.getMonth()]} ${activeD.getFullYear()}`;
+            } else if (statsRange === 'week') {
+                const { start, end } = getWeekBoundsFromActiveDate(activeDate);
+                rangeLabelStr = `${formatDateText(start.toISOString().split('T')[0])} - ${formatDateText(end.toISOString().split('T')[0])}`;
+            }
+            document.getElementById('stats-range-label').innerText = `Zakres: ${rangeLabelStr}`;
+
+            const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
+
+            const earnEntries = filterHistoryByType(filteredHistory, 'earn');
+            const penEntries = filterHistoryByType(filteredHistory, 'pen');
+            const buyEntries = filterHistoryByType(filteredHistory, 'buy');
+
+            const sumEarn = earnEntries.reduce((acc, e) => acc + e.points, 0);
+            const sumPen = penEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
+            const sumBuy = buyEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
+
+            document.getElementById('stats-val-earn').innerText = `+${sumEarn}`;
+            document.getElementById('stats-val-pen').innerText = `-${sumPen}`;
+            document.getElementById('stats-val-buy').innerText = `-${sumBuy}`;
+
+            const orgasmEntry = historyEntries.find(e => e.name.toLowerCase().includes("orgazm dla żony"));
+            if (orgasmEntry) {
+                const orgasmDate = getLocalDateFromStr(orgasmEntry.date);
+                const today = new Date();
+                const daysAgo = Math.floor((today - orgasmDate) / (1000 * 60 * 60 * 24));
+                let agoText = daysAgo === 0 ? "dzisiaj" : daysAgo === 1 ? "wczoraj" : `${daysAgo} dni temu`;
+                document.getElementById('stat-last-orgasm').textContent = `${formatDateText(orgasmEntry.date)} (${agoText})`;
+            } else {
+                document.getElementById('stat-last-orgasm').textContent = "Brak w historii";
+            }
+
+            const lastEarn = historyEntries.find(e => e.points > 0);
+            if (lastEarn) {
+                document.getElementById('stat-last-earn').textContent = lastEarn.name;
+                document.getElementById('stat-last-earn-pts').textContent = `+${lastEarn.points} pkt`;
+            } else {
+                document.getElementById('stat-last-earn').textContent = "-";
+                document.getElementById('stat-last-earn-pts').textContent = "0 pkt";
+            }
+
+            const lastPen = historyEntries.find(e => e.type === 'pen');
+            if (lastPen) {
+                document.getElementById('stat-last-pen').textContent = lastPen.name;
+                document.getElementById('stat-last-pen-pts').textContent = `${lastPen.points} pkt`;
+            } else {
+                document.getElementById('stat-last-pen').textContent = "-";
+                document.getElementById('stat-last-pen-pts').textContent = "0 pkt";
+            }
+
+            const lastBuy = historyEntries.find(e => e.type === 'buy');
+            if (lastBuy) {
+                document.getElementById('stat-last-buy').textContent = lastBuy.name;
+                document.getElementById('stat-last-buy-pts').textContent = `${lastBuy.points} pkt`;
+            } else {
+                document.getElementById('stat-last-buy').textContent = "-";
+                document.getElementById('stat-last-buy-pts').textContent = "0 pkt";
+            }
+
+            const earnNames = earnEntries.map(e => e.name);
+            const penNames = penEntries.map(e => e.name);
+            const buyNames = buyEntries.map(e => e.name);
+
+            document.getElementById('stat-freq-earn').textContent = getMostFrequent(earnNames);
+            document.getElementById('stat-freq-pen').textContent = getMostFrequent(penNames);
+            document.getElementById('stat-freq-buy').textContent = getMostFrequent(buyNames);
+        }
+
+        // ----- AKTUALIZACJA UI -----
+        function updateUI() {
+            updateBalanceOnIcon();
+            loadMistressMessage();
+
+            const banner = document.getElementById('reduction-banner');
+            const bannerText = document.getElementById('reduction-info-text');
+            if (activeReduction) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+                bannerText.innerText = `Obniżka zarobku o ${activeReduction.percent}% do ${formatDateText(activeReduction.endDate)}`;
+            } else {
+                banner.classList.remove('flex');
+                banner.classList.add('hidden');
+            }
+
+            document.getElementById('history-date-label').innerText = formatDateText(activeDate);
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            const dayEntries = historyEntries.filter(e => e.date === activeDate);
+            if (dayEntries.length === 0) {
+                historyList.innerHTML = '<div class="text-zinc-600 text-xs italic py-2 px-1">Brak wpisów dla wybranego dnia.</div>';
+            } else {
+                dayEntries.forEach(entry => {
+                    const isNegative = entry.points < 0;
+                    const sign = entry.points > 0 ? '+' : '';
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl flr-history-item";
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'text-xs font-medium text-zinc-200';
+                    nameSpan.textContent = entry.name;
+
+                    const ptsSpan = document.createElement('span');
+                    ptsSpan.className = `font-black text-sm ${isNegative ? 'text-red-400' : 'text-zinc-100'}`;
+                    ptsSpan.textContent = `${sign}${entry.points}`;
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'text-zinc-600 hover:text-red-500 text-xs px-1';
+                    delBtn.textContent = '✕';
+                    delBtn.onclick = () => window.deleteEntry(entry.id);
+
+                    const rightDiv = document.createElement('div');
+                    rightDiv.className = 'flex items-center gap-3';
+                    rightDiv.appendChild(ptsSpan);
+                    rightDiv.appendChild(delBtn);
+
+                    item.appendChild(nameSpan);
+                    item.appendChild(rightDiv);
+                    historyList.appendChild(item);
+                });
+            }
+
+            renderCalendar();
+            renderActions();
+            renderRewards();
+            renderStats();
+            updateSettingsUI();
+        }
+
+        // ============================================================
+        // USTAWIENIA UI
+        // ============================================================
+        function updateSettingsUI() {
+            const role = getRole();
+            updateRoleIcon(role);
+            const roleDisplay = document.getElementById('current-role-display');
+            if (role === 'mistress') {
+                roleDisplay.textContent = '👠 Pani';
+                roleDisplay.style.color = '#dc2626';
+            } else if (role === 'slave') {
+                roleDisplay.textContent = '🔐 Sługa';
+                roleDisplay.style.color = '#e4e4e7';
+            } else {
+                roleDisplay.textContent = 'Nieustawiona';
+                roleDisplay.style.color = '#a1a1aa';
+            }
+
+            const tokenPreview = document.getElementById('fcm-token-preview');
+            if (currentFcmToken) {
+                const short = currentFcmToken.length > 16 ? currentFcmToken.substring(0, 14) + '…' : currentFcmToken;
+                tokenPreview.textContent = short;
+            } else {
+                tokenPreview.textContent = '---';
+            }
+
+            const toggle = document.getElementById('notif-toggle');
+            const label = document.getElementById('notif-status-label');
+            const isEnabled = getNotificationsEnabled();
+            if (isEnabled) {
+                toggle.classList.add('active');
+                label.textContent = 'Włączone';
+            } else {
+                toggle.classList.remove('active');
+                label.textContent = 'Wyłączone';
+            }
+        }
+
+        // ============================================================
+        // ROLA UŻYTKOWNIKA
+        // ============================================================
+        function getRole() {
+            return localStorage.getItem('flr_role') || null;
+        }
+
+        window.getRole = getRole;
+
+        window.setRole = async function(role) {
+            localStorage.setItem('flr_role', role);
+            // Usuń zapisany komunikat w sesji przy zmianie roli
+            sessionStorage.removeItem('flr_mistress_message');
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid), { role }, { merge: true });
+            document.getElementById('role-modal').style.display = 'none';
+            showNotification(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`, 'approved');
+            await registerForNotifications();
+            updateSettingsUI();
+            updateRoleIcon(role);
+            loadMistressMessage();
+        };
+
+        window.openRoleModal = function() {
+            document.getElementById('role-modal').style.display = 'flex';
+        };
+
+        function checkRole() {
+            const role = getRole();
+            if (!role) {
+                document.getElementById('role-modal').style.display = 'flex';
+            } else {
+                document.getElementById('role-modal').style.display = 'none';
+            }
+            updateSettingsUI();
+            updateRoleIcon(role);
+            loadMistressMessage();
+        }
+
+        // ============================================================
+        // POWIADOMIENIA – przełącznik
+        // ============================================================
+        function getNotificationsEnabled() {
+            const val = localStorage.getItem('flr_notifications_enabled');
+            if (val === null) return true;
+            return val === 'true';
+        }
+
+        function setNotificationsEnabled(enabled) {
+            localStorage.setItem('flr_notifications_enabled', enabled ? 'true' : 'false');
+            notificationsEnabled = enabled;
+            updateSettingsUI();
+        }
+
+        window.toggleNotifications = async function() {
+            const enabled = getNotificationsEnabled();
+            const newState = !enabled;
+            setNotificationsEnabled(newState);
+
+            if (newState) {
+                await registerForNotifications();
+                showNotification('🔔 Powiadomienia włączone', 'approved');
+            } else {
+                try {
+                    const uid = getUserId();
+                    await setDoc(doc(db, 'users', uid), { fcmToken: deleteField() }, { merge: true });
+                    currentFcmToken = null;
+                    showNotification('🔕 Powiadomienia wyłączone', 'info');
+                } catch (err) {
+                    console.error('Błąd wyłączania powiadomień:', err);
+                    showNotification('❌ Nie udało się wyłączyć powiadomień', 'info');
+                }
+            }
+            updateSettingsUI();
+        };
+
+        // ============================================================
+        // KOPIOWANIE TOKENA
+        // ============================================================
+        document.getElementById('copy-token-btn').addEventListener('click', () => {
+            if (currentFcmToken) {
+                navigator.clipboard.writeText(currentFcmToken).then(() => {
+                    showNotification('📋 Skopiowano token!', 'info');
+                }).catch(() => {
+                    const input = document.createElement('input');
+                    input.value = currentFcmToken;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showNotification('📋 Skopiowano token!', 'info');
+                });
+            } else {
+                showNotification('⚠️ Brak tokena do skopiowania', 'info');
+            }
+        });
+
+        // ============================================================
+        // FUNKCJE GLOBALNE
+        // ============================================================
+        window.changeMonth = function(direction) {
+            calendarMonth += direction;
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+            else if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            renderCalendar();
+        };
+
+        window.switchTab = function(index) {
+            currentTab = index;
+            [0, 1, 2].forEach(i => {
+                const tab = document.getElementById(`tab-${i}`);
+                if (i === index) {
+                    tab.classList.add('bg-zinc-700', 'text-white', 'shadow');
+                    tab.classList.remove('text-zinc-400');
+                } else {
+                    tab.classList.remove('bg-zinc-700', 'text-white', 'shadow');
+                    tab.classList.add('text-zinc-400');
+                }
+            });
+            renderActions();
+        };
+
+        window.cycleSortMode = function() {
+            const currentSort = sortModes[currentTab] || 0;
+            sortModes[currentTab] = (currentSort + 1) % 3;
+            saveDataToFirestore();
+            renderActions();
+        };
+
+        window.moveItem = function(index, direction) {
+            const group = eventDictionary[currentTab].items;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= group.length) return;
+            const temp = group[index];
+            group[index] = group[newIndex];
+            group[newIndex] = temp;
+            saveDataToFirestore();
+            renderActions();
+        };
+
+        window.deleteCatalogItem = function(groupIndex, itemIndex) {
+            const item = eventDictionary[groupIndex].items[itemIndex];
+            if (confirm(`Czy na pewno chcesz usunąć zdarzenie "${item.name}" z katalogu?`)) {
+                eventDictionary[groupIndex].items.splice(itemIndex, 1);
+                saveDataToFirestore();
+                renderActions();
+                showNotification("Usunięto zdarzenie z katalogu!", 'info');
+            }
+        };
+
+        window.openEditCatalogModal = function(groupIndex, itemIndex) {
+            editingGroupIdx = groupIndex;
+            editingItemIdx = itemIndex;
+            const item = eventDictionary[groupIndex].items[itemIndex];
+            document.getElementById('edit-item-name').value = item.name;
+            document.getElementById('edit-item-points').value = item.points;
+            document.getElementById('edit-catalog-modal').classList.remove('hidden');
+            document.getElementById('edit-catalog-modal').classList.add('flex');
+        };
+
+        window.closeEditCatalogModal = function() {
+            document.getElementById('edit-catalog-modal').classList.remove('flex');
+            document.getElementById('edit-catalog-modal').classList.add('hidden');
+            editingGroupIdx = null;
+            editingItemIdx = null;
+        };
+
+        window.submitEditCatalogModal = function() {
+            const newName = document.getElementById('edit-item-name').value.trim();
+            const newPoints = parseInt(document.getElementById('edit-item-points').value, 10);
+            if (!newName || isNaN(newPoints)) {
+                alert("Podaj poprawną nazwę i wartość punktową.");
+                return;
+            }
+            if (editingGroupIdx !== null && editingItemIdx !== null) {
+                const item = eventDictionary[editingGroupIdx].items[editingItemIdx];
+                item.name = newName;
+                item.points = newPoints;
+                if (item.basePoints === undefined) {
+                    item.basePoints = newPoints;
+                }
+                if (editingGroupIdx === 0 && activeReduction) {
+                    const percent = activeReduction.percent;
+                    const reduced = Math.round(item.basePoints * (1 - percent / 100));
+                    item.points = reduced > 0 ? reduced : 1;
+                }
+                saveDataToFirestore();
+                renderActions();
+                window.closeEditCatalogModal();
+                showNotification("Zaktualizowano zdarzenie!", 'info');
+            }
+        };
+
+        window.openAddCatalogModal = function() {
+            document.getElementById('catalog-item-name').value = '';
+            document.getElementById('add-catalog-modal').classList.remove('hidden');
+            document.getElementById('add-catalog-modal').classList.add('flex');
+        };
+
+        window.closeAddCatalogModal = function() {
+            document.getElementById('add-catalog-modal').classList.remove('flex');
+            document.getElementById('add-catalog-modal').classList.add('hidden');
+        };
+
+        window.submitAddCatalogModal = function() {
+            const name = document.getElementById('catalog-item-name').value.trim();
+            if (!name) {
+                alert("Podaj nazwę zdarzenia.");
+                return;
+            }
+
+            const role = getRole();
+            if (role === 'slave') {
+                addPendingEvent(name, null, 'proposal', currentTab);
+                window.closeAddCatalogModal();
+                return;
+            }
+
+            const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
+            if (isNaN(points)) {
+                alert("Podaj liczbę punktów.");
+                return;
+            }
+            let finalPoints = points;
+            if ((currentTab === 1 || currentTab === 2) && points > 0) {
+                finalPoints = -Math.abs(points);
+            }
+            const targetGroupIdx = currentTab;
+            const newItem = { name, points: finalPoints, basePoints: finalPoints };
+            if (targetGroupIdx === 0 && activeReduction) {
+                const percent = activeReduction.percent;
+                const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
+                newItem.points = reduced > 0 ? reduced : 1;
+            }
+            eventDictionary[targetGroupIdx].items.push(newItem);
+            saveDataToFirestore();
+            renderActions();
+            window.closeAddCatalogModal();
+            showNotification(`Dodano do "${eventDictionary[targetGroupIdx].group}"`, 'info');
+            incrementBadge();
+        };
+
+        // ============================================================
+        // tryExecuteEvent i submitCustomModal
+        // ============================================================
+        window.tryExecuteEvent = function(name, points) {
+            const role = getRole();
+            if (role === 'slave') {
+                addPendingEvent(name, points, 'catalog', currentTab);
+                return;
+            }
+
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                name,
+                points,
+                date: activeDate,
+                type: eventType
+            };
+
+            balance += points;
+            historyEntries.unshift(entry);
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            incrementBadge();
+
+            if (points !== 0 && getNotificationsEnabled()) {
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') {
+                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                    }
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
+            }
+        };
+
+        window.deleteEntry = function(id) {
+            const index = historyEntries.findIndex(e => e.id === id);
+            if (index !== -1) {
+                balance -= historyEntries[index].points;
+                historyEntries.splice(index, 1);
+                saveDataToFirestore();
+                renderActions();
+                updateUI();
+            }
+        };
+
+        window.openCustomModal = function(type) {
+            currentModalType = type;
+            document.getElementById('modal-title').innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
+            document.getElementById('modal-name').value = '';
+            document.getElementById('modal-points').value = '';
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        };
+
+        window.closeCustomModal = function() {
+            document.getElementById('custom-modal').classList.remove('flex');
+            document.getElementById('custom-modal').classList.add('hidden');
+        };
+
+        window.submitCustomModal = function() {
+            const name = document.getElementById('modal-name').value.trim();
+            let points = parseInt(document.getElementById('modal-points').value, 10);
+            if (!name || isNaN(points)) { alert("Wypełnij poprawne dane."); return; }
+            if (currentModalType === 'add' && points < 0) points = Math.abs(points);
+            if (currentModalType === 'sub') points = -Math.abs(points);
+
+            const role = getRole();
+            if (role === 'slave') {
+                addPendingEvent(name, points, 'catalog', 0);
+                window.closeCustomModal();
+                return;
+            }
+
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                name,
+                points,
+                date: activeDate,
+                type: eventType
+            };
+
+            balance += points;
+            historyEntries.unshift(entry);
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            window.closeCustomModal();
+            incrementBadge();
+            
+            if (points !== 0 && getNotificationsEnabled()) {
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') {
+                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                    }
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
+            }
+        };
+
+        window.openReduceModal = function() {
+            document.getElementById('reduce-percent').value = '';
+            document.getElementById('reduce-date').value = '';
+            document.getElementById('reduce-modal').classList.remove('hidden');
+            document.getElementById('reduce-modal').classList.add('flex');
+        };
+
+        window.closeReduceModal = function() {
+            document.getElementById('reduce-modal').classList.remove('flex');
+            document.getElementById('reduce-modal').classList.add('hidden');
+        };
+
+        window.submitReduce = function() {
+            const percent = parseFloat(document.getElementById('reduce-percent').value);
+            const endDate = document.getElementById('reduce-date').value;
+            if (isNaN(percent) || percent <= 0 || !endDate) {
+                alert("Podaj procent oraz wybierz datę końcową.");
+                return;
+            }
+            activeReduction = { percent, endDate };
+            const earnGroup = eventDictionary[0];
+            earnGroup.items.forEach(item => {
+                if (item.basePoints === undefined) {
+                    item.basePoints = item.points;
+                }
+                const reduced = Math.round(item.basePoints * (1 - percent / 100));
+                item.points = reduced > 0 ? reduced : 1;
+            });
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            window.closeReduceModal();
+            showNotification("Zredukowano punkty zarabiania!", 'info');
+        };
+
+        window.cancelReduction = function(silent = false) {
+            if (!activeReduction) {
+                if (!silent) showNotification("Brak aktywnej redukcji.", 'info');
+                return;
+            }
+            activeReduction = null;
+            const earnGroup = eventDictionary[0];
+            earnGroup.items.forEach(item => {
+                if (item.basePoints !== undefined) {
+                    item.points = item.basePoints;
+                }
+            });
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            if (!silent) showNotification("Przywrócono oryginalne punkty!", 'info');
+        };
+
+        window.resetRegistry = function() {
+            if (confirm("Czy na pewno chcesz wyzerować bilans? Historia pozostanie nienaruszona.")) {
+                const entry = {
+                    id: Date.now().toString(),
+                    name: "🔄 Wyzerowanie bilansu",
+                    points: 0,
+                    date: activeDate,
+                    type: 'earn'
+                };
+                historyEntries.unshift(entry);
+                balance = 0;
+                saveDataToFirestore();
+                renderActions();
+                updateUI();
+                showNotification("Bilans wyzerowany!", 'info');
+                incrementBadge();
+            }
+        };
+
+        window.exportData = function() {
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary,
+                sortModes: sortModes,
+                _version: localVersion,
+                pendingEvents: pendingEvents
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `rejestr_flr_${getLocalDateString(new Date())}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showNotification("Pobrano plik JSON!", 'info');
+        };
+
+        window.triggerImport = function() {
+            document.getElementById('import-file-input').click();
+        };
+
+        window.importData = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
+                        isLocalUpdate = true;
+                        setPendingFlag(false);
+
+                        balance = parsed.balance;
+                        historyEntries = parsed.history;
+                        activeReduction = parsed.activeReduction || null;
+                        if (parsed.dictionary) {
+                            eventDictionary = parsed.dictionary.map(group => ({
+                                ...group,
+                                items: group.items.map(item => ({
+                                    ...item,
+                                    basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                                }))
+                            }));
+                        }
+                        sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
+                        
+                        if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
+                            for (const pe of parsed.pendingEvents) {
+                                const q = query(pendingCollection, where('id', '==', pe.id));
+                                const snap = await getDocs(q);
+                                if (snap.empty) {
+                                    await addDoc(pendingCollection, {
+                                        name: pe.name,
+                                        points: pe.points,
+                                        proposedBy: pe.proposedBy || 'unknown',
+                                        proposedAt: pe.proposedAt || serverTimestamp(),
+                                        status: 'waiting',
+                                        source: pe.source || 'catalog',
+                                        type: pe.type || 'existing',
+                                        tabIndex: pe.tabIndex || 0
+                                    });
+                                }
+                            }
+                        }
+
+                        try {
+                            const snap = await getDoc(docRef);
+                            const currentVersion = snap.exists() ? (snap.data()._version || 0) : 0;
+                            localVersion = currentVersion + 1;
+                        } catch (err) {
+                            localVersion = Date.now();
+                        }
+
+                        await saveDataToFirestore();
+
+                        isLocalUpdate = false;
+                        setPendingFlag(false);
+
+                        renderActions();
+                        updateUI();
+                        showNotification("Wczytano dane pomyślnie!", 'approved');
+                        incrementBadge();
+                    } else {
+                        alert("Nieprawidłowy format pliku JSON.");
+                    }
+                } catch (err) {
+                    alert("Błąd podczas odczytu pliku JSON.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        };
+
+        // ============================================================
+        // FCM – POWIADOMIENIA PUSH
+        // ============================================================
+        import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
+        const messaging = getMessaging(app);
+        const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
+
+        function getUserId() {
+            if (!userId) {
+                userId = localStorage.getItem('flr_userId');
+                if (!userId) {
+                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    localStorage.setItem('flr_userId', userId);
+                }
+            }
+            return userId;
+        }
+
+        async function registerForNotifications() {
+            if (!getNotificationsEnabled()) {
+                console.log('🔕 Powiadomienia wyłączone w ustawieniach');
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    console.warn('Brak zgody na powiadomienia');
+                    showNotification('🔕 Powiadomienia wyłączone (brak zgody)', 'info');
+                    setNotificationsEnabled(false);
+                    return;
+                }
+
+                let swRegistration = await navigator.serviceWorker.ready;
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                let fcmReg = null;
+                for (const reg of registrations) {
+                    if (reg.active && reg.active.scriptURL.includes('firebase-messaging-sw.js')) {
+                        fcmReg = reg;
+                        break;
+                    }
+                }
+
+                if (!fcmReg) {
+                    fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+                        scope: './'
+                    });
+                    await navigator.serviceWorker.ready;
+                }
+
+                const token = await getToken(messaging, {
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration: fcmReg,
+                });
+
+                if (!token) {
+                    console.warn('Nie udało się pobrać tokenu FCM');
+                    return;
+                }
+
+                currentFcmToken = token;
+                const uid = getUserId();
+                const role = getRole();
+                await setDoc(doc(db, 'users', uid), { fcmToken: token, role }, { merge: true });
+                console.log('✅ Token FCM zarejestrowany:', token);
+                updateSettingsUI();
+
+            } catch (error) {
+                console.error('Błąd rejestracji tokenu:', error);
+            }
+        }
+
+        registerForNotifications();
+
+        onMessage(messaging, (payload) => {
+            console.log('📩 Powiadomienie w pierwszym planie:', payload);
+            const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
+            const body = payload.data?.body || payload.notification?.body || '';
+            showNotification(`📩 ${title}: ${body}`, 'info');
+        });
+
+        async function sendNotificationToPartner(title, body, data = {}) {
+            console.log('📤 Wysyłanie powiadomienia:', { title, body, data });
+
+            if (!getNotificationsEnabled()) {
+                console.log('🔕 Powiadomienia wyłączone – nie wysyłamy');
+                return;
+            }
+
+            try {
+                const myRole = getRole();
+                if (!myRole) {
+                    console.warn('❌ Brak roli – nie można wysłać powiadomienia');
+                    return;
+                }
+
+                const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
+
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let targetUserId = null;
+                
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (userData.role === targetRole && doc.id !== getUserId()) {
+                        targetUserId = doc.id;
+                    }
+                });
+
+                if (!targetUserId) {
+                    console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
+                    showNotification('⚠️ Brak drugiej osoby o przeciwnej roli.', 'info');
+                    return;
+                }
+
+                const stringData = {};
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        if (data[key] !== undefined && data[key] !== null) {
+                            stringData[key] = String(data[key]);
+                        }
+                    });
+                }
+
+                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        targetUserId, 
+                        title, 
+                        body, 
+                        data: stringData
+                    }),
+                });
+                
+                const result = await response.json();
+                if (response.status === 410) {
+                    console.warn('⚠️ Token partnera unieważniony – ponowna rejestracja');
+                    showNotification('⚠️ Token partnera wygasł – spróbuj ponownie później', 'info');
+                } else if (result.success) {
+                    console.log('✅ Powiadomienie wysłane do:', targetUserId);
+                } else {
+                    console.warn('❌ Błąd wysyłki:', result.error);
+                    showNotification('⚠️ Błąd wysyłki powiadomienia: ' + result.error, 'info');
+                }
+            } catch (error) {
+                console.error('❌ Błąd połączenia z backendem:', error);
+                showNotification('❌ Nie udało się wysłać powiadomienia', 'info');
+            }
+        }
+
+        // ============================================================
+        // SERVICE WORKER
+        // ============================================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const isSecureContext = window.location.protocol === 'https:' ||
+                                        window.location.hostname === 'localhost' ||
+                                        window.location.hostname === '127.0.0.1';
+
+                if (isSecureContext) {
+                    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+                        .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
+                        .catch(err => console.error('❌ Błąd głównego SW:', err));
+                } else {
+                    console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
+                }
+            });
+        }
+
+        // ============================================================
+        // WERSJA I AKTUALIZACJE
+        // ============================================================
+        const APP_VERSION = '1.2.0';
+
+        window.checkForUpdate = async function() {
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) {
+                    showNotification('⚠️ Service Worker nie jest zarejestrowany.', 'info');
+                    return;
+                }
+                const manifestUrl = './manifest.json?t=' + Date.now();
+                const manifestResponse = await fetch(manifestUrl, { cache: 'reload' });
+                const manifest = await manifestResponse.json();
+                const newVersion = manifest.version || '1.0.0';
+                
+                const lastChecked = localStorage.getItem('flr_last_version_checked');
+                if (newVersion !== APP_VERSION) {
+                    if (lastChecked !== newVersion) {
+                        showUpdateNotification(newVersion);
+                        localStorage.setItem('flr_last_version_checked', newVersion);
+                    } else {
+                        showNotification('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).', 'info');
+                    }
+                } else {
+                    localStorage.setItem('flr_last_version_checked', APP_VERSION);
+                    showNotification('✅ Masz najnowszą wersję.', 'approved');
+                }
+            } catch (err) {
+                console.warn('Błąd sprawdzania aktualizacji:', err);
+                showNotification('❌ Błąd sprawdzania aktualizacji.', 'info');
+            }
+        };
+
+        function showUpdateNotification(newVersion) {
+            if (document.getElementById('update-banner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'update-banner';
+            banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">🔄 Nowa wersja ${newVersion} dostępna!</span>
+                <button id="update-btn" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Zaktualizuj</button>
+                <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('update-btn').addEventListener('click', () => {
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    reg.update().then(() => {
+                        window.location.reload();
+                    });
+                });
+            });
+
+            document.getElementById('close-update-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        const lastCheckDate = localStorage.getItem('flr_last_update_check_date');
+        const today = getLocalDateString(new Date());
+        if (lastCheckDate !== today) {
+            setTimeout(() => {
+                checkForUpdate();
+                localStorage.setItem('flr_last_update_check_date', today);
+            }, 3000);
+        }
+
+        // ============================================================
+        // INICJALIZACJA
+        // ============================================================
+        let retryCount = 0;
+        const MAX_RETRIES = 10;
+
+        function initApp() {
+            setStatusConnecting();
+            loadingIndicator.innerText = "⏳ Ładowanie danych...";
+
+            const pending = getPendingFlag();
+            if (pending && navigator.onLine) {
+                syncPendingChanges().then(() => {
+                    loadFromFirestore();
+                }).catch(() => {
+                    loadFromFirestore();
+                });
+            } else {
+                loadFromFirestore();
+            }
+
+            function loadFromFirestore() {
+                getDoc(docRef)
+                    .then((snap) => {
+                        retryCount = 0;
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data());
+                        } else {
+                            const defaultData = {
+                                balance: 0,
+                                history: [],
+                                activeReduction: null,
+                                dictionary: JSON.parse(JSON.stringify(originalDictionary)),
+                                sortModes: { 0: 0, 1: 0, 2: 0 },
+                                _version: 0
+                            };
+                            setDoc(docRef, defaultData)
+                                .then(() => {
+                                    updateStateFromFirestore(defaultData);
+                                })
+                                .catch((err) => {
+                                    console.error("Błąd tworzenia dokumentu:", err);
+                                    showNotification("❌ Błąd inicjalizacji bazy", 'info');
+                                    loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
+                                    setStatusOffline();
+                                });
+                        }
+                        loadingIndicator.classList.add('hidden');
+                        mainContent.classList.remove('hidden');
+                        if (getPendingFlag()) {
+                            setStatusPending();
+                        } else {
+                            setStatusOnline();
+                        }
+                        resetBadge();
+                        isFirstSnapshot = true;
+                        loadCollapseStates();
+
+                        checkRole();
+                        updateSettingsUI();
+                        subscribePendingEvents();
+                        subscribeNotifications();
+                    })
+                    .catch((err) => {
+                        console.error("Błąd odczytu dokumentu:", err);
+                        const backup = loadFromLocalBackup();
+                        if (backup) {
+                            updateStateFromFirestore(backup, true);
+                            setPendingFlag(true);
+                            showNotification('📡 Wczytano dane lokalne – synchronizacja w toku', 'info');
+                            loadingIndicator.classList.add('hidden');
+                            mainContent.classList.remove('hidden');
+                            loadCollapseStates();
+                            checkRole();
+                            updateSettingsUI();
+                            subscribePendingEvents();
+                            subscribeNotifications();
+                        } else {
+                            loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
+                            loadingIndicator.innerHTML = `
+                                <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
+                                <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                    <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
+                                    <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
+                                    <p>3. Czy masz połączenie z internetem?</p>
+                                    <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
+                                </div>
+                            `;
+                            showNotification("❌ Błąd połączenia", 'info');
+                            setStatusOffline();
+
+                            if (retryCount < MAX_RETRIES) {
+                                retryCount++;
+                                setTimeout(() => {
+                                    initApp();
+                                }, 5000);
+                            } else {
+                                loadingIndicator.innerHTML = `
+                                    <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
+                                    <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                        <p>Sprawdź konfigurację Firebase w konsoli.</p>
+                                        <p>Upewnij się, że adres URL projektu jest poprawny.</p>
+                                    </div>
+                                `;
+                                setStatusOffline();
+                            }
+                        }
+                    });
+
+                onSnapshot(docRef, (snapshot) => {
+                    if (isLocalUpdate) return;
+                    if (getPendingFlag()) {
+                        pendingUpdates.push(snapshot.data());
+                        if (pendingUpdates.length > 1) {
+                            pendingUpdates = [pendingUpdates[pendingUpdates.length - 1]];
+                        }
+                        return;
+                    }
+                    if (snapshot.exists()) {
+                        if (!isFirstSnapshot) {
+                            incrementBadge();
+                        }
+                        isFirstSnapshot = false;
+                        updateStateFromFirestore(snapshot.data());
+                    }
+                }, (error) => {
+                    console.error("Błąd nasłuchu:", error);
+                    showNotification("❌ Błąd synchronizacji", 'info');
+                    setStatusOffline();
+                });
+            }
+        }
+
+        // ============================================================
+        // START
+        // ============================================================
+        mainContent.classList.add('hidden');
+        initApp();
+    </script>
+</body>
+</html>
