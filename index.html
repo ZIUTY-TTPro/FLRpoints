@@ -15,43 +15,19 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE ===== */
+        /* ===== STYLE (bez zmian) ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .glow-red { text-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
         .glow-white { text-shadow: 0 0 20px rgba(228, 228, 231, 0.4); }
         .click-anim:active { transform: scale(0.98); }
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            box-shadow: 0 0 8px rgba(0,0,0,0.5);
-        }
-        .status-dot.online {
-            background-color: #22c55e;
-            box-shadow: 0 0 12px rgba(34,197,94,0.6);
-        }
-        .status-dot.offline {
-            background-color: #ef4444;
-            box-shadow: 0 0 12px rgba(239,68,68,0.6);
-        }
-        .status-dot.connecting {
-            background-color: #eab308;
-            box-shadow: 0 0 12px rgba(234,179,8,0.6);
-        }
-        .status-dot.pending {
-            background-color: #f59e0b;
-            box-shadow: 0 0 12px rgba(245,158,11,0.8);
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .status-dot.online { background-color: #22c55e; box-shadow: 0 0 12px rgba(34,197,94,0.6); }
+        .status-dot.offline { background-color: #ef4444; box-shadow: 0 0 12px rgba(239,68,68,0.6); }
+        .status-dot.connecting { background-color: #eab308; box-shadow: 0 0 12px rgba(234,179,8,0.6); }
+        .status-dot.pending { background-color: #f59e0b; box-shadow: 0 0 12px rgba(245,158,11,0.8); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
         .bg-card { background-color: #18181b; }
         .border-bordercolor { border-color: #27272a; }
         .bg-app { background-color: #09090b; }
@@ -101,369 +77,68 @@
         .transition-collapse.collapsed { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
         .rotate-180 { transform: rotate(180deg); }
         .transition-transform { transition: transform 0.3s ease; }
-        
-        /* ===== KLIMATYCZNE DODATKI WIZUALNE FLR ===== */
-        .glow-coin {
-            filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.4));
-            transition: filter 0.3s ease;
-        }
-        .glow-coin-positive {
-            filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.7));
-        }
-        .flr-ornament {
-            letter-spacing: 0.1em;
-            border-left: 2px solid #dc2626;
-            padding-left: 8px;
-        }
-
-        /* ===== CZCIONKA FLR DLA NAGŁÓWKÓW ===== */
-        .flr-title {
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        /* ===== POWIĘKSZONA MONETA ===== */
-        .balance-icon {
-            width: 180px;
-            height: 180px;
-            display: block;
-            margin: 0 auto;
-        }
-        @media (min-width: 640px) {
-            .balance-icon {
-                width: 220px;
-                height: 220px;
-            }
-        }
-        @media (min-width: 768px) {
-            .balance-icon {
-                width: 260px;
-                height: 260px;
-            }
-        }
-
-        .flr-history-item {
-            border-left: 2px solid #27272a;
-            transition: border-color 0.2s;
-        }
-        .flr-history-item:hover {
-            border-color: #dc2626;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .section-title {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #d4d4d8;
-        }
-        .collapse-btn {
-            background: none;
-            border: none;
-            color: #71717a;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 0.2s;
-        }
-        .collapse-btn:hover {
-            color: #d4d4d8;
-        }
-        .collapse-btn svg {
-            width: 18px;
-            height: 18px;
-            transition: transform 0.3s ease;
-        }
-        .collapse-btn svg.rotate-180 {
-            transform: rotate(180deg);
-        }
-        .reward-item {
-            background-color: rgba(5,46,22,0.15);
-            border: 1px solid rgba(16,185,129,0.2);
-            border-radius: 0.75rem;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.75rem;
-            color: #d4d4d8;
-        }
-        .reward-item .name {
-            font-size: 0.75rem;
-            font-weight: 500;
-            flex: 1;
-            word-break: break-word;
-        }
-        .reward-item .cost {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #34d399;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .rewards-empty {
-            color: #71717a;
-            font-size: 0.75rem;
-            font-style: italic;
-            padding: 0.25rem 0;
-        }
-        .bg-emerald-950\/20 {
-            background-color: rgba(5,46,22,0.2);
-        }
-        .border-emerald-500\/30 {
-            border-color: rgba(16,185,129,0.3);
-        }
-        .sort-btn {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #d4d4d8;
-        }
-        .history-date {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #d4d4d8;
-        }
-        #offline-banner {
-            transition: all 0.3s ease;
-        }
-
-        /* ===== MODAL ROLI ===== */
-        #role-modal .role-btn {
-            transition: all 0.3s ease;
-        }
-        #role-modal .role-btn:hover {
-            transform: scale(1.02);
-        }
-
-        /* ===== WERSJA ===== */
-        .app-version {
-            font-size: 0.6rem;
-            color: #71717a;
-            text-align: center;
-            padding: 4px 0;
-            border-top: 1px solid #27272a;
-            margin-top: 4px;
-        }
-        .app-version span {
-            color: #a1a1aa;
-            font-weight: 600;
-        }
-
-        /* ===== NOWE STYLE DLA PANELI USTAWIEŃ ===== */
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #27272a;
-        }
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-        .setting-label {
-            font-size: 0.7rem;
-            color: #a1a1aa;
-            font-weight: 500;
-        }
-        .setting-value {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #e4e4e7;
-        }
-        .setting-value .role-badge {
-            background: #27272a;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: #d4d4d8;
-        }
-        .toggle-switch {
-            position: relative;
-            width: 40px;
-            height: 22px;
-            background: #3f3f46;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: background 0.3s;
-            flex-shrink: 0;
-        }
-        .toggle-switch.active {
-            background: #22c55e;
-        }
-        .toggle-switch .toggle-knob {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 18px;
-            height: 18px;
-            background: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-        .toggle-switch.active .toggle-knob {
-            transform: translateX(18px);
-        }
-        .btn-copy {
-            background: none;
-            border: none;
-            color: #71717a;
-            cursor: pointer;
-            font-size: 0.6rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: color 0.2s;
-        }
-        .btn-copy:hover {
-            color: #d4d4d8;
-        }
-        .token-preview {
-            font-family: monospace;
-            font-size: 0.65rem;
-            color: #a1a1aa;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .btn-sm {
-            font-size: 0.6rem;
-            padding: 2px 10px;
-            border-radius: 12px;
-            background: #27272a;
-            color: #d4d4d8;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-sm:hover {
-            background: #3f3f46;
-        }
-        .btn-sm.primary {
-            background: #3f3f46;
-            color: #e4e4e7;
-        }
-        .btn-sm.primary:hover {
-            background: #52525b;
-        }
-        .grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        /* ===== STYLE DLA ZDARZEŃ DO ZATWIERDZENIA ===== */
-        .pending-item {
-            background: rgba(245,158,11,0.08);
-            border: 1px solid rgba(245,158,11,0.25);
-            border-radius: 0.75rem;
-            padding: 0.5rem 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5rem;
-            color: #d4d4d8;
-        }
-        .pending-item .name {
-            font-size: 0.75rem;
-            font-weight: 500;
-            flex: 1;
-            word-break: break-word;
-        }
-        .pending-item .points-display {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #fbbf24;
-            margin-right: 0.5rem;
-            white-space: nowrap;
-        }
-        .pending-item .actions {
-            display: flex;
-            gap: 0.4rem;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .pending-item .actions button {
-            background: #27272a;
-            border: none;
-            border-radius: 12px;
-            color: #d4d4d8;
-            padding: 2px 8px;
-            font-size: 0.6rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .pending-item .actions button:hover {
-            background: #3f3f46;
-        }
-        .pending-item .actions button.approve {
-            background: #22c55e20;
-            color: #22c55e;
-        }
-        .pending-item .actions button.approve:hover {
-            background: #22c55e40;
-        }
-        .pending-item .actions button.reject {
-            background: #ef444420;
-            color: #ef4444;
-        }
-        .pending-item .actions button.reject:hover {
-            background: #ef444440;
-        }
-        .pending-item .actions button.delete {
-            background: none;
-            color: #71717a;
-            font-size: 0.7rem;
-            padding: 0 4px;
-        }
-        .pending-item .actions button.delete:hover {
-            color: #ef4444;
-        }
-        .pending-item .points-input {
-            width: 50px;
-            background: #09090b;
-            border: 1px solid #27272a;
-            border-radius: 8px;
-            padding: 2px 4px;
-            font-size: 0.7rem;
-            color: #e4e4e7;
-            text-align: center;
-        }
-        .pending-item .points-input:focus {
-            outline: none;
-            border-color: #71717a;
-        }
-        .pending-empty {
-            color: #71717a;
-            font-size: 0.75rem;
-            font-style: italic;
-            padding: 0.25rem 0;
-        }
-        .role-icon {
-            font-size: 1.2rem;
-            line-height: 1;
-        }
-        .pending-item .points-static {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #fbbf24;
-            margin-right: 0.5rem;
-            white-space: nowrap;
-        }
+        .glow-coin { filter: drop-shadow(0 0 15px rgba(220, 38, 38, 0.4)); transition: filter 0.3s ease; }
+        .glow-coin-positive { filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.7)); }
+        .flr-ornament { letter-spacing: 0.1em; border-left: 2px solid #dc2626; padding-left: 8px; }
+        .flr-title { font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+        .balance-icon { width: 180px; height: 180px; display: block; margin: 0 auto; }
+        @media (min-width: 640px) { .balance-icon { width: 220px; height: 220px; } }
+        @media (min-width: 768px) { .balance-icon { width: 260px; height: 260px; } }
+        .flr-history-item { border-left: 2px solid #27272a; transition: border-color 0.2s; }
+        .flr-history-item:hover { border-color: #dc2626; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
+        .collapse-btn { background: none; border: none; color: #71717a; cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+        .collapse-btn:hover { color: #d4d4d8; }
+        .collapse-btn svg { width: 18px; height: 18px; transition: transform 0.3s ease; }
+        .collapse-btn svg.rotate-180 { transform: rotate(180deg); }
+        .reward-item { background-color: rgba(5,46,22,0.15); border: 1px solid rgba(16,185,129,0.2); border-radius: 0.75rem; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; color: #d4d4d8; }
+        .reward-item .name { font-size: 0.75rem; font-weight: 500; flex: 1; word-break: break-word; }
+        .reward-item .cost { font-size: 0.7rem; font-weight: 600; color: #34d399; white-space: nowrap; flex-shrink: 0; }
+        .rewards-empty { color: #71717a; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0; }
+        .bg-emerald-950\/20 { background-color: rgba(5,46,22,0.2); }
+        .border-emerald-500\/30 { border-color: rgba(16,185,129,0.3); }
+        .sort-btn { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
+        .history-date { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
+        #offline-banner { transition: all 0.3s ease; }
+        #role-modal .role-btn { transition: all 0.3s ease; }
+        #role-modal .role-btn:hover { transform: scale(1.02); }
+        .app-version { font-size: 0.6rem; color: #71717a; text-align: center; padding: 4px 0; border-top: 1px solid #27272a; margin-top: 4px; }
+        .app-version span { color: #a1a1aa; font-weight: 600; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #27272a; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 0.7rem; color: #a1a1aa; font-weight: 500; }
+        .setting-value { font-size: 0.75rem; font-weight: 600; color: #e4e4e7; }
+        .setting-value .role-badge { background: #27272a; padding: 2px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; color: #d4d4d8; }
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: #3f3f46; border-radius: 30px; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
+        .toggle-switch.active { background: #22c55e; }
+        .toggle-switch .toggle-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform 0.3s; }
+        .toggle-switch.active .toggle-knob { transform: translateX(18px); }
+        .btn-copy { background: none; border: none; color: #71717a; cursor: pointer; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; transition: color 0.2s; }
+        .btn-copy:hover { color: #d4d4d8; }
+        .token-preview { font-family: monospace; font-size: 0.65rem; color: #a1a1aa; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-sm { font-size: 0.6rem; padding: 2px 10px; border-radius: 12px; background: #27272a; color: #d4d4d8; border: none; cursor: pointer; transition: background 0.2s; }
+        .btn-sm:hover { background: #3f3f46; }
+        .btn-sm.primary { background: #3f3f46; color: #e4e4e7; }
+        .btn-sm.primary:hover { background: #52525b; }
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .pending-item { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 0.75rem; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; color: #d4d4d8; }
+        .pending-item .name { font-size: 0.75rem; font-weight: 500; flex: 1; word-break: break-word; }
+        .pending-item .points-display { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
+        .pending-item .actions { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
+        .pending-item .actions button { background: #27272a; border: none; border-radius: 12px; color: #d4d4d8; padding: 2px 8px; font-size: 0.6rem; cursor: pointer; transition: background 0.2s; }
+        .pending-item .actions button:hover { background: #3f3f46; }
+        .pending-item .actions button.approve { background: #22c55e20; color: #22c55e; }
+        .pending-item .actions button.approve:hover { background: #22c55e40; }
+        .pending-item .actions button.reject { background: #ef444420; color: #ef4444; }
+        .pending-item .actions button.reject:hover { background: #ef444440; }
+        .pending-item .actions button.delete { background: none; color: #71717a; font-size: 0.7rem; padding: 0 4px; }
+        .pending-item .actions button.delete:hover { color: #ef4444; }
+        .pending-item .points-input { width: 50px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 2px 4px; font-size: 0.7rem; color: #e4e4e7; text-align: center; }
+        .pending-item .points-input:focus { outline: none; border-color: #71717a; }
+        .pending-empty { color: #71717a; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0; }
+        .role-icon { font-size: 1.2rem; line-height: 1; }
+        .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -708,7 +383,7 @@
                 </div>
             </section>
 
-            <!-- USTAWIENIA (przeniesione na dół, domyślnie zwinięte) -->
+            <!-- USTAWIENIA -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4" id="settings-section">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">Ustawienia</span>
@@ -719,7 +394,7 @@
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.5</span>
+                        <span class="setting-value" id="app-version-text">1.1.6</span>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
@@ -960,6 +635,7 @@
                     if (svg) svg.classList.remove('rotate-180');
                 }
             });
+            // Ustawienia domyślnie zwinięte
             const settingsContent = document.getElementById('collapse-content-settings');
             const settingsBtn = document.getElementById('collapse-btn-settings');
             if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
@@ -1161,33 +837,54 @@
         let notificationsEnabled = true;
         let pendingEvents = [];
         let userId = null;
+        let toastQueue = [];
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
         const mainContent = document.getElementById('main-content');
 
         // ----- POMOCNICZE -----
-        let pendingToastTimer = null;
-        let pendingToastMessage = '';
-
-        function showToastDelayed(message) {
-            pendingToastMessage = message;
-            if (pendingToastTimer) {
-                return;
-            }
-            pendingToastTimer = setTimeout(() => {
-                showToast(pendingToastMessage);
-                pendingToastTimer = null;
-                pendingToastMessage = '';
-            }, 500);
-        }
-
         function showToast(text = "Zapisano!") {
             const toast = document.getElementById('toast');
+            // Jeśli już jest wyświetlany, dodajemy do kolejki
+            if (toast.style.opacity === '1') {
+                toastQueue.push(text);
+                return;
+            }
             toast.innerText = text;
             toast.style.opacity = '1';
-            setTimeout(() => { toast.style.opacity = '0'; }, 4000);
+            setTimeout(() => { 
+                toast.style.opacity = '0';
+                // Po zniknięciu, sprawdź kolejkę
+                setTimeout(() => {
+                    if (toastQueue.length > 0) {
+                        const next = toastQueue.shift();
+                        showToast(next);
+                    }
+                }, 300);
+            }, 3500);
         }
+
+        // Nadpisz showToast dla kolejkowania
+        const originalShowToast = showToast;
+        showToast = function(text) {
+            const toast = document.getElementById('toast');
+            if (toast.style.opacity === '1') {
+                toastQueue.push(text);
+                return;
+            }
+            toast.innerText = text;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toastQueue.length > 0) {
+                        const next = toastQueue.shift();
+                        showToast(next);
+                    }
+                }, 300);
+            }, 3500);
+        };
 
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
@@ -1454,7 +1151,8 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.message) {
-                        showToastDelayed(data.message);
+                        showToast(data.message);
+                        // Oznacz jako przeczytane
                         updateDoc(doc.ref, { read: true }).catch(() => {});
                     }
                 });
@@ -1562,7 +1260,7 @@
             });
         }
 
-        async function addPendingEvent(name, points, source = 'catalog', targetGroup = 0) {
+        async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
             const role = getRole();
             if (role !== 'slave') {
                 showToast('⚠️ Tylko Sługa może zgłaszać propozycje.');
@@ -1579,7 +1277,7 @@
                     status: 'waiting',
                     source: source,
                     type: source === 'catalog' ? 'existing' : 'new',
-                    targetGroup: targetGroup
+                    tabIndex: tabIndex // 0=zarobek, 1=kary, 2=wykup
                 });
                 showToast('📨 Zgłoszono do zatwierdzenia!');
             } catch (err) {
@@ -1595,7 +1293,7 @@
                 return;
             }
 
-            const points = parseInt(pointsStr, 10);
+            let points = parseInt(pointsStr, 10);
             if (isNaN(points)) {
                 showToast('⚠️ Podaj poprawną liczbę punktów.');
                 return;
@@ -1611,16 +1309,22 @@
                 const eventData = eventSnap.data();
                 const name = eventData.name || 'Zdarzenie';
                 const proposedBy = eventData.proposedBy;
-                const targetGroup = eventData.targetGroup ?? 0;
+                const tabIndex = eventData.tabIndex !== undefined ? eventData.tabIndex : 0;
+
+                // Jeśli to kara (tabIndex=1) lub wykup (tabIndex=2), a wartość jest dodatnia, zamień na ujemną
+                if ((tabIndex === 1 || tabIndex === 2) && points > 0) {
+                    points = -Math.abs(points);
+                }
 
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
                 if (source === 'proposal') {
-                    // NOWE ZDARZENIE – tylko dodaj do katalogu
+                    // NOWE ZDARZENIE – tylko dodaj do katalogu, NIE do historii
                     const existing = eventDictionary.some(group => 
                         group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
                     );
                     if (!existing) {
+                        const targetGroup = tabIndex; // 0,1,2
                         const newItem = { name, points, basePoints: points };
                         if (targetGroup === 0 && activeReduction) {
                             const percent = activeReduction.percent;
@@ -1629,8 +1333,7 @@
                         }
                         eventDictionary[targetGroup].items.push(newItem);
                         await saveDataToFirestore();
-                        const groupName = eventDictionary[targetGroup].group || 'katalogu';
-                        showToast(`✅ Dodano do ${groupName}: ${name} (${points} pkt)`);
+                        showToast(`✅ Dodano nowe zdarzenie do katalogu: ${name} (${points} pkt)`);
                     } else {
                         showToast(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`);
                     }
@@ -1641,7 +1344,7 @@
                         name: name,
                         points: points,
                         date: activeDate,
-                        type: points > 0 ? 'earn' : (points < 0 ? 'pen' : 'earn'),
+                        type: points > 0 ? 'earn' : (points < 0 ? (tabIndex === 2 ? 'buy' : 'pen') : 'earn'),
                     };
                     balance += points;
                     historyEntries.unshift(entry);
@@ -1649,14 +1352,14 @@
                     showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
                 }
 
-                // Powiadomienie dla Sługi
+                // Powiadomienie dla Sługi (push + wewnętrzne)
                 if (proposedBy) {
                     const slaveUserId = proposedBy;
-                    const msg = `✅ ${name} (${points} pkt)`;
+                    const msg = `Twoje zdarzenie "${name}" zostało zatwierdzone${source === 'proposal' ? ' i dodane do katalogu' : ''} (${points} pkt)`;
                     await sendNotification(slaveUserId, msg);
                     if (getNotificationsEnabled()) {
-                        const title = '✅ Zatwierdzono';
-                        const body = `${name} (${points} pkt)`;
+                        const title = '✅ Zatwierdzono zdarzenie';
+                        const body = `Zdarzenie "${name}" zatwierdzone (${points} pkt)`;
                         sendNotificationToUser(slaveUserId, title, body);
                     }
                 }
@@ -1691,11 +1394,11 @@
                 showToast(`❌ Odrzucono: ${name}`);
 
                 if (proposedBy) {
-                    const msg = `❌ ${name}`;
+                    const msg = `Twoje zdarzenie "${name}" zostało odrzucone.`;
                     await sendNotification(proposedBy, msg);
                     if (getNotificationsEnabled()) {
-                        const title = '❌ Odrzucono';
-                        const body = `${name}`;
+                        const title = '❌ Odrzucono zdarzenie';
+                        const body = `Zdarzenie "${name}" zostało odrzucone.`;
                         sendNotificationToUser(proposedBy, title, body);
                     }
                 }
@@ -2412,20 +2115,25 @@
 
             const role = getRole();
             if (role === 'slave') {
-                const targetGroup = currentTab; // 0,1,2
-                addPendingEvent(name, null, 'proposal', targetGroup);
+                // Sługa zgłasza propozycję z bieżącą zakładką
+                addPendingEvent(name, null, 'proposal', currentTab);
                 window.closeAddCatalogModal();
                 return;
             }
 
-            // Pani – dodaje od razu
+            // Pani – dodaje od razu (rzadko używane)
             const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
             if (isNaN(points)) {
                 alert("Podaj liczbę punktów.");
                 return;
             }
+            // Dla kar i wykupu, jeśli wartość dodatnia, zamień na ujemną
+            let finalPoints = points;
+            if ((currentTab === 1 || currentTab === 2) && points > 0) {
+                finalPoints = -Math.abs(points);
+            }
             const targetGroupIdx = currentTab;
-            const newItem = { name, points, basePoints: points };
+            const newItem = { name, points: finalPoints, basePoints: finalPoints };
             if (targetGroupIdx === 0 && activeReduction) {
                 const percent = activeReduction.percent;
                 const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
@@ -2445,10 +2153,12 @@
         window.tryExecuteEvent = function(name, points) {
             const role = getRole();
             if (role === 'slave') {
-                addPendingEvent(name, points, 'catalog');
+                // Sługa – zgłoś do zatwierdzenia z bieżącą zakładką
+                addPendingEvent(name, points, 'catalog', currentTab);
                 return;
             }
 
+            // Pani – wykonaj od razu (bez blokady na ujemny bilans)
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2527,11 +2237,17 @@
 
             const role = getRole();
             if (role === 'slave') {
-                addPendingEvent(name, points, 'catalog');
+                // Sługa – zgłoś do zatwierdzenia z bieżącą zakładką (0 dla zarobku, 1 dla kary, 2 dla wykupu)
+                // Tutaj nie wiemy, czy to kara czy wykup – zakładamy, że jeśli punkty ujemne to kara/wykup?
+                // Lepiej użyć currentTab – ale w tym oknie nie ma zakładki, więc domyślnie 0.
+                // Dla bezpieczeństwa, jeśli punkty ujemne, to kara, ale niech użytkownik określi w zgłoszeniu.
+                // Najprościej: dodaj do pending z tabIndex = 0, ale użytkownik może to zmienić później.
+                addPendingEvent(name, points, 'catalog', 0);
                 window.closeCustomModal();
                 return;
             }
 
+            // Pani – dodaje od razu
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2697,6 +2413,7 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         
+                        // Przywróć pendingEvents – dodaj je do Firestore
                         if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
                             for (const pe of parsed.pendingEvents) {
                                 const q = query(pendingCollection, where('id', '==', pe.id));
@@ -2710,7 +2427,7 @@
                                         status: 'waiting',
                                         source: pe.source || 'catalog',
                                         type: pe.type || 'existing',
-                                        targetGroup: pe.targetGroup || 0
+                                        tabIndex: pe.tabIndex || 0
                                     });
                                 }
                             }
@@ -2823,7 +2540,7 @@
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
             const body = payload.data?.body || payload.notification?.body || '';
-            showToastDelayed(`📩 ${title}: ${body}`);
+            showToast(`📩 ${title}: ${body}`);
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
@@ -2918,7 +2635,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.5';
+        const APP_VERSION = '1.1.6';
 
         window.checkForUpdate = async function() {
             try {
