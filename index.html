@@ -1995,7 +1995,7 @@
         // ============================================================
         // 5. FCM – POWIADOMIENIA PUSH (POPRAWIONA REJESTRACJA SW)
         // ============================================================
-        import { getMessaging, getToken, onMessage, onTokenRefresh } from 'firebase/messaging';
+        import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
         const messaging = getMessaging(app);
         const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
@@ -2056,19 +2056,6 @@
                 await setDoc(doc(db, 'users', userId), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
                 showToast('✅ Powiadomienia włączone');
-
-                // 🔥 Dodaj odświeżanie tokenu
-                onTokenRefresh(async () => {
-                    try {
-                        const newToken = await getToken(messaging, { vapidKey: VAPID_KEY });
-                        console.log('🔄 Odświeżono token:', newToken);
-                        const userId = getUserId();
-                        await setDoc(doc(db, 'users', userId), { fcmToken: newToken }, { merge: true });
-                        showToast('🔄 Odświeżono token powiadomień');
-                    } catch (err) {
-                        console.error('Błąd odświeżania tokenu:', err);
-                    }
-                });
 
             } catch (error) {
                 console.error('Błąd rejestracji tokenu:', error);
@@ -2142,7 +2129,6 @@
                     // Token unieważniony – spróbuj ponownie zarejestrować
                     console.warn('⚠️ Token partnera unieważniony – ponowna rejestracja');
                     showToast('⚠️ Token partnera wygasł – spróbuj ponownie później');
-                    // Możesz też wywołać registerForNotifications() dla siebie
                 } else if (result.success) {
                     console.log('✅ Powiadomienie wysłane do:', targetUserId);
                 } else {
