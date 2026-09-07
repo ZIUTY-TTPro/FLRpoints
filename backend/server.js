@@ -1,3 +1,35 @@
+const express = require('express');
+const admin = require('firebase-admin');
+const cors = require('cors');
+const app = express();
+
+app.use(cors({
+    origin: ['https://ziuty-ttpro.github.io', 'http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+app.use(express.json());
+
+let serviceAccount;
+try {
+    serviceAccount = require('./service-account.json');
+} catch (e) {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+        console.error('❌ Brak danych uwierzytelniających Firebase!');
+        process.exit(1);
+    }
+}
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+});
+
+const db = admin.firestore();
+
 // ============================================================
 // ENDPOINT: wysyłka powiadomienia (z wysokim priorytetem)
 // ============================================================
@@ -33,7 +65,9 @@ app.post('/send-notification', async (req, res) => {
             });
         }
 
-        // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH, BEZ notification (tylko data)
+        // 🔥 POPRAWIONE: BEZ notification – tylko data.
+        // Powiadomienie wyświetla Service Worker (firebase-messaging-sw.js),
+        // dzięki temu nie ma duplikatów.
         const message = {
             data: stringData,
             token: fcmToken,
@@ -56,11 +90,42 @@ app.post('/send-notification', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Błąd wysyłki powiadomienia:', error);
+
+        // Obsługa nieprawidłowego tokenu
         if (error.code === 'messaging/registration-token-not-registered') {
             await db.collection('users').doc(targetUserId).update({ fcmToken: null });
             console.warn(`⚠️ Usunięto nieprawidłowy token dla ${targetUserId}`);
             return res.status(410).json({ error: 'Token unieważniony – usunięto' });
         }
+
         res.status(500).json({ error: error.message });
     }
+});
+
+// ============================================================
+// ENDPOINT: rejestracja tokenu
+// ============================================================
+app.post('/register-token', async (req, res) => {
+    const { userId, fcmToken, role } = req.body;
+
+    if (!userId || !fcmToken) {
+        return res.status(400).json({ error: 'Brak userId lub fcmToken' });
+    }
+
+    try {
+        const data = { fcmToken };
+        if (role) data.role = role;
+
+        await db.collection('users').doc(userId).set(data, { merge: true });
+        console.log('✅ Token zarejestrowany dla:', userId);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('❌ Błąd zapisu tokenu:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✅ Serwer działa na porcie ${PORT}`);
 });
