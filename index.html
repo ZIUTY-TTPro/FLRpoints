@@ -463,14 +463,14 @@
                     <!-- Wersja -->
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.3</span>
+                        <span class="setting-value" id="app-version-text"></span>
                     </div>
 
                     <!-- Stan aplikacji (online/offline) -->
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
                         <span class="setting-value" id="app-status-text">
-                            <span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
+                            <span class="satatus-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
                             Online
                         </span>
                     </div>
@@ -2281,7 +2281,6 @@
         }
 
         async function registerForNotifications() {
-            // Sprawdź, czy powiadomienia są włączone w ustawieniach
             if (!getNotificationsEnabled()) {
                 console.log('🔕 Powiadomienia wyłączone w ustawieniach');
                 return;
@@ -2328,16 +2327,13 @@
                 const role = getRole();
                 await setDoc(doc(db, 'users', userId), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
-                // Nie pokazuj toasta przy starcie – cicha rejestracja
                 updateSettingsUI();
 
             } catch (error) {
                 console.error('Błąd rejestracji tokenu:', error);
-                // Nie pokazuj toasta przy starcie
             }
         }
 
-        // Rejestracja przy starcie – cicha
         registerForNotifications();
 
         // ============================================================
@@ -2442,10 +2438,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.2';
-
-        // Wersja jest już w HTML, aktualizujemy tylko jeśli trzeba
-        // document.getElementById('app-version-text').textContent = APP_VERSION; // już w HTML ustawione
+        const APP_VERSION = '1.1.4';
 
         window.checkForUpdate = async function() {
             try {
@@ -2454,12 +2447,23 @@
                     showToast('⚠️ Service Worker nie jest zarejestrowany.');
                     return;
                 }
-                const manifestResponse = await fetch('./manifest.json', { cache: 'no-cache' });
+                // Wymuś pobranie świeżego manifestu z timestampem
+                const manifestUrl = './manifest.json?t=' + Date.now();
+                const manifestResponse = await fetch(manifestUrl, { cache: 'reload' });
                 const manifest = await manifestResponse.json();
                 const newVersion = manifest.version || '1.0.0';
+                
+                // Zapamiętaj ostatnią sprawdzoną wersję, aby nie powtarzać powiadomień
+                const lastChecked = localStorage.getItem('flr_last_version_checked');
                 if (newVersion !== APP_VERSION) {
-                    showUpdateNotification(newVersion);
+                    if (lastChecked !== newVersion) {
+                        showUpdateNotification(newVersion);
+                        localStorage.setItem('flr_last_version_checked', newVersion);
+                    } else {
+                        showToast('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).');
+                    }
                 } else {
+                    localStorage.setItem('flr_last_version_checked', APP_VERSION);
                     showToast('✅ Masz najnowszą wersję.');
                 }
             } catch (err) {
@@ -2493,10 +2497,15 @@
             });
         }
 
-        // Sprawdź aktualizację przy starcie (tylko raz) – cicho
-        setTimeout(() => {
-            checkForUpdate();
-        }, 3000);
+        // Sprawdź aktualizację przy starcie – tylko raz dziennie
+        const lastCheckDate = localStorage.getItem('flr_last_update_check_date');
+        const today = getLocalDateString(new Date());
+        if (lastCheckDate !== today) {
+            setTimeout(() => {
+                checkForUpdate();
+                localStorage.setItem('flr_last_update_check_date', today);
+            }, 3000);
+        }
 
         // ============================================================
         // INICJALIZACJA
