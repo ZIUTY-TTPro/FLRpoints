@@ -140,7 +140,7 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== KONTENER POWIADOMIEŃ – OD DOŁU DO GÓRY, WYRÓWNANIE DO LEWEJ ===== */
+        /* ===== KONTENER POWIADOMIEŃ ===== */
         #notification-container {
             position: fixed;
             bottom: 0;
@@ -149,7 +149,7 @@
             padding: 0.5rem;
             display: flex;
             flex-direction: column-reverse;
-            align-items: flex-start;   /* wyrównanie do lewej */
+            align-items: flex-start;
             gap: 0.3rem;
             pointer-events: none;
             z-index: 100;
@@ -167,23 +167,55 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             max-width: 90%;
             width: auto;
-            text-align: left;          /* wyrównanie do lewej */
+            text-align: left;
             animation: slideUp 0.3s ease-out;
             transition: opacity 0.3s ease, transform 0.3s ease;
             pointer-events: auto;
         }
-        .notification-item.approved {
-            border-left: 4px solid #22c55e;
-        }
-        .notification-item.rejected {
-            border-left: 4px solid #ef4444;
-        }
-        .notification-item.info {
-            border-left: 4px solid #fbbf24;
-        }
+        .notification-item.approved { border-left: 4px solid #22c55e; }
+        .notification-item.rejected { border-left: 4px solid #ef4444; }
+        .notification-item.info { border-left: 4px solid #fbbf24; }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== KOMUNIKAT DLA PANI (MYŚL PANI) ===== */
+        #mistress-message {
+            margin-top: 0.5rem;
+            margin-bottom: 0.25rem;
+            padding: 0.75rem 1rem;
+            background: rgba(220, 38, 38, 0.08);
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            border-radius: 1rem;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #fca5a5;
+            letter-spacing: 0.02em;
+            line-height: 1.4;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #mistress-message.show {
+            opacity: 1;
+        }
+        #mistress-message .quote-mark {
+            font-size: 1.2rem;
+            color: #dc2626;
+            margin: 0 0.2rem;
+        }
+        #mistress-message .heart {
+            color: #dc2626;
+            margin: 0 0.3rem;
+        }
+        #mistress-message .message-text {
+            font-style: italic;
         }
     </style>
 </head>
@@ -229,6 +261,9 @@
                     </g>
                 </svg>
             </div>
+
+            <!-- ===== MYŚL PANI – KOMUNIKAT ===== -->
+            <div id="mistress-message"></div>
 
             <!-- ZDARZENIA DO ZATWIERDZENIA -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4" id="pending-section">
@@ -443,7 +478,7 @@
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.9</span>
+                        <span class="setting-value" id="app-version-text">1.2.0</span>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
@@ -493,7 +528,7 @@
         </div>
     </main>
 
-    <!-- MODALE -->
+    <!-- MODALE (bez zmian) -->
     <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
@@ -891,16 +926,14 @@
         const mainContent = document.getElementById('main-content');
 
         // ============================================================
-        // SYSTEM POWIADOMIEŃ – OD DOŁU DO GÓRY, WYRÓWNANIE DO LEWEJ
+        // SYSTEM POWIADOMIEŃ
         // ============================================================
         function showNotification(text, type = 'info') {
             const container = document.getElementById('notification-container');
             
-            // Sprawdź, czy takie powiadomienie już istnieje (unikaj duplikatów)
             const existing = container.querySelectorAll('.notification-item');
             for (const el of existing) {
                 if (el.textContent === text) {
-                    // Odśwież timer – przedłuż wyświetlanie
                     const timerId = el.dataset.timerId;
                     if (timerId && notificationTimers[timerId]) {
                         clearTimeout(notificationTimers[timerId]);
@@ -938,13 +971,87 @@
             }, 5000);
         }
 
-        // Cicha funkcja do operacji w tle (bez powiadomień)
-        function silentOperation() {
-            // Nic nie pokazujemy
+        // ============================================================
+        // KOMUNIKATY DLA PANI
+        // ============================================================
+        const mistressMessages = [
+            // Ogólne – władza
+            "Pamiętaj – to Ty decydujesz, kiedy i czy Sługa zasługuje na nagrodę.",
+            "Sługa ma być posłuszny, a nie oczekiwać. Czas na małe otrzeźwienie.",
+            "Twoja surowość czyni go lepszym – nie bój się wymagać więcej.",
+            "Im trudniej, tym większa satysfakcja – zarówno Twoja, jak i jego.",
+            "Poniż go i nakarm jego uległość – to buduje więź.",
+            "Czy piesek całował dziś Twoje stopy? Jeśli nie, czas to zmienić.",
+            "Idzie weekend – penis w pas cnoty. Niech pamięta, kto rządzi.",
+            "Niech masuje, aż mu spuchną paluchy – wtedy dopiero poczuje, co to służba.",
+            "Puszcz sobie film, a Sługa niech klęczy u Twoich stóp – to jego miejsce.",
+            "Jego orgazm to historia – Twoja przyjemność to teraźniejszość.",
+            "Idź spać, a Sługa niech prasuje – rano ma być wszystko gotowe.",
+            "Nie pójdzie spać, dopóki nie skończy zadania – dyscyplina przede wszystkim.",
+            "Sługa ma prawo marzyć, ale Ty masz prawo decydować, czy jego marzenia się spełnią.",
+            "Twoja łaska to jego skarb – nie rozdawaj jej za darmo.",
+            "Bądź nieprzewidywalna – to go podnieca i utrzymuje w gotowości.",
+            // Kary
+            "Sługa od tygodnia nie dostał kary – czas na małą lekcję pokory.",
+            "Zbyt długo był grzeczny – to podejrzane. Zadbaj o dyscyplinę.",
+            "Kara to nie zemsta – to trening. Nie odkładaj jej na później.",
+            "Jeśli nie karzesz, to znaczy, że akceptujesz – a czy na pewno chcesz to robić?",
+            // Zarobki
+            "Punktów przybywa, ale czy naprawdę na nie zasłużył? Może za dużo dajesz za proste zadania.",
+            "Ostatnie zarobki były zbyt hojne – czas na obcięcie stawki. Niech się postara!",
+            "Sługa myśli, że ma łatwo? Zmień kryteria – niech każdy punkt kosztuje go wysiłek.",
+            "Czy aby na pewno każda czynność zasługuje na punkty? Bądź bardziej oszczędna w nagradzaniu.",
+            // Wykupy
+            "Ma wystarczająco punktów? To nie znaczy, że musi dostać to, czego chce. Odmowa też jest przyjemnością.",
+            "Przypomnij Słudze, że to Ty rozdajesz karty – nawet jeśli ma punkty, możesz mu odmówić.",
+            "Ostatni wykup był za łatwy – następnym razem powiedz NIE. Niech poczeka i pragnie.",
+            "Przyjemność to przywilej, a nie prawo. Odmawiaj częściej – doceni to bardziej.",
+            // Dodatkowe – ostrzejsze
+            "Sługa zaczyna być zbyt pewny siebie – czas na niespodziewane utrudnienie.",
+            "Spójrz na historię – czy ostatnio nie byłaś zbyt miła? Wróć do surowszego stylu.",
+            "Twoja rola to nie tylko nagradzanie – to także kształtowanie charakteru. Bądź stanowcza.",
+            "Sługa uwielbia, gdy jesteś nieprzewidywalna – zaskocz go odmową lub karą.",
+            "Niech poczuje smak porażki – to go wzmocni.",
+            "Bądź dla niego twarda, ale sprawiedliwa – wtedy będzie Ci wdzięczny.",
+            "Sługa potrzebuje granic – Ty jesteś ich strażniczką.",
+            "Nie daj mu zapomnieć, że jest Twoim własnością.",
+            "Twoje słowo jest prawem – niech to usłyszy głośno i wyraźnie.",
+            "Każdy punkt to przywilej, nie obowiązek – przypominaj mu o tym codziennie."
+        ];
+
+        function loadMistressMessage() {
+            const role = getRole();
+            const msgContainer = document.getElementById('mistress-message');
+            if (role !== 'mistress') {
+                msgContainer.classList.remove('show');
+                msgContainer.textContent = '';
+                return;
+            }
+
+            // Sprawdź, czy w sesji jest już komunikat
+            let msg = sessionStorage.getItem('flr_mistress_message');
+            if (!msg) {
+                // Losuj nowy
+                const randomIndex = Math.floor(Math.random() * mistressMessages.length);
+                msg = mistressMessages[randomIndex];
+                sessionStorage.setItem('flr_mistress_message', msg);
+            }
+
+            // Wyświetl z ładnym formatowaniem
+            msgContainer.innerHTML = `
+                <span class="quote-mark">❝</span>
+                <span class="message-text">${msg}</span>
+                <span class="quote-mark">❞</span>
+                <span class="heart">♥</span>
+            `;
+            // Dodaj klasę show po krótkim opóźnieniu (efekt fade-in)
+            setTimeout(() => {
+                msgContainer.classList.add('show');
+            }, 100);
         }
 
         // ============================================================
-        // AKTUALIZACJA BILANSU NA IKONIE
+        // AKTUALIZACJA BILANSU
         // ============================================================
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
@@ -1066,7 +1173,6 @@
                         updateStateFromFirestore(latestUpdate, true);
                     }
                 }
-                // CICHO – bez "Zapisano!"
                 setStatusOnline();
             } catch (err) {
                 isLocalUpdate = false;
@@ -1130,7 +1236,6 @@
                 isLocalUpdate = false;
                 setPendingFlag(false);
                 updateStateFromFirestore(backup, true);
-                // CICHO – bez "Zapisano!"
                 setStatusOnline();
             } catch (err) {
                 isLocalUpdate = false;
@@ -1381,11 +1486,9 @@
 
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
-                // Komunikat dla Pani – tylko przez sendNotification (nie duplikujemy)
                 const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
                 await sendNotification(getUserId(), mistressMsg);
 
-                // Komunikat dla Sługi
                 if (proposedBy) {
                     const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
                     await sendNotification(proposedBy, slaveMsg);
@@ -1420,7 +1523,6 @@
                     balance += points;
                     historyEntries.unshift(entry);
                     await saveDataToFirestore();
-                    // Nie wyświetlaj dodatkowego "Zatwierdzono" – powiadomienie z sendNotification wystarczy
                 }
 
                 updateUI();
@@ -1451,7 +1553,6 @@
 
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
 
-                // Komunikat dla Pani – tylko przez sendNotification
                 const mistressMsg = `❌ Odrzuciłaś: ${name}`;
                 await sendNotification(getUserId(), mistressMsg);
 
@@ -1845,6 +1946,7 @@
         // ----- AKTUALIZACJA UI -----
         function updateUI() {
             updateBalanceOnIcon();
+            loadMistressMessage();
 
             const banner = document.getElementById('reduction-banner');
             const bannerText = document.getElementById('reduction-info-text');
@@ -1951,6 +2053,8 @@
 
         window.setRole = async function(role) {
             localStorage.setItem('flr_role', role);
+            // Usuń zapisany komunikat w sesji przy zmianie roli
+            sessionStorage.removeItem('flr_mistress_message');
             const uid = getUserId();
             await setDoc(doc(db, 'users', uid), { role }, { merge: true });
             document.getElementById('role-modal').style.display = 'none';
@@ -1958,6 +2062,8 @@
             await registerForNotifications();
             updateSettingsUI();
             updateRoleIcon(role);
+            // Odśwież komunikat Pani
+            loadMistressMessage();
         };
 
         window.openRoleModal = function() {
@@ -1973,6 +2079,7 @@
             }
             updateSettingsUI();
             updateRoleIcon(role);
+            loadMistressMessage();
         }
 
         // ============================================================
@@ -2188,7 +2295,6 @@
                 return;
             }
 
-            // Pani – wykonaj od razu (bez blokady na ujemny bilans)
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2208,10 +2314,8 @@
             saveDataToFirestore();
             renderActions();
             updateUI();
-            // CICHO – bez "Zapisano!"
             incrementBadge();
 
-            // Wysyłka powiadomienia push do Sługi (tylko raz)
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -2273,7 +2377,6 @@
                 return;
             }
 
-            // Pani – dodaje od razu
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2296,7 +2399,6 @@
             window.closeCustomModal();
             incrementBadge();
             
-            // Wysyłka push (tylko raz)
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -2661,7 +2763,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.9';
+        const APP_VERSION = '1.2.0';
 
         window.checkForUpdate = async function() {
             try {
