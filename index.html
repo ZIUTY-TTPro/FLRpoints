@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE (bez zmian) ===== */
+        /* ===== STYLE (skrócone dla czytelności – te same co wcześniej) ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -140,7 +140,7 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== KONTENER POWIADOMIEŃ – OD DOŁU DO GÓRY, WYRÓWNANIE DO LEWEJ ===== */
+        /* ===== KONTENER POWIADOMIEŃ ===== */
         #notification-container {
             position: fixed;
             bottom: 0;
@@ -149,7 +149,7 @@
             padding: 0.5rem;
             display: flex;
             flex-direction: column-reverse;
-            align-items: flex-start;   /* wyrównanie do lewej */
+            align-items: flex-start;
             gap: 0.3rem;
             pointer-events: none;
             z-index: 100;
@@ -167,23 +167,55 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             max-width: 90%;
             width: auto;
-            text-align: left;          /* wyrównanie do lewej */
+            text-align: left;
             animation: slideUp 0.3s ease-out;
             transition: opacity 0.3s ease, transform 0.3s ease;
             pointer-events: auto;
         }
-        .notification-item.approved {
-            border-left: 4px solid #22c55e;
-        }
-        .notification-item.rejected {
-            border-left: 4px solid #ef4444;
-        }
-        .notification-item.info {
-            border-left: 4px solid #fbbf24;
-        }
+        .notification-item.approved { border-left: 4px solid #22c55e; }
+        .notification-item.rejected { border-left: 4px solid #ef4444; }
+        .notification-item.info { border-left: 4px solid #fbbf24; }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== KOMUNIKAT DLA PANI (WEWNĄTRZ KARTY Z MONETĄ) ===== */
+        #mistress-message {
+            margin-top: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(220, 38, 38, 0.08);
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            border-radius: 1rem;
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #fca5a5;
+            letter-spacing: 0.02em;
+            line-height: 1.4;
+            min-height: 3rem;
+            display: none; /* domyślnie ukryte – pokazuje JS tylko dla Pani */
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #mistress-message.show {
+            display: flex;
+            opacity: 1;
+        }
+        #mistress-message .quote-mark {
+            font-size: 1.2rem;
+            color: #dc2626;
+            margin: 0 0.2rem;
+        }
+        #mistress-message .heart {
+            color: #dc2626;
+            margin: 0 0.3rem;
+        }
+        #mistress-message .message-text {
+            font-style: italic;
         }
     </style>
 </head>
@@ -202,8 +234,8 @@
         <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-5">
 
-            <!-- BILANS -->
-            <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl gap-3">
+            <!-- BILANS + KOMUNIKAT DLA PANI -->
+            <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
                 <div class="absolute top-3 left-3 flex items-center gap-1">
                     <span id="role-icon" class="role-icon">👤</span>
                 </div>
@@ -229,13 +261,12 @@
                     </g>
                 </svg>
 
-                <!-- BANER REDUKCJI (widoczny tylko dla Pani, w tym samym kontenerze) -->
-                <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 w-full flex justify-between items-center text-left">
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
-                        <span id="reduction-info-text" class="text-xs text-zinc-300">Obniżka o 15% do 01.09.2026</span>
-                    </div>
-                    <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
+                <!-- ===== KOMUNIKAT DLA PANI – WEWNĄTRZ KARTY ===== -->
+                <div id="mistress-message">
+                    <span class="quote-mark">❝</span>
+                    <span class="message-text"></span>
+                    <span class="quote-mark">❞</span>
+                    <span class="heart">♥</span>
                 </div>
             </div>
 
@@ -266,6 +297,15 @@
                     <div id="rewards-empty" class="rewards-empty">Wszystkie przyjemności są zablokowane.</div>
                 </div>
             </section>
+
+            <!-- BANER REDUKCJI -->
+            <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex justify-between items-center">
+                <div class="flex flex-col">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
+                    <span id="reduction-info-text" class="text-xs text-zinc-300">Obniżka o 15% do 01.09.2026</span>
+                </div>
+                <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
+            </div>
 
             <!-- ZARZĄDZANIE PUNKTAMI -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
@@ -443,7 +483,7 @@
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.9</span>
+                        <span class="setting-value" id="app-version-text">1.2.0</span>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
@@ -814,10 +854,6 @@
             }
         }
 
-        function getRole() {
-            return localStorage.getItem('flr_role') || '';
-        }
-
         // ----- SŁOWNIK DOMYŚLNY -----
         const originalDictionary = [
             {
@@ -895,7 +931,7 @@
         const mainContent = document.getElementById('main-content');
 
         // ============================================================
-        // SYSTEM POWIADOMIEŃ – OD DOŁU DO GÓRY, WYRÓWNANIE DO LEWEJ
+        // SYSTEM POWIADOMIEŃ
         // ============================================================
         function showNotification(text, type = 'info') {
             const container = document.getElementById('notification-container');
@@ -941,26 +977,85 @@
         }
 
         // ============================================================
-        // AKTUALIZACJA BANERU REDUKCJI (TYLKO DLA PANI)
+        // KOMUNIKATY DLA PANI
         // ============================================================
-        function updateReductionBanner() {
-            const banner = document.getElementById('reduction-banner');
-            const bannerText = document.getElementById('reduction-info-text');
-            if (!banner || !bannerText) return;
+        const mistressMessages = [
+            // Ogólne – władza
+            "Pamiętaj – to Ty decydujesz, kiedy i czy Sługa zasługuje na nagrodę.",
+            "Sługa ma być posłuszny, a nie oczekiwać. Czas na małe otrzeźwienie.",
+            "Twoja surowość czyni go lepszym – nie bój się wymagać więcej.",
+            "Im trudniej, tym większa satysfakcja – zarówno Twoja, jak i jego.",
+            "Poniż go i nakarm jego uległość – to buduje więź.",
+            "Czy piesek całował dziś Twoje stopy? Jeśli nie, czas to zmienić.",
+            "Idzie weekend – penis w pas cnoty. Niech pamięta, kto rządzi.",
+            "Niech masuje, aż mu spuchną paluchy – wtedy dopiero poczuje, co to służba.",
+            "Puszcz sobie film, a Sługa niech klęczy u Twoich stóp – to jego miejsce.",
+            "Jego orgazm to historia – Twoja przyjemność to teraźniejszość.",
+            "Idź spać, a Sługa niech prasuje – rano ma być wszystko gotowe.",
+            "Nie pójdzie spać, dopóki nie skończy zadania – dyscyplina przede wszystkim.",
+            "Sługa ma prawo marzyć, ale Ty masz prawo decydować, czy jego marzenia się spełnią.",
+            "Twoja łaska to jego skarb – nie rozdawaj jej za darmo.",
+            "Bądź nieprzewidywalna – to go podnieca i utrzymuje w gotowości.",
+            // Kary
+            "Sługa od tygodnia nie dostał kary – czas na małą lekcję pokory.",
+            "Zbyt długo był grzeczny – to podejrzane. Zadbaj o dyscyplinę.",
+            "Kara to nie zemsta – to trening. Nie odkładaj jej na później.",
+            "Jeśli nie karzesz, to znaczy, że akceptujesz – a czy na pewno chcesz to robić?",
+            // Zarobki
+            "Punktów przybywa, ale czy naprawdę na nie zasłużył? Może za dużo dajesz za proste zadania.",
+            "Ostatnie zarobki były zbyt hojne – czas na obcięcie stawki. Niech się postara!",
+            "Sługa myśli, że ma łatwo? Zmień kryteria – niech każdy punkt kosztuje go wysiłek.",
+            "Czy aby na pewno każda czynność zasługuje na punkty? Bądź bardziej oszczędna w nagradzaniu.",
+            // Wykupy
+            "Ma wystarczająco punktów? To nie znaczy, że musi dostać to, czego chce. Odmowa też jest przyjemnością.",
+            "Przypomnij Słudze, że to Ty rozdajesz karty – nawet jeśli ma punkty, możesz mu odmówić.",
+            "Ostatni wykup był za łatwy – następnym razem powiedz NIE. Niech poczeka i pragnie.",
+            "Przyjemność to przywilej, a nie prawo. Odmawiaj częściej – doceni to bardziej.",
+            // Dodatkowe – ostrzejsze
+            "Sługa zaczyna być zbyt pewny siebie – czas na niespodziewane utrudnienie.",
+            "Spójrz na historię – czy ostatnio nie byłaś zbyt miła? Wróć do surowszego stylu.",
+            "Twoja rola to nie tylko nagradzanie – to także kształtowanie charakteru. Bądź stanowcza.",
+            "Sługa uwielbia, gdy jesteś nieprzewidywalna – zaskocz go odmową lub karą.",
+            "Niech poczuje smak porażki – to go wzmocni.",
+            "Bądź dla niego twarda, ale sprawiedliwa – wtedy będzie Ci wdzięczny.",
+            "Sługa potrzebuje granic – Ty jesteś ich strażniczką.",
+            "Nie daj mu zapomnieć, że jest Twoim własnością.",
+            "Twoje słowo jest prawem – niech to usłyszy głośno i wyraźnie.",
+            "Każdy punkt to przywilej, nie obowiązek – przypominaj mu o tym codziennie."
+        ];
 
+        function loadMistressMessage() {
             const role = getRole();
-            if (role === 'mistress' && activeReduction) {
-                banner.classList.remove('hidden');
-                banner.classList.add('flex');
-                bannerText.innerText = `Obniżka o ${activeReduction.percent}% do ${formatDateText(activeReduction.endDate)}`;
-            } else {
-                banner.classList.remove('flex');
-                banner.classList.add('hidden');
+            const msgContainer = document.getElementById('mistress-message');
+            
+            // Jeśli nie Pani – ukryj całkowicie
+            if (role !== 'mistress') {
+                msgContainer.classList.remove('show');
+                msgContainer.style.display = 'none';
+                return;
             }
+
+            // Pani – pokaż
+            msgContainer.style.display = 'flex';
+
+            let msg = sessionStorage.getItem('flr_mistress_message');
+            if (!msg) {
+                const randomIndex = Math.floor(Math.random() * mistressMessages.length);
+                msg = mistressMessages[randomIndex];
+                sessionStorage.setItem('flr_mistress_message', msg);
+            }
+
+            const textSpan = msgContainer.querySelector('.message-text');
+            if (textSpan) textSpan.textContent = msg;
+
+            // Dodaj klasę show po krótkim opóźnieniu (fade-in)
+            setTimeout(() => {
+                msgContainer.classList.add('show');
+            }, 100);
         }
 
         // ============================================================
-        // AKTUALIZACJA BILANSU NA IKONIE
+        // AKTUALIZACJA BILANSU
         // ============================================================
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
@@ -1683,6 +1778,1199 @@
             else if (sortMode === 1) btn.innerText = "Sortowanie: Rosnąco";
             else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
         }
+
+        // ----- RENDEROWANIE "DOZWOLONE PRZYJEMNOŚCI" -----
+        function renderRewards() {
+            const listContainer = document.getElementById('rewards-list');
+            const emptyContainer = document.getElementById('rewards-empty');
+            listContainer.innerHTML = '';
+
+            const rewardsGroup = eventDictionary[2];
+            const available = rewardsGroup.items.filter(item => item.points < 0 && balance >= Math.abs(item.points));
+
+            if (available.length === 0) {
+                emptyContainer.classList.remove('hidden');
+                return;
+            }
+            emptyContainer.classList.add('hidden');
+
+            available.forEach(item => {
+                const cost = Math.abs(item.points);
+                const row = document.createElement('div');
+                row.className = 'reward-item';
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = item.name;
+                const costSpan = document.createElement('span');
+                costSpan.className = 'cost';
+                costSpan.textContent = `✅ ${cost} pkt`;
+                row.appendChild(nameSpan);
+                row.appendChild(costSpan);
+                listContainer.appendChild(row);
+            });
+        }
+
+        // ============================================================
+        // STATYSTYKI
+        // ============================================================
+        let statsRange = 'month';
+
+        window.switchStatsRange = function(range) {
+            statsRange = range;
+            ['year', 'month', 'week'].forEach(r => {
+                const btn = document.getElementById(`stats-tab-${r}`);
+                if (r === range) {
+                    btn.classList.add('bg-zinc-700', 'text-white', 'shadow');
+                    btn.classList.remove('text-zinc-400');
+                } else {
+                    btn.classList.remove('bg-zinc-700', 'text-white', 'shadow');
+                    btn.classList.add('text-zinc-400');
+                }
+            });
+            renderStats();
+        };
+
+        function filterDataByRange(data, viewType, referenceDateStr) {
+            const target = new Date(referenceDateStr);
+            return data.filter(entry => {
+                if (!entry.date) return false;
+                const entryDate = getLocalDateFromStr(entry.date);
+                if (viewType === 'year') {
+                    return entryDate.getFullYear() === target.getFullYear();
+                }
+                if (viewType === 'month') {
+                    return (
+                        entryDate.getFullYear() === target.getFullYear() &&
+                        entryDate.getMonth() === target.getMonth()
+                    );
+                }
+                if (viewType === 'week') {
+                    const { start, end } = getWeekBoundsFromActiveDate(referenceDateStr);
+                    return entryDate >= start && entryDate <= end;
+                }
+                return true;
+            });
+        }
+
+        function getMostFrequent(arr) {
+            if (!arr || arr.length === 0) return '-';
+            const counts = {};
+            let maxCount = 0;
+            let mostFrequent = '-';
+            for (const item of arr) {
+                if (!item) continue;
+                counts[item] = (counts[item] || 0) + 1;
+                if (counts[item] > maxCount) {
+                    maxCount = counts[item];
+                    mostFrequent = item;
+                }
+            }
+            return `${mostFrequent} (${maxCount}x)`;
+        }
+
+        function filterHistoryByType(history, type) {
+            return history.filter(entry => entry.type === type);
+        }
+
+        function renderStats() {
+            const activeD = new Date(activeDate);
+            let rangeLabelStr = "";
+            if (statsRange === 'year') {
+                rangeLabelStr = `Rok ${activeD.getFullYear()}`;
+            } else if (statsRange === 'month') {
+                const monthsNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+                rangeLabelStr = `${monthsNames[activeD.getMonth()]} ${activeD.getFullYear()}`;
+            } else if (statsRange === 'week') {
+                const { start, end } = getWeekBoundsFromActiveDate(activeDate);
+                rangeLabelStr = `${formatDateText(start.toISOString().split('T')[0])} - ${formatDateText(end.toISOString().split('T')[0])}`;
+            }
+            document.getElementById('stats-range-label').innerText = `Zakres: ${rangeLabelStr}`;
+
+            const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
+
+            const earnEntries = filterHistoryByType(filteredHistory, 'earn');
+            const penEntries = filterHistoryByType(filteredHistory, 'pen');
+            const buyEntries = filterHistoryByType(filteredHistory, 'buy');
+
+            const sumEarn = earnEntries.reduce((acc, e) => acc + e.points, 0);
+            const sumPen = penEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
+            const sumBuy = buyEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
+
+            document.getElementById('stats-val-earn').innerText = `+${sumEarn}`;
+            document.getElementById('stats-val-pen').innerText = `-${sumPen}`;
+            document.getElementById('stats-val-buy').innerText = `-${sumBuy}`;
+
+            const orgasmEntry = historyEntries.find(e => e.name.toLowerCase().includes("orgazm dla żony"));
+            if (orgasmEntry) {
+                const orgasmDate = getLocalDateFromStr(orgasmEntry.date);
+                const today = new Date();
+                const daysAgo = Math.floor((today - orgasmDate) / (1000 * 60 * 60 * 24));
+                let agoText = daysAgo === 0 ? "dzisiaj" : daysAgo === 1 ? "wczoraj" : `${daysAgo} dni temu`;
+                document.getElementById('stat-last-orgasm').textContent = `${formatDateText(orgasmEntry.date)} (${agoText})`;
+            } else {
+                document.getElementById('stat-last-orgasm').textContent = "Brak w historii";
+            }
+
+            const lastEarn = historyEntries.find(e => e.points > 0);
+            if (lastEarn) {
+                document.getElementById('stat-last-earn').textContent = lastEarn.name;
+                document.getElementById('stat-last-earn-pts').textContent = `+${lastEarn.points} pkt`;
+            } else {
+                document.getElementById('stat-last-earn').textContent = "-";
+                document.getElementById('stat-last-earn-pts').textContent = "0 pkt";
+            }
+
+            const lastPen = historyEntries.find(e => e.type === 'pen');
+            if (lastPen) {
+                document.getElementById('stat-last-pen').textContent = lastPen.name;
+                document.getElementById('stat-last-pen-pts').textContent = `${lastPen.points} pkt`;
+            } else {
+                document.getElementById('stat-last-pen').textContent = "-";
+                document.getElementById('stat-last-pen-pts').textContent = "0 pkt";
+            }
+
+            const lastBuy = historyEntries.find(e => e.type === 'buy');
+            if (lastBuy) {
+                document.getElementById('stat-last-buy').textContent = lastBuy.name;
+                document.getElementById('stat-last-buy-pts').textContent = `${lastBuy.points} pkt`;
+            } else {
+                document.getElementById('stat-last-buy').textContent = "-";
+                document.getElementById('stat-last-buy-pts').textContent = "0 pkt";
+            }
+
+            const earnNames = earnEntries.map(e => e.name);
+            const penNames = penEntries.map(e => e.name);
+            const buyNames = buyEntries.map(e => e.name);
+
+            document.getElementById('stat-freq-earn').textContent = getMostFrequent(earnNames);
+            document.getElementById('stat-freq-pen').textContent = getMostFrequent(penNames);
+            document.getElementById('stat-freq-buy').textContent = getMostFrequent(buyNames);
+        }
+
+        // ----- AKTUALIZACJA UI -----
+        function updateUI() {
+            updateBalanceOnIcon();
+            loadMistressMessage();
+
+            const banner = document.getElementById('reduction-banner');
+            const bannerText = document.getElementById('reduction-info-text');
+            if (activeReduction) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+                bannerText.innerText = `Obniżka zarobku o ${activeReduction.percent}% do ${formatDateText(activeReduction.endDate)}`;
+            } else {
+                banner.classList.remove('flex');
+                banner.classList.add('hidden');
+            }
+
+            document.getElementById('history-date-label').innerText = formatDateText(activeDate);
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+
+            const dayEntries = historyEntries.filter(e => e.date === activeDate);
+            if (dayEntries.length === 0) {
+                historyList.innerHTML = '<div class="text-zinc-600 text-xs italic py-2 px-1">Brak wpisów dla wybranego dnia.</div>';
+            } else {
+                dayEntries.forEach(entry => {
+                    const isNegative = entry.points < 0;
+                    const sign = entry.points > 0 ? '+' : '';
+                    const item = document.createElement('div');
+                    item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl flr-history-item";
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'text-xs font-medium text-zinc-200';
+                    nameSpan.textContent = entry.name;
+
+                    const ptsSpan = document.createElement('span');
+                    ptsSpan.className = `font-black text-sm ${isNegative ? 'text-red-400' : 'text-zinc-100'}`;
+                    ptsSpan.textContent = `${sign}${entry.points}`;
+
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'text-zinc-600 hover:text-red-500 text-xs px-1';
+                    delBtn.textContent = '✕';
+                    delBtn.onclick = () => window.deleteEntry(entry.id);
+
+                    const rightDiv = document.createElement('div');
+                    rightDiv.className = 'flex items-center gap-3';
+                    rightDiv.appendChild(ptsSpan);
+                    rightDiv.appendChild(delBtn);
+
+                    item.appendChild(nameSpan);
+                    item.appendChild(rightDiv);
+                    historyList.appendChild(item);
+                });
+            }
+
+            renderCalendar();
+            renderActions();
+            renderRewards();
+            renderStats();
+            updateSettingsUI();
+        }
+
+        // ============================================================
+        // USTAWIENIA UI
+        // ============================================================
+        function updateSettingsUI() {
+            const role = getRole();
+            updateRoleIcon(role);
+            const roleDisplay = document.getElementById('current-role-display');
+            if (role === 'mistress') {
+                roleDisplay.textContent = '👠 Pani';
+                roleDisplay.style.color = '#dc2626';
+            } else if (role === 'slave') {
+                roleDisplay.textContent = '🔐 Sługa';
+                roleDisplay.style.color = '#e4e4e7';
+            } else {
+                roleDisplay.textContent = 'Nieustawiona';
+                roleDisplay.style.color = '#a1a1aa';
+            }
+
+            const tokenPreview = document.getElementById('fcm-token-preview');
+            if (currentFcmToken) {
+                const short = currentFcmToken.length > 16 ? currentFcmToken.substring(0, 14) + '…' : currentFcmToken;
+                tokenPreview.textContent = short;
+            } else {
+                tokenPreview.textContent = '---';
+            }
+
+            const toggle = document.getElementById('notif-toggle');
+            const label = document.getElementById('notif-status-label');
+            const isEnabled = getNotificationsEnabled();
+            if (isEnabled) {
+                toggle.classList.add('active');
+                label.textContent = 'Włączone';
+            } else {
+                toggle.classList.remove('active');
+                label.textContent = 'Wyłączone';
+            }
+        }
+
+        // ============================================================
+        // ROLA UŻYTKOWNIKA
+        // ============================================================
+        function getRole() {
+            return localStorage.getItem('flr_role') || null;
+        }
+
+        window.getRole = getRole;
+
+        window.setRole = async function(role) {
+            localStorage.setItem('flr_role', role);
+            // Usuń zapisany komunikat w sesji przy zmianie roli
+            sessionStorage.removeItem('flr_mistress_message');
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid), { role }, { merge: true });
+            document.getElementById('role-modal').style.display = 'none';
+            showNotification(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`, 'approved');
+            await registerForNotifications();
+            updateSettingsUI();
+            updateRoleIcon(role);
+            // Odśwież komunikat Pani
+            loadMistressMessage();
+        };
+
+        window.openRoleModal = function() {
+            document.getElementById('role-modal').style.display = 'flex';
+        };
+
+        function checkRole() {
+            const role = getRole();
+            if (!role) {
+                document.getElementById('role-modal').style.display = 'flex';
+            } else {
+                document.getElementById('role-modal').style.display = 'none';
+            }
+            updateSettingsUI();
+            updateRoleIcon(role);
+            loadMistressMessage();
+        }
+
+        // ============================================================
+        // POWIADOMIENIA – przełącznik
+        // ============================================================
+        function getNotificationsEnabled() {
+            const val = localStorage.getItem('flr_notifications_enabled');
+            if (val === null) return true;
+            return val === 'true';
+        }
+
+        function setNotificationsEnabled(enabled) {
+            localStorage.setItem('flr_notifications_enabled', enabled ? 'true' : 'false');
+            notificationsEnabled = enabled;
+            updateSettingsUI();
+        }
+
+        window.toggleNotifications = async function() {
+            const enabled = getNotificationsEnabled();
+            const newState = !enabled;
+            setNotificationsEnabled(newState);
+
+            if (newState) {
+                await registerForNotifications();
+                showNotification('🔔 Powiadomienia włączone', 'approved');
+            } else {
+                try {
+                    const uid = getUserId();
+                    await setDoc(doc(db, 'users', uid), { fcmToken: deleteField() }, { merge: true });
+                    currentFcmToken = null;
+                    showNotification('🔕 Powiadomienia wyłączone', 'info');
+                } catch (err) {
+                    console.error('Błąd wyłączania powiadomień:', err);
+                    showNotification('❌ Nie udało się wyłączyć powiadomień', 'info');
+                }
+            }
+            updateSettingsUI();
+        };
+
+        // ============================================================
+        // KOPIOWANIE TOKENA
+        // ============================================================
+        document.getElementById('copy-token-btn').addEventListener('click', () => {
+            if (currentFcmToken) {
+                navigator.clipboard.writeText(currentFcmToken).then(() => {
+                    showNotification('📋 Skopiowano token!', 'info');
+                }).catch(() => {
+                    const input = document.createElement('input');
+                    input.value = currentFcmToken;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                    showNotification('📋 Skopiowano token!', 'info');
+                });
+            } else {
+                showNotification('⚠️ Brak tokena do skopiowania', 'info');
+            }
+        });
+
+        // ============================================================
+        // FUNKCJE GLOBALNE
+        // ============================================================
+        window.changeMonth = function(direction) {
+            calendarMonth += direction;
+            if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+            else if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+            renderCalendar();
+        };
+
+        window.switchTab = function(index) {
+            currentTab = index;
+            [0, 1, 2].forEach(i => {
+                const tab = document.getElementById(`tab-${i}`);
+                if (i === index) {
+                    tab.classList.add('bg-zinc-700', 'text-white', 'shadow');
+                    tab.classList.remove('text-zinc-400');
+                } else {
+                    tab.classList.remove('bg-zinc-700', 'text-white', 'shadow');
+                    tab.classList.add('text-zinc-400');
+                }
+            });
+            renderActions();
+        };
+
+        window.cycleSortMode = function() {
+            const currentSort = sortModes[currentTab] || 0;
+            sortModes[currentTab] = (currentSort + 1) % 3;
+            saveDataToFirestore();
+            renderActions();
+        };
+
+        window.moveItem = function(index, direction) {
+            const group = eventDictionary[currentTab].items;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= group.length) return;
+            const temp = group[index];
+            group[index] = group[newIndex];
+            group[newIndex] = temp;
+            saveDataToFirestore();
+            renderActions();
+        };
+
+        window.deleteCatalogItem = function(groupIndex, itemIndex) {
+            const item = eventDictionary[groupIndex].items[itemIndex];
+            if (confirm(`Czy na pewno chcesz usunąć zdarzenie "${item.name}" z katalogu?`)) {
+                eventDictionary[groupIndex].items.splice(itemIndex, 1);
+                saveDataToFirestore();
+                renderActions();
+                showNotification("Usunięto zdarzenie z katalogu!", 'info');
+            }
+        };
+
+        window.openEditCatalogModal = function(groupIndex, itemIndex) {
+            editingGroupIdx = groupIndex;
+            editingItemIdx = itemIndex;
+            const item = eventDictionary[groupIndex].items[itemIndex];
+            document.getElementById('edit-item-name').value = item.name;
+            document.getElementById('edit-item-points').value = item.points;
+            document.getElementById('edit-catalog-modal').classList.remove('hidden');
+            document.getElementById('edit-catalog-modal').classList.add('flex');
+        };
+
+        window.closeEditCatalogModal = function() {
+            document.getElementById('edit-catalog-modal').classList.remove('flex');
+            document.getElementById('edit-catalog-modal').classList.add('hidden');
+            editingGroupIdx = null;
+            editingItemIdx = null;
+        };
+
+        window.submitEditCatalogModal = function() {
+            const newName = document.getElementById('edit-item-name').value.trim();
+            const newPoints = parseInt(document.getElementById('edit-item-points').value, 10);
+            if (!newName || isNaN(newPoints)) {
+                alert("Podaj poprawną nazwę i wartość punktową.");
+                return;
+            }
+            if (editingGroupIdx !== null && editingItemIdx !== null) {
+                const item = eventDictionary[editingGroupIdx].items[editingItemIdx];
+                item.name = newName;
+                item.points = newPoints;
+                if (item.basePoints === undefined) {
+                    item.basePoints = newPoints;
+                }
+                if (editingGroupIdx === 0 && activeReduction) {
+                    const percent = activeReduction.percent;
+                    const reduced = Math.round(item.basePoints * (1 - percent / 100));
+                    item.points = reduced > 0 ? reduced : 1;
+                }
+                saveDataToFirestore();
+                renderActions();
+                window.closeEditCatalogModal();
+                showNotification("Zaktualizowano zdarzenie!", 'info');
+            }
+        };
+
+        window.openAddCatalogModal = function() {
+            document.getElementById('catalog-item-name').value = '';
+            document.getElementById('add-catalog-modal').classList.remove('hidden');
+            document.getElementById('add-catalog-modal').classList.add('flex');
+        };
+
+        window.closeAddCatalogModal = function() {
+            document.getElementById('add-catalog-modal').classList.remove('flex');
+            document.getElementById('add-catalog-modal').classList.add('hidden');
+        };
+
+        window.submitAddCatalogModal = function() {
+            const name = document.getElementById('catalog-item-name').value.trim();
+            if (!name) {
+                alert("Podaj nazwę zdarzenia.");
+                return;
+            }
+
+            const role = getRole();
+            if (role === 'slave') {
+                addPendingEvent(name, null, 'proposal', currentTab);
+                window.closeAddCatalogModal();
+                return;
+            }
+
+            const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
+            if (isNaN(points)) {
+                alert("Podaj liczbę punktów.");
+                return;
+            }
+            let finalPoints = points;
+            if ((currentTab === 1 || currentTab === 2) && points > 0) {
+                finalPoints = -Math.abs(points);
+            }
+            const targetGroupIdx = currentTab;
+            const newItem = { name, points: finalPoints, basePoints: finalPoints };
+            if (targetGroupIdx === 0 && activeReduction) {
+                const percent = activeReduction.percent;
+                const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
+                newItem.points = reduced > 0 ? reduced : 1;
+            }
+            eventDictionary[targetGroupIdx].items.push(newItem);
+            saveDataToFirestore();
+            renderActions();
+            window.closeAddCatalogModal();
+            showNotification(`Dodano do "${eventDictionary[targetGroupIdx].group}"`, 'info');
+            incrementBadge();
+        };
+
+        // ============================================================
+        // tryExecuteEvent i submitCustomModal
+        // ============================================================
+        window.tryExecuteEvent = function(name, points) {
+            const role = getRole();
+            if (role === 'slave') {
+                addPendingEvent(name, points, 'catalog', currentTab);
+                return;
+            }
+
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                name,
+                points,
+                date: activeDate,
+                type: eventType
+            };
+
+            balance += points;
+            historyEntries.unshift(entry);
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            incrementBadge();
+
+            if (points !== 0 && getNotificationsEnabled()) {
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') {
+                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                    }
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
+            }
+        };
+
+        window.deleteEntry = function(id) {
+            const index = historyEntries.findIndex(e => e.id === id);
+            if (index !== -1) {
+                balance -= historyEntries[index].points;
+                historyEntries.splice(index, 1);
+                saveDataToFirestore();
+                renderActions();
+                updateUI();
+            }
+        };
+
+        window.openCustomModal = function(type) {
+            currentModalType = type;
+            document.getElementById('modal-title').innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
+            document.getElementById('modal-name').value = '';
+            document.getElementById('modal-points').value = '';
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        };
+
+        window.closeCustomModal = function() {
+            document.getElementById('custom-modal').classList.remove('flex');
+            document.getElementById('custom-modal').classList.add('hidden');
+        };
+
+        window.submitCustomModal = function() {
+            const name = document.getElementById('modal-name').value.trim();
+            let points = parseInt(document.getElementById('modal-points').value, 10);
+            if (!name || isNaN(points)) { alert("Wypełnij poprawne dane."); return; }
+            if (currentModalType === 'add' && points < 0) points = Math.abs(points);
+            if (currentModalType === 'sub') points = -Math.abs(points);
+
+            const role = getRole();
+            if (role === 'slave') {
+                addPendingEvent(name, points, 'catalog', 0);
+                window.closeCustomModal();
+                return;
+            }
+
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                name,
+                points,
+                date: activeDate,
+                type: eventType
+            };
+
+            balance += points;
+            historyEntries.unshift(entry);
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            window.closeCustomModal();
+            incrementBadge();
+            
+            if (points !== 0 && getNotificationsEnabled()) {
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') {
+                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                    }
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
+            }
+        };
+
+        window.openReduceModal = function() {
+            document.getElementById('reduce-percent').value = '';
+            document.getElementById('reduce-date').value = '';
+            document.getElementById('reduce-modal').classList.remove('hidden');
+            document.getElementById('reduce-modal').classList.add('flex');
+        };
+
+        window.closeReduceModal = function() {
+            document.getElementById('reduce-modal').classList.remove('flex');
+            document.getElementById('reduce-modal').classList.add('hidden');
+        };
+
+        window.submitReduce = function() {
+            const percent = parseFloat(document.getElementById('reduce-percent').value);
+            const endDate = document.getElementById('reduce-date').value;
+            if (isNaN(percent) || percent <= 0 || !endDate) {
+                alert("Podaj procent oraz wybierz datę końcową.");
+                return;
+            }
+            activeReduction = { percent, endDate };
+            const earnGroup = eventDictionary[0];
+            earnGroup.items.forEach(item => {
+                if (item.basePoints === undefined) {
+                    item.basePoints = item.points;
+                }
+                const reduced = Math.round(item.basePoints * (1 - percent / 100));
+                item.points = reduced > 0 ? reduced : 1;
+            });
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            window.closeReduceModal();
+            showNotification("Zredukowano punkty zarabiania!", 'info');
+        };
+
+        window.cancelReduction = function(silent = false) {
+            if (!activeReduction) {
+                if (!silent) showNotification("Brak aktywnej redukcji.", 'info');
+                return;
+            }
+            activeReduction = null;
+            const earnGroup = eventDictionary[0];
+            earnGroup.items.forEach(item => {
+                if (item.basePoints !== undefined) {
+                    item.points = item.basePoints;
+                }
+            });
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            if (!silent) showNotification("Przywrócono oryginalne punkty!", 'info');
+        };
+
+        window.resetRegistry = function() {
+            if (confirm("Czy na pewno chcesz wyzerować bilans? Historia pozostanie nienaruszona.")) {
+                const entry = {
+                    id: Date.now().toString(),
+                    name: "🔄 Wyzerowanie bilansu",
+                    points: 0,
+                    date: activeDate,
+                    type: 'earn'
+                };
+                historyEntries.unshift(entry);
+                balance = 0;
+                saveDataToFirestore();
+                renderActions();
+                updateUI();
+                showNotification("Bilans wyzerowany!", 'info');
+                incrementBadge();
+            }
+        };
+
+        window.exportData = function() {
+            const dataObj = {
+                balance,
+                history: historyEntries,
+                activeReduction,
+                dictionary: eventDictionary,
+                sortModes: sortModes,
+                _version: localVersion,
+                pendingEvents: pendingEvents
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `rejestr_flr_${getLocalDateString(new Date())}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showNotification("Pobrano plik JSON!", 'info');
+        };
+
+        window.triggerImport = function() {
+            document.getElementById('import-file-input').click();
+        };
+
+        window.importData = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
+                        isLocalUpdate = true;
+                        setPendingFlag(false);
+
+                        balance = parsed.balance;
+                        historyEntries = parsed.history;
+                        activeReduction = parsed.activeReduction || null;
+                        if (parsed.dictionary) {
+                            eventDictionary = parsed.dictionary.map(group => ({
+                                ...group,
+                                items: group.items.map(item => ({
+                                    ...item,
+                                    basePoints: item.basePoints !== undefined ? item.basePoints : item.points
+                                }))
+                            }));
+                        }
+                        sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
+                        
+                        if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
+                            for (const pe of parsed.pendingEvents) {
+                                const q = query(pendingCollection, where('id', '==', pe.id));
+                                const snap = await getDocs(q);
+                                if (snap.empty) {
+                                    await addDoc(pendingCollection, {
+                                        name: pe.name,
+                                        points: pe.points,
+                                        proposedBy: pe.proposedBy || 'unknown',
+                                        proposedAt: pe.proposedAt || serverTimestamp(),
+                                        status: 'waiting',
+                                        source: pe.source || 'catalog',
+                                        type: pe.type || 'existing',
+                                        tabIndex: pe.tabIndex || 0
+                                    });
+                                }
+                            }
+                        }
+
+                        try {
+                            const snap = await getDoc(docRef);
+                            const currentVersion = snap.exists() ? (snap.data()._version || 0) : 0;
+                            localVersion = currentVersion + 1;
+                        } catch (err) {
+                            localVersion = Date.now();
+                        }
+
+                        await saveDataToFirestore();
+
+                        isLocalUpdate = false;
+                        setPendingFlag(false);
+
+                        renderActions();
+                        updateUI();
+                        showNotification("Wczytano dane pomyślnie!", 'approved');
+                        incrementBadge();
+                    } else {
+                        alert("Nieprawidłowy format pliku JSON.");
+                    }
+                } catch (err) {
+                    alert("Błąd podczas odczytu pliku JSON.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        };
+
+        // ============================================================
+        // FCM – POWIADOMIENIA PUSH
+        // ============================================================
+        import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
+        const messaging = getMessaging(app);
+        const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
+
+        function getUserId() {
+            if (!userId) {
+                userId = localStorage.getItem('flr_userId');
+                if (!userId) {
+                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    localStorage.setItem('flr_userId', userId);
+                }
+            }
+            return userId;
+        }
+
+        async function registerForNotifications() {
+            if (!getNotificationsEnabled()) {
+                console.log('🔕 Powiadomienia wyłączone w ustawieniach');
+                return;
+            }
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    console.warn('Brak zgody na powiadomienia');
+                    showNotification('🔕 Powiadomienia wyłączone (brak zgody)', 'info');
+                    setNotificationsEnabled(false);
+                    return;
+                }
+
+                let swRegistration = await navigator.serviceWorker.ready;
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                let fcmReg = null;
+                for (const reg of registrations) {
+                    if (reg.active && reg.active.scriptURL.includes('firebase-messaging-sw.js')) {
+                        fcmReg = reg;
+                        break;
+                    }
+                }
+
+                if (!fcmReg) {
+                    fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+                        scope: './'
+                    });
+                    await navigator.serviceWorker.ready;
+                }
+
+                const token = await getToken(messaging, {
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration: fcmReg,
+                });
+
+                if (!token) {
+                    console.warn('Nie udało się pobrać tokenu FCM');
+                    return;
+                }
+
+                currentFcmToken = token;
+                const uid = getUserId();
+                const role = getRole();
+                await setDoc(doc(db, 'users', uid), { fcmToken: token, role }, { merge: true });
+                console.log('✅ Token FCM zarejestrowany:', token);
+                updateSettingsUI();
+
+            } catch (error) {
+                console.error('Błąd rejestracji tokenu:', error);
+            }
+        }
+
+        registerForNotifications();
+
+        onMessage(messaging, (payload) => {
+            console.log('📩 Powiadomienie w pierwszym planie:', payload);
+            const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
+            const body = payload.data?.body || payload.notification?.body || '';
+            showNotification(`📩 ${title}: ${body}`, 'info');
+        });
+
+        async function sendNotificationToPartner(title, body, data = {}) {
+            console.log('📤 Wysyłanie powiadomienia:', { title, body, data });
+
+            if (!getNotificationsEnabled()) {
+                console.log('🔕 Powiadomienia wyłączone – nie wysyłamy');
+                return;
+            }
+
+            try {
+                const myRole = getRole();
+                if (!myRole) {
+                    console.warn('❌ Brak roli – nie można wysłać powiadomienia');
+                    return;
+                }
+
+                const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
+
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let targetUserId = null;
+                
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (userData.role === targetRole && doc.id !== getUserId()) {
+                        targetUserId = doc.id;
+                    }
+                });
+
+                if (!targetUserId) {
+                    console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
+                    showNotification('⚠️ Brak drugiej osoby o przeciwnej roli.', 'info');
+                    return;
+                }
+
+                const stringData = {};
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        if (data[key] !== undefined && data[key] !== null) {
+                            stringData[key] = String(data[key]);
+                        }
+                    });
+                }
+
+                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        targetUserId, 
+                        title, 
+                        body, 
+                        data: stringData
+                    }),
+                });
+                
+                const result = await response.json();
+                if (response.status === 410) {
+                    console.warn('⚠️ Token partnera unieważniony – ponowna rejestracja');
+                    showNotification('⚠️ Token partnera wygasł – spróbuj ponownie później', 'info');
+                } else if (result.success) {
+                    console.log('✅ Powiadomienie wysłane do:', targetUserId);
+                } else {
+                    console.warn('❌ Błąd wysyłki:', result.error);
+                    showNotification('⚠️ Błąd wysyłki powiadomienia: ' + result.error, 'info');
+                }
+            } catch (error) {
+                console.error('❌ Błąd połączenia z backendem:', error);
+                showNotification('❌ Nie udało się wysłać powiadomienia', 'info');
+            }
+        }
+
+        // ============================================================
+        // SERVICE WORKER
+        // ============================================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const isSecureContext = window.location.protocol === 'https:' ||
+                                        window.location.hostname === 'localhost' ||
+                                        window.location.hostname === '127.0.0.1';
+
+                if (isSecureContext) {
+                    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+                        .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
+                        .catch(err => console.error('❌ Błąd głównego SW:', err));
+                } else {
+                    console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
+                }
+            });
+        }
+
+        // ============================================================
+        // WERSJA I AKTUALIZACJE
+        // ============================================================
+        const APP_VERSION = '1.2.0';
+
+        window.checkForUpdate = async function() {
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (!registration) {
+                    showNotification('⚠️ Service Worker nie jest zarejestrowany.', 'info');
+                    return;
+                }
+                const manifestUrl = './manifest.json?t=' + Date.now();
+                const manifestResponse = await fetch(manifestUrl, { cache: 'reload' });
+                const manifest = await manifestResponse.json();
+                const newVersion = manifest.version || '1.0.0';
+                
+                const lastChecked = localStorage.getItem('flr_last_version_checked');
+                if (newVersion !== APP_VERSION) {
+                    if (lastChecked !== newVersion) {
+                        showUpdateNotification(newVersion);
+                        localStorage.setItem('flr_last_version_checked', newVersion);
+                    } else {
+                        showNotification('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).', 'info');
+                    }
+                } else {
+                    localStorage.setItem('flr_last_version_checked', APP_VERSION);
+                    showNotification('✅ Masz najnowszą wersję.', 'approved');
+                }
+            } catch (err) {
+                console.warn('Błąd sprawdzania aktualizacji:', err);
+                showNotification('❌ Błąd sprawdzania aktualizacji.', 'info');
+            }
+        };
+
+        function showUpdateNotification(newVersion) {
+            if (document.getElementById('update-banner')) return;
+            const banner = document.createElement('div');
+            banner.id = 'update-banner';
+            banner.className = 'fixed top-4 left-1/2 -translate-x-1/2 bg-card border border-amber-500/30 rounded-2xl p-3 flex items-center gap-3 shadow-2xl z-50 w-[calc(100%-2rem)] max-w-xs';
+            banner.innerHTML = `
+                <span class="text-xs text-zinc-200 font-medium">🔄 Nowa wersja ${newVersion} dostępna!</span>
+                <button id="update-btn" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-4 py-1.5 rounded-xl text-xs font-bold click-anim">Zaktualizuj</button>
+                <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
+            `;
+            document.body.appendChild(banner);
+
+            document.getElementById('update-btn').addEventListener('click', () => {
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    reg.update().then(() => {
+                        window.location.reload();
+                    });
+                });
+            });
+
+            document.getElementById('close-update-btn').addEventListener('click', () => {
+                banner.remove();
+            });
+        }
+
+        const lastCheckDate = localStorage.getItem('flr_last_update_check_date');
+        const today = getLocalDateString(new Date());
+        if (lastCheckDate !== today) {
+            setTimeout(() => {
+                checkForUpdate();
+                localStorage.setItem('flr_last_update_check_date', today);
+            }, 3000);
+        }
+
+        // ============================================================
+        // INICJALIZACJA
+        // ============================================================
+        let retryCount = 0;
+        const MAX_RETRIES = 10;
+
+        function initApp() {
+            setStatusConnecting();
+            loadingIndicator.innerText = "⏳ Ładowanie danych...";
+
+            const pending = getPendingFlag();
+            if (pending && navigator.onLine) {
+                syncPendingChanges().then(() => {
+                    loadFromFirestore();
+                }).catch(() => {
+                    loadFromFirestore();
+                });
+            } else {
+                loadFromFirestore();
+            }
+
+            function loadFromFirestore() {
+                getDoc(docRef)
+                    .then((snap) => {
+                        retryCount = 0;
+                        if (snap.exists()) {
+                            updateStateFromFirestore(snap.data());
+                        } else {
+                            const defaultData = {
+                                balance: 0,
+                                history: [],
+                                activeReduction: null,
+                                dictionary: JSON.parse(JSON.stringify(originalDictionary)),
+                                sortModes: { 0: 0, 1: 0, 2: 0 },
+                                _version: 0
+                            };
+                            setDoc(docRef, defaultData)
+                                .then(() => {
+                                    updateStateFromFirestore(defaultData);
+                                })
+                                .catch((err) => {
+                                    console.error("Błąd tworzenia dokumentu:", err);
+                                    showNotification("❌ Błąd inicjalizacji bazy", 'info');
+                                    loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
+                                    setStatusOffline();
+                                });
+                        }
+                        loadingIndicator.classList.add('hidden');
+                        mainContent.classList.remove('hidden');
+                        if (getPendingFlag()) {
+                            setStatusPending();
+                        } else {
+                            setStatusOnline();
+                        }
+                        resetBadge();
+                        isFirstSnapshot = true;
+                        loadCollapseStates();
+
+                        checkRole();
+                        updateSettingsUI();
+                        subscribePendingEvents();
+                        subscribeNotifications();
+                    })
+                    .catch((err) => {
+                        console.error("Błąd odczytu dokumentu:", err);
+                        const backup = loadFromLocalBackup();
+                        if (backup) {
+                            updateStateFromFirestore(backup, true);
+                            setPendingFlag(true);
+                            showNotification('📡 Wczytano dane lokalne – synchronizacja w toku', 'info');
+                            loadingIndicator.classList.add('hidden');
+                            mainContent.classList.remove('hidden');
+                            loadCollapseStates();
+                            checkRole();
+                            updateSettingsUI();
+                            subscribePendingEvents();
+                            subscribeNotifications();
+                        } else {
+                            loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
+                            loadingIndicator.innerHTML = `
+                                <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
+                                <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                    <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
+                                    <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
+                                    <p>3. Czy masz połączenie z internetem?</p>
+                                    <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
+                                </div>
+                            `;
+                            showNotification("❌ Błąd połączenia", 'info');
+                            setStatusOffline();
+
+                            if (retryCount < MAX_RETRIES) {
+                                retryCount++;
+                                setTimeout(() => {
+                                    initApp();
+                                }, 5000);
+                            } else {
+                                loadingIndicator.innerHTML = `
+                                    <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
+                                    <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
+                                        <p>Sprawdź konfigurację Firebase w konsoli.</p>
+                                        <p>Upewnij się, że adres URL projektu jest poprawny.</p>
+                                    </div>
+                                `;
+                                setStatusOffline();
+                            }
+                        }
+                    });
+
+                onSnapshot(docRef, (snapshot) => {
+                    if (isLocalUpdate) return;
+                    if (getPendingFlag()) {
+                        pendingUpdates.push(snapshot.data());
+                        if (pendingUpdates.length > 1) {
+                            pendingUpdates = [pendingUpdates[pendingUpdates.length - 1]];
+                        }
+                        return;
+                    }
+                    if (snapshot.exists()) {
+                        if (!isFirstSnapshot) {
+                            incrementBadge();
+                        }
+                        isFirstSnapshot = false;
+                        updateStateFromFirestore(snapshot.data());
+                    }
+                }, (error) => {
+                    console.error("Błąd nasłuchu:", error);
+                    showNotification("❌ Błąd synchronizacji", 'info');
+                    setStatusOffline();
+                });
+            }
+        }
+
+        // ============================================================
+        // START
+        // ============================================================
+        mainContent.classList.add('hidden');
+        initApp();
     </script>
 </body>
 </html>
