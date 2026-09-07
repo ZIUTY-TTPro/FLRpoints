@@ -65,19 +65,32 @@ app.post('/send-notification', async (req, res) => {
             });
         }
 
-        // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH
+        // 🔥 ULEPSZONA WIADOMOŚĆ – z notification + data
         const message = {
+            notification: {
+                title: title,
+                body: body
+            },
             data: stringData,
             token: fcmToken,
             android: {
                 priority: 'high',
                 ttl: 3600 * 1000, // 1 godzina
+                notification: {
+                    sound: 'default',
+                    channelId: 'default' // jeśli zdefiniujesz kanał na urządzeniu
+                }
             },
             webpush: {
                 headers: {
-                    Urgency: 'high',
+                    Urgency: 'high'
                 },
-            },
+                notification: {
+                    icon: 'https://ziuty-ttpro.github.io/icon-192.png',
+                    badge: 'https://ziuty-ttpro.github.io/icon-192.png',
+                    vibrate: [200, 100, 200]
+                }
+            }
         };
 
         console.log('📤 Wysyłam powiadomienie (priorytet HIGH) do:', targetUserId);
@@ -88,6 +101,15 @@ app.post('/send-notification', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Błąd wysyłki powiadomienia:', error);
+
+        // Obsługa nieprawidłowego tokenu
+        if (error.code === 'messaging/registration-token-not-registered') {
+            // Token jest nieprawidłowy – usuń go z bazy
+            await db.collection('users').doc(targetUserId).update({ fcmToken: null });
+            console.warn(`⚠️ Usunięto nieprawidłowy token dla ${targetUserId}`);
+            return res.status(410).json({ error: 'Token unieważniony – usunięto' });
+        }
+
         res.status(500).json({ error: error.message });
     }
 });
