@@ -1,4 +1,4 @@
-// firebase-messaging-sw.js – wersja COMPAT z obsługą message
+// firebase-messaging-sw.js – wersja COMPAT z obsługą notification i data
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
@@ -14,24 +14,14 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    console.log('?? [SW] Powiadomienie w tle:', payload);
-    const notificationTitle = payload.data?.title || 'Nowe powiadomienie';
+    console.log('[SW] Powiadomienie w tle:', payload);
+    const notificationTitle = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
     const notificationOptions = {
-        body: payload.data?.body || '',
+        body: payload.data?.body || payload.notification?.body || '',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
+        data: payload.data || {}
     };
     self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-// ============================================================
-// HANDLER MESSAGE – usuwa błąd "listener indicated an asynchronous response"
-// ============================================================
-self.addEventListener('message', (event) => {
-    if (event.data) {
-        event.respondWith(new Promise((resolve) => {
-            resolve('OK');
-        }));
-    }
 });
