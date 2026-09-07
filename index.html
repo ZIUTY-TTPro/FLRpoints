@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE (skrócone dla czytelności – te same co wcześniej) ===== */
+        /* ===== STYLE PODSTAWOWE (bez zmian) ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -140,7 +140,7 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== KONTENER POWIADOMIEŃ ===== */
+        /* ===== POWIADOMIENIA ===== */
         #notification-container {
             position: fixed;
             bottom: 0;
@@ -195,7 +195,7 @@
             letter-spacing: 0.02em;
             line-height: 1.4;
             min-height: 3rem;
-            display: none; /* domyślnie ukryte – pokazuje JS tylko dla Pani */
+            display: none;
             align-items: center;
             justify-content: center;
             opacity: 0;
@@ -217,6 +217,67 @@
         #mistress-message .message-text {
             font-style: italic;
         }
+
+        /* ===== ZAKŁADKI ===== */
+        .tabs-nav {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.25rem;
+            background: #18181b;
+            border-radius: 1rem;
+            padding: 0.25rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #27272a;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #a1a1aa;
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 0.5rem 0.2rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        .tab-btn .tab-icon {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 0.1rem;
+        }
+        .tab-btn:hover {
+            color: #d4d4d8;
+            background: rgba(255,255,255,0.05);
+        }
+        .tab-btn.active {
+            background: #27272a;
+            color: #e4e4e7;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .tabs-nav { grid-template-columns: repeat(4, 1fr); }
+            .tab-btn { font-size: 0.5rem; padding: 0.3rem 0.1rem; }
+            .tab-btn .tab-icon { font-size: 0.9rem; }
+        }
+        @media (min-width: 481px) {
+            .tab-btn { font-size: 0.6rem; }
+            .tab-btn .tab-icon { font-size: 1.1rem; }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -224,7 +285,7 @@
     <!-- KONTENER POWIADOMIEŃ -->
     <div id="notification-container"></div>
 
-    <main class="w-full max-w-md p-4 flex flex-col gap-5">
+    <main class="w-full max-w-md p-4 flex flex-col gap-3">
 
         <!-- Stan ładowania -->
         <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
@@ -232,7 +293,7 @@
         </div>
 
         <!-- Główna treść -->
-        <div id="main-content" class="hidden flex flex-col gap-5">
+        <div id="main-content" class="hidden flex flex-col gap-3">
 
             <!-- BILANS + KOMUNIKAT DLA PANI -->
             <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
@@ -260,278 +321,307 @@
                         <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
                     </g>
                 </svg>
-
-                <!-- ===== KOMUNIKAT DLA PANI – WEWNĄTRZ KARTY ===== -->
                 <div id="mistress-message">
                     <span class="heart">♥</span>
                     <span class="message-text"></span>
                 </div>
             </div>
 
-            <!-- ZDARZENIA DO ZATWIERDZENIA -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4" id="pending-section">
-                <div class="section-header">
-                    <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
-                    <button onclick="toggleCollapse('pending')" class="collapse-btn" id="collapse-btn-pending">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-                <div id="collapse-content-pending" class="transition-collapse mt-2">
-                    <div id="pending-list" class="flex flex-col gap-2"></div>
-                    <div id="pending-empty" class="pending-empty">Brak oczekujących zdarzeń.</div>
-                </div>
-            </section>
-
-            <!-- DOZWOLONE PRZYJEMNOŚCI -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
-                    <button onclick="toggleCollapse('rewards')" class="collapse-btn" id="collapse-btn-rewards">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-                <div id="collapse-content-rewards" class="transition-collapse mt-2">
-                    <div id="rewards-list" class="flex flex-col gap-1.5"></div>
-                    <div id="rewards-empty" class="rewards-empty">Wszystkie przyjemności są zablokowane.</div>
-                </div>
-            </section>
-
-            <!-- BANER REDUKCJI -->
-            <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 flex justify-between items-center">
-                <div class="flex flex-col">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
-                    <span id="reduction-info-text" class="text-xs text-zinc-300">Obniżka o 15% do 01.09.2026</span>
-                </div>
-                <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
+            <!-- ===== PASEK ZAKŁADEK ===== -->
+            <div class="tabs-nav" id="tabs-nav">
+                <button class="tab-btn active" data-tab="tab-pending"><span class="tab-icon">⏳</span> Oczekujące</button>
+                <button class="tab-btn" data-tab="tab-rewards"><span class="tab-icon">🎁</span> Przyjemności</button>
+                <button class="tab-btn" data-tab="tab-points"><span class="tab-icon">📊</span> Zarządzanie</button>
+                <button class="tab-btn" data-tab="tab-calendar"><span class="tab-icon">📅</span> Kalendarz</button>
+                <button class="tab-btn" data-tab="tab-catalog"><span class="tab-icon">📋</span> Katalog</button>
+                <button class="tab-btn" data-tab="tab-history"><span class="tab-icon">📜</span> Historia</button>
+                <button class="tab-btn" data-tab="tab-stats"><span class="tab-icon">📈</span> Statystyki</button>
+                <button class="tab-btn" data-tab="tab-settings"><span class="tab-icon">⚙️</span> Ustawienia</button>
             </div>
 
-            <!-- ZARZĄDZANIE PUNKTAMI -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <span class="section-title flr-ornament flr-title">Zarządzanie punktami</span>
-                    <button onclick="toggleCollapse('points')" class="collapse-btn" id="collapse-btn-points">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-                <div id="collapse-content-points" class="transition-collapse mt-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
-                        <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
-                        <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
-                        <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
-                    </div>
-                </div>
-            </section>
+            <!-- ===== KONTENER TREŚCI ZAKŁADEK ===== -->
+            <div id="tab-container">
 
-            <!-- KALENDARZ -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <div class="flex items-center gap-2">
-                        <span class="section-title flr-ornament flr-title">Kalendarz</span>
+                <!-- ZDARZENIA DO ZATWIERDZENIA -->
+                <section id="tab-pending" class="tab-content active">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
+                            <button onclick="toggleCollapse('pending')" class="collapse-btn" id="collapse-btn-pending">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="collapse-content-pending" class="transition-collapse mt-2">
+                            <div id="pending-list" class="flex flex-col gap-2"></div>
+                            <div id="pending-empty" class="pending-empty">Brak oczekujących zdarzeń.</div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
-                        <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200">Styczeń 2026</span>
-                        <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
-                        <button onclick="toggleCollapse('calendar')" class="collapse-btn" id="collapse-btn-calendar">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <div id="collapse-content-calendar" class="transition-collapse mt-2">
-                    <div class="grid grid-cols-7 gap-1 text-center mb-2">
-                        <span class="text-[10px] font-bold text-zinc-500">Pn</span>
-                        <span class="text-[10px] font-bold text-zinc-500">Wt</span>
-                        <span class="text-[10px] font-bold text-zinc-500">Śr</span>
-                        <span class="text-[10px] font-bold text-zinc-500">Cz</span>
-                        <span class="text-[10px] font-bold text-zinc-500">Pt</span>
-                        <span class="text-[10px] font-bold text-zinc-500">So</span>
-                        <span class="text-[10px] font-bold text-zinc-500">Nd</span>
-                    </div>
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
-                    <div class="mt-3 text-center">
-                        <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- KATALOG ZDARZEŃ -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <div class="flex items-center gap-2">
-                        <h2 class="section-title flr-ornament flr-title">Katalog Zdarzeń</h2>
+                <!-- DOZWOLONE PRZYJEMNOŚCI -->
+                <section id="tab-rewards" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
+                            <button onclick="toggleCollapse('rewards')" class="collapse-btn" id="collapse-btn-rewards">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="collapse-content-rewards" class="transition-collapse mt-2">
+                            <div id="rewards-list" class="flex flex-col gap-1.5"></div>
+                            <div id="rewards-empty" class="rewards-empty">Wszystkie przyjemności są zablokowane.</div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
-                        <button onclick="toggleCollapse('catalog')" class="collapse-btn" id="collapse-btn-catalog">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <div id="collapse-content-catalog" class="transition-collapse mt-2">
-                    <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
-                        <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
-                        <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
-                        <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
-                    </div>
-                    <div id="action-list" class="flex flex-col gap-2"></div>
-                </div>
-            </section>
+                </section>
 
-            <!-- HISTORIA -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <div class="flex items-center gap-2">
-                        <h2 class="section-title flr-ornament flr-title">Historia z wybranego dnia</h2>
+                <!-- ZARZĄDZANIE PUNKTAMI -->
+                <section id="tab-points" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <span class="section-title flr-ornament flr-title">Zarządzanie punktami</span>
+                            <button onclick="toggleCollapse('points')" class="collapse-btn" id="collapse-btn-points">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="collapse-content-points" class="transition-collapse mt-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="openCustomModal('add')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">+ Dodaj pkt</button>
+                                <button onclick="openCustomModal('sub')" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">- Odejmij pkt</button>
+                                <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
+                                <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
+                            </div>
+                            <div id="reduction-banner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 mt-3 flex justify-between items-center">
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Aktywna redukcja zarobku</span>
+                                    <span id="reduction-info-text" class="text-xs text-zinc-300">Obniżka o 15% do 01.09.2026</span>
+                                </div>
+                                <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span id="history-date-label" class="history-date"></span>
-                        <button onclick="toggleCollapse('history')" class="collapse-btn" id="collapse-btn-history">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                    </div>
-                </div>
-                <div id="collapse-content-history" class="transition-collapse mt-2">
-                    <div id="history-list" class="flex flex-col gap-2"></div>
-                </div>
-            </section>
+                </section>
 
-            <!-- STATYSTYKI -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <div class="flex items-center gap-2">
-                        <h2 class="section-title flr-ornament flr-title">Statystyki Zdarzeń</h2>
-                    </div>
-                    <button onclick="toggleCollapse('stats')" class="collapse-btn" id="collapse-btn-stats">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-                <div id="collapse-content-stats" class="transition-collapse mt-3 flex flex-col gap-3">
-                    <div class="flex gap-1 bg-app p-1 rounded-xl border border-bordercolor text-center">
-                        <button onclick="switchStatsRange('year')" id="stats-tab-year" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Rok</button>
-                        <button onclick="switchStatsRange('month')" id="stats-tab-month" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all bg-zinc-700 text-white shadow">Miesiąc</button>
-                        <button onclick="switchStatsRange('week')" id="stats-tab-week" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Tydzień</button>
-                    </div>
-                    <div class="text-center">
-                        <span id="stats-range-label" class="text-[11px] text-zinc-400 font-medium">Zakres: --</span>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
-                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Zarobek</span>
-                            <span id="stats-val-earn" class="text-xs font-black text-zinc-100">0</span>
-                        </div>
-                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
-                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Kary</span>
-                            <span id="stats-val-pen" class="text-xs font-black text-red-400">0</span>
-                        </div>
-                        <div class="bg-app border border-bordercolor p-2 rounded-xl">
-                            <span class="block text-[9px] font-bold text-zinc-500 uppercase">Wykup</span>
-                            <span id="stats-val-buy" class="text-xs font-black text-amber-400">0</span>
-                        </div>
-                    </div>
-                    <div class="border-t border-bordercolor my-0.5"></div>
-                    <div class="flex flex-col gap-1.5">
-                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Ostatnie aktywności</span>
-                        <div class="grid grid-cols-1 gap-1.5 text-xs">
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400 truncate pr-2">❤️ Ostatni orgazm żony: <strong id="stat-last-orgasm" class="text-zinc-200">-</strong></span>
+                <!-- KALENDARZ -->
+                <section id="tab-calendar" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <div class="flex items-center gap-2">
+                                <span class="section-title flr-ornament flr-title">Kalendarz</span>
                             </div>
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400 truncate pr-2">➕ Ostatni zarobek: <strong id="stat-last-earn" class="text-zinc-200">-</strong></span>
-                                <span id="stat-last-earn-pts" class="font-bold text-zinc-100 shrink-0">0 pkt</span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&larr;</button>
+                                <span id="calendar-month-year" class="text-xs font-bold uppercase tracking-wider text-zinc-200">Styczeń 2026</span>
+                                <button onclick="changeMonth(1)" class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300 hover:bg-zinc-700">&rarr;</button>
+                                <button onclick="toggleCollapse('calendar')" class="collapse-btn" id="collapse-btn-calendar">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
                             </div>
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400 truncate pr-2">❌ Ostatnia kara: <strong id="stat-last-pen" class="text-zinc-200">-</strong></span>
-                                <span id="stat-last-pen-pts" class="font-bold text-red-400 shrink-0">0 pkt</span>
+                        </div>
+                        <div id="collapse-content-calendar" class="transition-collapse mt-2">
+                            <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                                <span class="text-[10px] font-bold text-zinc-500">Pn</span>
+                                <span class="text-[10px] font-bold text-zinc-500">Wt</span>
+                                <span class="text-[10px] font-bold text-zinc-500">Śr</span>
+                                <span class="text-[10px] font-bold text-zinc-500">Cz</span>
+                                <span class="text-[10px] font-bold text-zinc-500">Pt</span>
+                                <span class="text-[10px] font-bold text-zinc-500">So</span>
+                                <span class="text-[10px] font-bold text-zinc-500">Nd</span>
                             </div>
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400 truncate pr-2">🛒 Ostatni wykup: <strong id="stat-last-buy" class="text-zinc-200">-</strong></span>
-                                <span id="stat-last-buy-pts" class="font-bold text-amber-400 shrink-0">0 pkt</span>
+                            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+                            <div class="mt-3 text-center">
+                                <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-col gap-1.5">
-                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
-                        <div class="grid grid-cols-1 gap-1.5 text-xs">
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400">➕ Najczęstszy zarobek:</span>
-                                <strong id="stat-freq-earn" class="text-zinc-200 text-right truncate pl-2">-</strong>
-                            </div>
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400">❌ Najczęstsza kara:</span>
-                                <strong id="stat-freq-pen" class="text-zinc-200 text-right truncate pl-2">-</strong>
-                            </div>
-                            <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
-                                <span class="text-zinc-400">🛒 Najczęstszy wykup:</span>
-                                <strong id="stat-freq-buy" class="text-zinc-200 text-right truncate pl-2">-</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- USTAWIENIA -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4" id="settings-section">
-                <div class="section-header">
-                    <span class="section-title flr-ornament flr-title">Ustawienia</span>
-                    <button onclick="toggleCollapse('settings')" class="collapse-btn" id="collapse-btn-settings">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-                <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
-                    <div class="setting-row">
-                        <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.2.0</span>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">📡 Stan aplikacji</span>
-                        <span class="setting-value" id="app-status-text">
-                            <span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
-                            Online
-                        </span>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">🔑 Token FCM</span>
-                        <div class="flex items-center gap-2">
-                            <span class="token-preview" id="fcm-token-preview">---</span>
-                            <button class="btn-copy" id="copy-token-btn" title="Kopiuj pełny token">📋</button>
+                <!-- KATALOG ZDARZEŃ -->
+                <section id="tab-catalog" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <div class="flex items-center gap-2">
+                                <h2 class="section-title flr-ornament flr-title">Katalog Zdarzeń</h2>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
+                                <button onclick="toggleCollapse('catalog')" class="collapse-btn" id="collapse-btn-catalog">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="collapse-content-catalog" class="transition-collapse mt-2">
+                            <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
+                                <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
+                                <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
+                                <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
+                            </div>
+                            <div id="action-list" class="flex flex-col gap-2"></div>
                         </div>
                     </div>
-                    <div class="setting-row">
-                        <span class="setting-label">👤 Rola</span>
-                        <div class="flex items-center gap-2">
-                            <span class="setting-value role-badge" id="current-role-display">Nieustawiona</span>
-                            <button class="btn-sm primary" onclick="openRoleModal()">Zmień</button>
+                </section>
+
+                <!-- HISTORIA -->
+                <section id="tab-history" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <div class="flex items-center gap-2">
+                                <h2 class="section-title flr-ornament flr-title">Historia z wybranego dnia</h2>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="history-date-label" class="history-date"></span>
+                                <button onclick="toggleCollapse('history')" class="collapse-btn" id="collapse-btn-history">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="collapse-content-history" class="transition-collapse mt-2">
+                            <div id="history-list" class="flex flex-col gap-2"></div>
                         </div>
                     </div>
-                    <div class="setting-row">
-                        <span class="setting-label">🔔 Powiadomienia</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-400" id="notif-status-label">Włączone</span>
-                            <div class="toggle-switch active" id="notif-toggle" onclick="toggleNotifications()">
-                                <div class="toggle-knob"></div>
+                </section>
+
+                <!-- STATYSTYKI -->
+                <section id="tab-stats" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <div class="flex items-center gap-2">
+                                <h2 class="section-title flr-ornament flr-title">Statystyki Zdarzeń</h2>
+                            </div>
+                            <button onclick="toggleCollapse('stats')" class="collapse-btn" id="collapse-btn-stats">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="collapse-content-stats" class="transition-collapse mt-3 flex flex-col gap-3">
+                            <div class="flex gap-1 bg-app p-1 rounded-xl border border-bordercolor text-center">
+                                <button onclick="switchStatsRange('year')" id="stats-tab-year" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Rok</button>
+                                <button onclick="switchStatsRange('month')" id="stats-tab-month" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all bg-zinc-700 text-white shadow">Miesiąc</button>
+                                <button onclick="switchStatsRange('week')" id="stats-tab-week" class="flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all text-zinc-400">Tydzień</button>
+                            </div>
+                            <div class="text-center">
+                                <span id="stats-range-label" class="text-[11px] text-zinc-400 font-medium">Zakres: --</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                                    <span class="block text-[9px] font-bold text-zinc-500 uppercase">Zarobek</span>
+                                    <span id="stats-val-earn" class="text-xs font-black text-zinc-100">0</span>
+                                </div>
+                                <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                                    <span class="block text-[9px] font-bold text-zinc-500 uppercase">Kary</span>
+                                    <span id="stats-val-pen" class="text-xs font-black text-red-400">0</span>
+                                </div>
+                                <div class="bg-app border border-bordercolor p-2 rounded-xl">
+                                    <span class="block text-[9px] font-bold text-zinc-500 uppercase">Wykup</span>
+                                    <span id="stats-val-buy" class="text-xs font-black text-amber-400">0</span>
+                                </div>
+                            </div>
+                            <div class="border-t border-bordercolor my-0.5"></div>
+                            <div class="flex flex-col gap-1.5">
+                                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Ostatnie aktywności</span>
+                                <div class="grid grid-cols-1 gap-1.5 text-xs">
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400 truncate pr-2">❤️ Ostatni orgazm żony: <strong id="stat-last-orgasm" class="text-zinc-200">-</strong></span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400 truncate pr-2">➕ Ostatni zarobek: <strong id="stat-last-earn" class="text-zinc-200">-</strong></span>
+                                        <span id="stat-last-earn-pts" class="font-bold text-zinc-100 shrink-0">0 pkt</span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400 truncate pr-2">❌ Ostatnia kara: <strong id="stat-last-pen" class="text-zinc-200">-</strong></span>
+                                        <span id="stat-last-pen-pts" class="font-bold text-red-400 shrink-0">0 pkt</span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400 truncate pr-2">🛒 Ostatni wykup: <strong id="stat-last-buy" class="text-zinc-200">-</strong></span>
+                                        <span id="stat-last-buy-pts" class="font-bold text-amber-400 shrink-0">0 pkt</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Najczęściej w wybranym zakresie</span>
+                                <div class="grid grid-cols-1 gap-1.5 text-xs">
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400">➕ Najczęstszy zarobek:</span>
+                                        <strong id="stat-freq-earn" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400">❌ Najczęstsza kara:</span>
+                                        <strong id="stat-freq-pen" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-app px-2.5 py-2 rounded-xl border border-bordercolor">
+                                        <span class="text-zinc-400">🛒 Najczęstszy wykup:</span>
+                                        <strong id="stat-freq-buy" class="text-zinc-200 text-right truncate pl-2">-</strong>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="setting-row">
-                        <span class="setting-label">🔄 Aktualizacje</span>
-                        <button class="btn-sm primary" onclick="checkForUpdate()">Sprawdź</button>
-                    </div>
-                    <div class="setting-row" style="border-bottom: none; padding-bottom: 4px;">
-                        <span class="setting-label">💾 Dane</span>
-                        <div class="flex gap-2">
-                            <button class="btn-sm primary" onclick="exportData()">Eksport JSON</button>
-                            <button class="btn-sm primary" onclick="triggerImport()">Import JSON</button>
+                </section>
+
+                <!-- USTAWIENIA -->
+                <section id="tab-settings" class="tab-content">
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <span class="section-title flr-ornament flr-title">Ustawienia</span>
+                            <button onclick="toggleCollapse('settings')" class="collapse-btn" id="collapse-btn-settings">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="collapse-content-settings" class="transition-collapse mt-2">
+                            <div class="setting-row">
+                                <span class="setting-label">📱 Wersja</span>
+                                <span class="setting-value" id="app-version-text">1.2.0</span>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">📡 Stan aplikacji</span>
+                                <span class="setting-value" id="app-status-text">
+                                    <span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
+                                    Online
+                                </span>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">🔑 Token FCM</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="token-preview" id="fcm-token-preview">---</span>
+                                    <button class="btn-copy" id="copy-token-btn" title="Kopiuj pełny token">📋</button>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">👤 Rola</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="setting-value role-badge" id="current-role-display">Nieustawiona</span>
+                                    <button class="btn-sm primary" onclick="openRoleModal()">Zmień</button>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">🔔 Powiadomienia</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-zinc-400" id="notif-status-label">Włączone</span>
+                                    <div class="toggle-switch active" id="notif-toggle" onclick="toggleNotifications()">
+                                        <div class="toggle-knob"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">🔄 Aktualizacje</span>
+                                <button class="btn-sm primary" onclick="checkForUpdate()">Sprawdź</button>
+                            </div>
+                            <div class="setting-row" style="border-bottom: none; padding-bottom: 4px;">
+                                <span class="setting-label">💾 Dane</span>
+                                <div class="flex gap-2">
+                                    <button class="btn-sm primary" onclick="exportData()">Eksport JSON</button>
+                                    <button class="btn-sm primary" onclick="triggerImport()">Import JSON</button>
+                                </div>
+                            </div>
+                            <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
                         </div>
                     </div>
-                    <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
-                </div>
-            </section>
+                </section>
 
-        </div>
+            </div><!-- koniec tab-container -->
+
+        </div><!-- koniec main-content -->
     </main>
 
-    <!-- MODALE -->
+    <!-- MODALE (bez zmian) -->
     <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
@@ -712,7 +802,6 @@
                 if (!content || !btn) return;
                 const state = localStorage.getItem(`flr_collapse_${id}`);
                 const svg = btn.querySelector('svg');
-                
                 if (state === 'collapsed') {
                     content.classList.add('collapsed');
                     if (svg) svg.classList.add('rotate-180');
@@ -721,14 +810,6 @@
                     if (svg) svg.classList.remove('rotate-180');
                 }
             });
-            const settingsContent = document.getElementById('collapse-content-settings');
-            const settingsBtn = document.getElementById('collapse-btn-settings');
-            if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
-                settingsContent.classList.add('collapsed');
-                const svg = settingsBtn?.querySelector('svg');
-                if (svg) svg.classList.add('rotate-180');
-                localStorage.setItem('flr_collapse_settings', 'collapsed');
-            }
         }
 
         // ============================================================
@@ -978,7 +1059,6 @@
         // KOMUNIKATY DLA PANI
         // ============================================================
         const mistressMessages = [
-            // Ogólne – władza
             "Pamiętaj – to Ty decydujesz, kiedy i czy Sługa zasługuje na nagrodę.",
             "Sługa ma być posłuszny, a nie oczekiwać. Czas na małe otrzeźwienie.",
             "Twoja surowość czyni go lepszym – nie bój się wymagać więcej.",
@@ -994,22 +1074,18 @@
             "Sługa ma prawo marzyć, ale Ty masz prawo decydować, czy jego marzenia się spełnią.",
             "Twoja łaska to jego skarb – nie rozdawaj jej za darmo.",
             "Bądź nieprzewidywalna – to go podnieca i utrzymuje w gotowości.",
-            // Kary
             "Sługa od tygodnia nie dostał kary – czas na małą lekcję pokory.",
             "Zbyt długo był grzeczny – to podejrzane. Zadbaj o dyscyplinę.",
             "Kara to nie zemsta – to trening. Nie odkładaj jej na później.",
             "Jeśli nie karzesz, to znaczy, że akceptujesz – a czy na pewno chcesz to robić?",
-            // Zarobki
             "Punktów przybywa, ale czy naprawdę na nie zasłużył? Może za dużo dajesz za proste zadania.",
             "Ostatnie zarobki były zbyt hojne – czas na obcięcie stawki. Niech się postara!",
             "Sługa myśli, że ma łatwo? Zmień kryteria – niech każdy punkt kosztuje go wysiłek.",
             "Czy aby na pewno każda czynność zasługuje na punkty? Bądź bardziej oszczędna w nagradzaniu.",
-            // Wykupy
             "Ma wystarczająco punktów? To nie znaczy, że musi dostać to, czego chce. Odmowa też jest przyjemnością.",
             "Przypomnij Słudze, że to Ty rozdajesz karty – nawet jeśli ma punkty, możesz mu odmówić.",
             "Ostatni wykup był za łatwy – następnym razem powiedz NIE. Niech poczeka i pragnie.",
             "Przyjemność to przywilej, a nie prawo. Odmawiaj częściej – doceni to bardziej.",
-            // Dodatkowe – ostrzejsze
             "Sługa zaczyna być zbyt pewny siebie – czas na niespodziewane utrudnienie.",
             "Spójrz na historię – czy ostatnio nie byłaś zbyt miła? Wróć do surowszego stylu.",
             "Twoja rola to nie tylko nagradzanie – to także kształtowanie charakteru. Bądź stanowcza.",
@@ -1025,28 +1101,20 @@
         function loadMistressMessage() {
             const role = getRole();
             const msgContainer = document.getElementById('mistress-message');
-            
-            // Jeśli nie Pani – ukryj całkowicie
             if (role !== 'mistress') {
                 msgContainer.classList.remove('show');
                 msgContainer.style.display = 'none';
                 return;
             }
-
-            // Pani – pokaż
             msgContainer.style.display = 'flex';
-
             let msg = sessionStorage.getItem('flr_mistress_message');
             if (!msg) {
                 const randomIndex = Math.floor(Math.random() * mistressMessages.length);
                 msg = mistressMessages[randomIndex];
                 sessionStorage.setItem('flr_mistress_message', msg);
             }
-
             const textSpan = msgContainer.querySelector('.message-text');
             if (textSpan) textSpan.textContent = msg;
-
-            // Dodaj klasę show po krótkim opóźnieniu (fade-in)
             setTimeout(() => {
                 msgContainer.classList.add('show');
             }, 100);
@@ -2055,7 +2123,6 @@
 
         window.setRole = async function(role) {
             localStorage.setItem('flr_role', role);
-            // Usuń zapisany komunikat w sesji przy zmianie roli
             sessionStorage.removeItem('flr_mistress_message');
             const uid = getUserId();
             await setDoc(doc(db, 'users', uid), { role }, { merge: true });
@@ -2064,7 +2131,6 @@
             await registerForNotifications();
             updateSettingsUI();
             updateRoleIcon(role);
-            // Odśwież komunikat Pani
             loadMistressMessage();
         };
 
@@ -2765,7 +2831,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.2.0';
+        const APP_VERSION = '1.2.1';
 
         window.checkForUpdate = async function() {
             try {
@@ -2969,6 +3035,40 @@
         // ============================================================
         mainContent.classList.add('hidden');
         initApp();
+
+        // ============================================================
+        // ZAKŁADKI – obsługa przełączania
+        // ============================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            localStorage.setItem('flr_active_tab', tabId);
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+                updateUI();
+            });
+        });
+
+        const savedTab = localStorage.getItem('flr_active_tab') || 'tab-pending';
+        if (document.getElementById(savedTab)) {
+            switchTab(savedTab);
+        } else {
+            switchTab('tab-pending');
+        }
+
+        // Nadpisz updateUI, aby po każdej aktualizacji odświeżać widok
+        const originalUpdateUI = updateUI;
+        updateUI = function() {
+            originalUpdateUI();
+            loadMistressMessage();
+        };
     </script>
 </body>
 </html>
