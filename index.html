@@ -457,7 +457,6 @@
             font-size: 1.2rem;
             line-height: 1;
         }
-        /* Dla punktów tylko do odczytu */
         .pending-item .points-static {
             font-size: 0.7rem;
             font-weight: 600;
@@ -481,16 +480,13 @@
 
             <!-- BILANS -->
             <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
-                <!-- LEWY GÓRNY RÓG: ikona roli -->
                 <div class="absolute top-3 left-3 flex items-center gap-1">
                     <span id="role-icon" class="role-icon">👤</span>
                 </div>
-                <!-- PRAWY GÓRNY RÓG: kropka statusu -->
                 <div class="absolute top-3 right-3 flex items-center gap-2">
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
                     <span id="offline-badge" class="hidden text-[8px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Offline</span>
                 </div>
-                <!-- POWIĘKSZONA MONETA -->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" class="balance-icon glow-coin" id="balance-coin-svg">
                     <g transform="translate(200, 200)">
                         <circle cx="0" cy="0" r="130" fill="#1a1410" stroke="#dc2626" stroke-width="8" />
@@ -510,9 +506,7 @@
                 </svg>
             </div>
 
-            <!-- ============================================================
-                 NOWA SEKCJA: ZDARZENIA DO ZATWIERDZENIA
-                 ============================================================ -->
+            <!-- ZDARZENIA DO ZATWIERDZENIA -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4" id="pending-section">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
@@ -526,7 +520,7 @@
                 </div>
             </section>
 
-            <!-- SEKCJA: DOZWOLONE PRZYJEMNOŚCI -->
+            <!-- DOZWOLONE PRZYJEMNOŚCI -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
@@ -549,9 +543,7 @@
                 <button onclick="cancelReduction()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition-all">Cofnij</button>
             </div>
 
-            <!-- ============================================================
-                 PANEL: ZARZĄDZANIE PUNKTAMI
-                 ============================================================ -->
+            <!-- ZARZĄDZANIE PUNKTAMI -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">Zarządzanie punktami</span>
@@ -601,7 +593,7 @@
                 </div>
             </section>
 
-            <!-- KATALOG -->
+            <!-- KATALOG ZDARZEŃ -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
                     <div class="flex items-center gap-2">
@@ -716,9 +708,7 @@
                 </div>
             </section>
 
-            <!-- ============================================================
-                 PANEL USTAWIENIA – PRZENIESIONY NA DÓŁ, DOMYŚLNIE ZWIINIĘTY
-                 ============================================================ -->
+            <!-- USTAWIENIA (przeniesione na dół, domyślnie zwinięte) -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4" id="settings-section">
                 <div class="section-header">
                     <span class="section-title flr-ornament flr-title">Ustawienia</span>
@@ -727,14 +717,10 @@
                     </button>
                 </div>
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
-                    
-                    <!-- Wersja -->
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
                         <span class="setting-value" id="app-version-text">1.1.5</span>
                     </div>
-
-                    <!-- Stan aplikacji (online/offline) -->
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
                         <span class="setting-value" id="app-status-text">
@@ -742,8 +728,6 @@
                             Online
                         </span>
                     </div>
-
-                    <!-- Token FCM (skrócony) + kopiuj -->
                     <div class="setting-row">
                         <span class="setting-label">🔑 Token FCM</span>
                         <div class="flex items-center gap-2">
@@ -751,8 +735,6 @@
                             <button class="btn-copy" id="copy-token-btn" title="Kopiuj pełny token">📋</button>
                         </div>
                     </div>
-
-                    <!-- Rola + przycisk zmiany -->
                     <div class="setting-row">
                         <span class="setting-label">👤 Rola</span>
                         <div class="flex items-center gap-2">
@@ -760,8 +742,6 @@
                             <button class="btn-sm primary" onclick="openRoleModal()">Zmień</button>
                         </div>
                     </div>
-
-                    <!-- Powiadomienia – przełącznik -->
                     <div class="setting-row">
                         <span class="setting-label">🔔 Powiadomienia</span>
                         <div class="flex items-center gap-2">
@@ -771,14 +751,10 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Sprawdź aktualizacje -->
                     <div class="setting-row">
                         <span class="setting-label">🔄 Aktualizacje</span>
                         <button class="btn-sm primary" onclick="checkForUpdate()">Sprawdź</button>
                     </div>
-
-                    <!-- Dane: Eksport / Import -->
                     <div class="setting-row" style="border-bottom: none; padding-bottom: 4px;">
                         <span class="setting-label">💾 Dane</span>
                         <div class="flex gap-2">
@@ -787,7 +763,6 @@
                         </div>
                     </div>
                     <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
-
                 </div>
             </section>
 
@@ -812,7 +787,6 @@
             <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
             <p class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
             <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
-            <!-- Usuwamy pole na punkty – będzie ustalane przez Panią -->
             <div class="flex gap-2 mt-1">
                 <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
                 <button onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
@@ -848,7 +822,7 @@
         </div>
     </div>
 
-    <!-- ===== MODAL WYBORU ROLI ===== -->
+    <!-- MODAL ROLI -->
     <div id="role-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-card border border-bordercolor rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-center">
             <h2 class="text-xl font-bold text-zinc-200 flr-title">👑 FLR Slave Points</h2>
@@ -867,7 +841,7 @@
 
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
-    <!-- Import map z dodanym messaging -->
+    <!-- Import map -->
     <script type="importmap">
         {
             "imports": {
@@ -986,7 +960,7 @@
                     if (svg) svg.classList.remove('rotate-180');
                 }
             });
-            // Ustawienia domyślnie zwinięte – jeśli nie ma stanu, ustaw na collapsed
+            // Ustawienia domyślnie zwinięte
             const settingsContent = document.getElementById('collapse-content-settings');
             const settingsBtn = document.getElementById('collapse-btn-settings');
             if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
@@ -1072,6 +1046,7 @@
         });
         const docRef = doc(db, 'registry/shared');
         const pendingCollection = collection(db, 'pending_events');
+        const notificationsCollection = collection(db, 'notifications');
 
         // ----- UI STATUSU -----
         const statusDot = document.getElementById('connection-status-dot');
@@ -1184,8 +1159,9 @@
         let pendingSync = false;
         let pendingUpdates = [];
         let currentFcmToken = null;
-        let notificationsEnabled = true; // domyślnie
+        let notificationsEnabled = true;
         let pendingEvents = [];
+        let userId = null;
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -1223,7 +1199,8 @@
                 dictionary: eventDictionary,
                 sortModes: sortModes,
                 _version: localVersion,
-                _timestamp: Date.now()
+                _timestamp: Date.now(),
+                pendingEvents: pendingEvents
             };
             try {
                 localStorage.setItem('flr_backup', JSON.stringify(dataObj));
@@ -1453,6 +1430,40 @@
         }
 
         // ============================================================
+        // POWIADOMIENIA WEWNĄTRZ APLIKACJI (notifications)
+        // ============================================================
+        function subscribeNotifications() {
+            const uid = getUserId();
+            if (!uid) return;
+            const q = query(notificationsCollection, where('targetUserId', '==', uid), where('read', '==', false));
+            onFirestoreSnapshot(q, (snapshot) => {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.message) {
+                        showToast(data.message);
+                        // Oznacz jako przeczytane
+                        updateDoc(doc.ref, { read: true }).catch(() => {});
+                    }
+                });
+            }, (err) => {
+                console.warn('Błąd nasłuchu powiadomień:', err);
+            });
+        }
+
+        async function sendNotification(targetUserId, message) {
+            try {
+                await addDoc(notificationsCollection, {
+                    targetUserId: targetUserId,
+                    message: message,
+                    createdAt: serverTimestamp(),
+                    read: false
+                });
+            } catch (err) {
+                console.warn('Nie udało się wysłać powiadomienia wewnętrznego:', err);
+            }
+        }
+
+        // ============================================================
         // ZDARZENIA OCZEKUJĄCE (PENDING)
         // ============================================================
         function renderPendingEvents() {
@@ -1481,14 +1492,12 @@
                 actions.className = 'actions';
 
                 if (isMistress) {
-                    // Jeśli zdarzenie pochodzi z katalogu (source === 'catalog') – pokaż punkty tylko do odczytu
                     if (event.source === 'catalog') {
                         const pointsDisplay = document.createElement('span');
                         pointsDisplay.className = 'points-static';
                         pointsDisplay.textContent = `${event.points || 0} pkt`;
                         actions.appendChild(pointsDisplay);
 
-                        // Przyciski zatwierdź/odrzuć (bez pola edycji)
                         const approveBtn = document.createElement('button');
                         approveBtn.className = 'approve';
                         approveBtn.textContent = '✅';
@@ -1503,7 +1512,6 @@
                         rejectBtn.onclick = () => rejectPendingEvent(event.id);
                         actions.appendChild(rejectBtn);
                     } else {
-                        // Propozycja nowego zdarzenia – pole do wpisania punktów
                         const pointsInput = document.createElement('input');
                         pointsInput.type = 'number';
                         pointsInput.className = 'points-input';
@@ -1527,7 +1535,6 @@
                         actions.appendChild(rejectBtn);
                     }
                 } else {
-                    // Sługa – może tylko anulować
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete';
                     deleteBtn.textContent = '✕';
@@ -1542,7 +1549,6 @@
             });
         }
 
-        // Funkcja do dodania zdarzenia do pending
         async function addPendingEvent(name, points, source = 'catalog') {
             const role = getRole();
             if (role !== 'slave') {
@@ -1551,14 +1557,14 @@
             }
 
             try {
-                const userId = getUserId();
+                const uid = getUserId();
                 await addDoc(pendingCollection, {
                     name: name,
-                    points: points, // dla katalogu – znane, dla propozycji – null
-                    proposedBy: userId,
+                    points: points,
+                    proposedBy: uid,
                     proposedAt: serverTimestamp(),
                     status: 'waiting',
-                    source: source, // 'catalog' lub 'proposal'
+                    source: source,
                     type: source === 'catalog' ? 'existing' : 'new'
                 });
                 showToast('📨 Zgłoszono do zatwierdzenia!');
@@ -1568,7 +1574,6 @@
             }
         }
 
-        // Zatwierdzenie przez Panią
         async function approvePendingEvent(eventId, pointsStr, source) {
             const role = getRole();
             if (role !== 'mistress') {
@@ -1593,23 +1598,10 @@
                 const name = eventData.name || 'Zdarzenie';
                 const proposedBy = eventData.proposedBy;
 
-                // Usuń z pending
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
-                // Dodaj do historii i zaktualizuj bilans
-                const entry = {
-                    id: Date.now().toString(),
-                    name: name,
-                    points: points,
-                    date: activeDate,
-                    type: points > 0 ? 'earn' : (points < 0 ? 'pen' : 'earn'),
-                };
-                balance += points;
-                historyEntries.unshift(entry);
-                await saveDataToFirestore();
-
-                // Jeśli to nowa propozycja (source === 'proposal'), dodaj do katalogu
                 if (source === 'proposal') {
+                    // NOWE ZDARZENIE – tylko dodaj do katalogu, NIE do historii
                     const existing = eventDictionary.some(group => 
                         group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
                     );
@@ -1628,24 +1620,28 @@
                         showToast(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`);
                     }
                 } else {
+                    // ZDARZENIE Z KATALOGU – wykonaj (dodaj do historii)
+                    const entry = {
+                        id: Date.now().toString(),
+                        name: name,
+                        points: points,
+                        date: activeDate,
+                        type: points > 0 ? 'earn' : (points < 0 ? 'pen' : 'earn'),
+                    };
+                    balance += points;
+                    historyEntries.unshift(entry);
+                    await saveDataToFirestore();
                     showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
                 }
 
-                // Powiadomienie dla Sługi (jeśli znamy jego userId)
+                // Powiadomienie dla Sługi (push + wewnętrzne)
                 if (proposedBy) {
                     const slaveUserId = proposedBy;
-                    // Wyślij powiadomienie wewnątrz aplikacji – toast dla Sługi
-                    // Można też wysłać push, ale na razie tylko toast
-                    // Ponieważ nie mamy bezpośredniego połączenia z innym klientem, możemy wysłać powiadomienie push
-                    // ale to wymaga znajomości tokena Sługi. Na razie tylko toast.
-                    // Dodatkowo, jeśli Sługa jest online, zobaczy toast.
-                    // Możemy też zapisać powiadomienie w Firestore.
-                    showToast(`📨 Sługa: Twoje zdarzenie "${name}" zostało zatwierdzone!`);
-                    // Wyślij push do Sługi
+                    const msg = `Twoje zdarzenie "${name}" zostało zatwierdzone${source === 'proposal' ? ' i dodane do katalogu' : ''} (${points} pkt)`;
+                    await sendNotification(slaveUserId, msg);
                     if (getNotificationsEnabled()) {
                         const title = '✅ Zatwierdzono zdarzenie';
-                        const body = `Twoje zdarzenie "${name}" zostało zatwierdzone (${points} pkt)`;
-                        // Wyślij do Sługi
+                        const body = `Twoje zdarzenie "${name}" zostało zatwierdzone${source === 'proposal' ? ' i dodane do katalogu' : ''} (${points} pkt)`;
                         sendNotificationToUser(slaveUserId, title, body);
                     }
                 }
@@ -1658,7 +1654,6 @@
             }
         }
 
-        // Odrzucenie przez Panią
         async function rejectPendingEvent(eventId) {
             const role = getRole();
             if (role !== 'mistress') {
@@ -1680,8 +1675,9 @@
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
                 showToast(`❌ Odrzucono: ${name}`);
 
-                // Powiadomienie dla Sługi
                 if (proposedBy) {
+                    const msg = `Twoje zdarzenie "${name}" zostało odrzucone.`;
+                    await sendNotification(proposedBy, msg);
                     if (getNotificationsEnabled()) {
                         const title = '❌ Odrzucono zdarzenie';
                         const body = `Twoje zdarzenie "${name}" zostało odrzucone.`;
@@ -1696,7 +1692,6 @@
             }
         }
 
-        // Usunięcie przez Sługę (anulowanie)
         async function deletePendingEvent(eventId) {
             const role = getRole();
             if (role !== 'slave') {
@@ -1717,7 +1712,6 @@
             }
         }
 
-        // Funkcja do wysyłania powiadomienia push do konkretnego użytkownika
         async function sendNotificationToUser(userId, title, body) {
             try {
                 const userDoc = await getDoc(doc(db, 'users', userId));
@@ -1737,11 +1731,10 @@
                     })
                 });
             } catch (err) {
-                console.warn('Nie udało się wysłać powiadomienia do Sługi:', err);
+                console.warn('Nie udało się wysłać powiadomienia push:', err);
             }
         }
 
-        // Nasłuch na zmiany w pending_events
         function subscribePendingEvents() {
             const q = query(pendingCollection, where('status', '==', 'waiting'));
             onFirestoreSnapshot(q, (snapshot) => {
@@ -1751,6 +1744,8 @@
                 });
                 pendingEvents = events;
                 renderPendingEvents();
+                // Zapisz do backupu (pendingEvents)
+                saveToLocalBackup();
             }, (err) => {
                 console.error('Błąd nasłuchu pending:', err);
             });
@@ -2153,8 +2148,6 @@
             renderActions();
             renderRewards();
             renderStats();
-
-            // Odśwież ustawienia
             updateSettingsUI();
         }
 
@@ -2162,7 +2155,6 @@
         // USTAWIENIA UI
         // ============================================================
         function updateSettingsUI() {
-            // Rola + ikona
             const role = getRole();
             updateRoleIcon(role);
             const roleDisplay = document.getElementById('current-role-display');
@@ -2177,7 +2169,6 @@
                 roleDisplay.style.color = '#a1a1aa';
             }
 
-            // Token FCM
             const tokenPreview = document.getElementById('fcm-token-preview');
             if (currentFcmToken) {
                 const short = currentFcmToken.length > 16 ? currentFcmToken.substring(0, 14) + '…' : currentFcmToken;
@@ -2186,7 +2177,6 @@
                 tokenPreview.textContent = '---';
             }
 
-            // Powiadomienia
             const toggle = document.getElementById('notif-toggle');
             const label = document.getElementById('notif-status-label');
             const isEnabled = getNotificationsEnabled();
@@ -2210,8 +2200,8 @@
 
         window.setRole = async function(role) {
             localStorage.setItem('flr_role', role);
-            const userId = getUserId();
-            await setDoc(doc(db, 'users', userId), { role }, { merge: true });
+            const uid = getUserId();
+            await setDoc(doc(db, 'users', uid), { role }, { merge: true });
             document.getElementById('role-modal').style.display = 'none';
             showToast(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`);
             await registerForNotifications();
@@ -2239,7 +2229,7 @@
         // ============================================================
         function getNotificationsEnabled() {
             const val = localStorage.getItem('flr_notifications_enabled');
-            if (val === null) return true; // domyślnie włączone
+            if (val === null) return true;
             return val === 'true';
         }
 
@@ -2259,8 +2249,8 @@
                 showToast('🔔 Powiadomienia włączone');
             } else {
                 try {
-                    const userId = getUserId();
-                    await setDoc(doc(db, 'users', userId), { fcmToken: deleteField() }, { merge: true });
+                    const uid = getUserId();
+                    await setDoc(doc(db, 'users', uid), { fcmToken: deleteField() }, { merge: true });
                     currentFcmToken = null;
                     showToast('🔕 Powiadomienia wyłączone');
                 } catch (err) {
@@ -2390,7 +2380,6 @@
 
         window.openAddCatalogModal = function() {
             document.getElementById('catalog-item-name').value = '';
-            // Pole na punkty usunięte – będzie ustalane przez Panią
             document.getElementById('add-catalog-modal').classList.remove('hidden');
             document.getElementById('add-catalog-modal').classList.add('flex');
         };
@@ -2409,14 +2398,12 @@
 
             const role = getRole();
             if (role === 'slave') {
-                // Sługa zgłasza propozycję nowego zdarzenia (bez punktów)
                 addPendingEvent(name, null, 'proposal');
                 window.closeAddCatalogModal();
                 return;
             }
 
-            // Pani – dodaje od razu (ale to raczej nie będzie używane, bo Pani ma osobny panel)
-            // Na всякий случай – jeśli Pani chce dodać od razu, to proszę
+            // Pani – dodaje od razu (rzadko używane)
             const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
             if (isNaN(points)) {
                 alert("Podaj liczbę punktów.");
@@ -2438,17 +2425,15 @@
         };
 
         // ============================================================
-        // POPRAWIONE FUNKCJE: tryExecuteEvent i submitCustomModal
+        // tryExecuteEvent i submitCustomModal
         // ============================================================
         window.tryExecuteEvent = function(name, points) {
             const role = getRole();
-            // Jeśli Sługa, nie wykonuj od razu, tylko dodaj do pending (z katalogu)
             if (role === 'slave') {
                 addPendingEvent(name, points, 'catalog');
                 return;
             }
 
-            // Pani dodaje od razu (bez blokady na ujemny bilans)
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2474,7 +2459,6 @@
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
-
                 let title, body;
                 if (eventType === 'earn') {
                     title = '➕ Nowy zarobek';
@@ -2528,13 +2512,11 @@
 
             const role = getRole();
             if (role === 'slave') {
-                // Sługa – zgłoś do zatwierdzenia
                 addPendingEvent(name, points, 'catalog');
                 window.closeCustomModal();
                 return;
             }
 
-            // Pani – dodaje od razu
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2560,7 +2542,6 @@
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
-
                 let title, body;
                 if (eventType === 'earn') {
                     title = '➕ Nowy zarobek';
@@ -2659,7 +2640,8 @@
                 activeReduction,
                 dictionary: eventDictionary,
                 sortModes: sortModes,
-                _version: localVersion
+                _version: localVersion,
+                pendingEvents: pendingEvents
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -2700,6 +2682,27 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         
+                        // Przywróć pendingEvents – dodaj je do Firestore
+                        if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
+                            for (const pe of parsed.pendingEvents) {
+                                // Sprawdź, czy już istnieje
+                                const q = query(pendingCollection, where('id', '==', pe.id));
+                                const snap = await getDocs(q);
+                                if (snap.empty) {
+                                    // Dodaj nowy
+                                    await addDoc(pendingCollection, {
+                                        name: pe.name,
+                                        points: pe.points,
+                                        proposedBy: pe.proposedBy || 'unknown',
+                                        proposedAt: pe.proposedAt || serverTimestamp(),
+                                        status: 'waiting',
+                                        source: pe.source || 'catalog',
+                                        type: pe.type || 'existing'
+                                    });
+                                }
+                            }
+                        }
+
                         try {
                             const snap = await getDoc(docRef);
                             const currentVersion = snap.exists() ? (snap.data()._version || 0) : 0;
@@ -2729,7 +2732,7 @@
         };
 
         // ============================================================
-        // 5. FCM – POWIADOMIENIA PUSH
+        // FCM – POWIADOMIENIA PUSH
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -2737,10 +2740,12 @@
         const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
 
         function getUserId() {
-            let userId = localStorage.getItem('flr_userId');
             if (!userId) {
-                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-                localStorage.setItem('flr_userId', userId);
+                userId = localStorage.getItem('flr_userId');
+                if (!userId) {
+                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                    localStorage.setItem('flr_userId', userId);
+                }
             }
             return userId;
         }
@@ -2788,9 +2793,9 @@
                 }
 
                 currentFcmToken = token;
-                const userId = getUserId();
+                const uid = getUserId();
                 const role = getRole();
-                await setDoc(doc(db, 'users', userId), { fcmToken: token, role }, { merge: true });
+                await setDoc(doc(db, 'users', uid), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
                 updateSettingsUI();
 
@@ -2801,9 +2806,6 @@
 
         registerForNotifications();
 
-        // ============================================================
-        // POPRAWIONY onMessage
-        // ============================================================
         onMessage(messaging, (payload) => {
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
@@ -2882,7 +2884,7 @@
         }
 
         // ============================================================
-        // SERVICE WORKER – tylko główny (cache)
+        // SERVICE WORKER
         // ============================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -3029,8 +3031,8 @@
 
                         checkRole();
                         updateSettingsUI();
-                        // Subskrypcja pending events
                         subscribePendingEvents();
+                        subscribeNotifications();
                     })
                     .catch((err) => {
                         console.error("Błąd odczytu dokumentu:", err);
@@ -3045,6 +3047,7 @@
                             checkRole();
                             updateSettingsUI();
                             subscribePendingEvents();
+                            subscribeNotifications();
                         } else {
                             loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
                             loadingIndicator.innerHTML = `
