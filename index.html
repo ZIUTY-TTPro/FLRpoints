@@ -384,6 +384,13 @@
             flex: 1;
             word-break: break-word;
         }
+        .pending-item .points-display {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-right: 0.5rem;
+            white-space: nowrap;
+        }
         .pending-item .actions {
             display: flex;
             gap: 0.4rem;
@@ -449,6 +456,14 @@
         .role-icon {
             font-size: 1.2rem;
             line-height: 1;
+        }
+        /* Dla punktów tylko do odczytu */
+        .pending-item .points-static {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-right: 0.5rem;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -795,11 +810,12 @@
     <div id="add-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
+            <p class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
             <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
-            <input type="number" id="catalog-item-points" placeholder="Wartość punktowa (np. 10 lub -50)..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <!-- Usuwamy pole na punkty – będzie ustalane przez Panią -->
             <div class="flex gap-2 mt-1">
                 <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
-                <button onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Dodaj</button>
+                <button onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
             </div>
         </div>
     </div>
@@ -1465,30 +1481,53 @@
                 actions.className = 'actions';
 
                 if (isMistress) {
-                    // Pani może zatwierdzić lub odrzucić
-                    const pointsInput = document.createElement('input');
-                    pointsInput.type = 'number';
-                    pointsInput.className = 'points-input';
-                    pointsInput.placeholder = 'pkt';
-                    pointsInput.value = event.points || '';
-                    pointsInput.dataset.eventId = event.id;
-                    actions.appendChild(pointsInput);
+                    // Jeśli zdarzenie pochodzi z katalogu (source === 'catalog') – pokaż punkty tylko do odczytu
+                    if (event.source === 'catalog') {
+                        const pointsDisplay = document.createElement('span');
+                        pointsDisplay.className = 'points-static';
+                        pointsDisplay.textContent = `${event.points || 0} pkt`;
+                        actions.appendChild(pointsDisplay);
 
-                    const approveBtn = document.createElement('button');
-                    approveBtn.className = 'approve';
-                    approveBtn.textContent = '✅';
-                    approveBtn.title = 'Zatwierdź';
-                    approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value);
-                    actions.appendChild(approveBtn);
+                        // Przyciski zatwierdź/odrzuć (bez pola edycji)
+                        const approveBtn = document.createElement('button');
+                        approveBtn.className = 'approve';
+                        approveBtn.textContent = '✅';
+                        approveBtn.title = 'Zatwierdź';
+                        approveBtn.onclick = () => approvePendingEvent(event.id, event.points, event.source);
+                        actions.appendChild(approveBtn);
 
-                    const rejectBtn = document.createElement('button');
-                    rejectBtn.className = 'reject';
-                    rejectBtn.textContent = '❌';
-                    rejectBtn.title = 'Odrzuć';
-                    rejectBtn.onclick = () => rejectPendingEvent(event.id);
-                    actions.appendChild(rejectBtn);
+                        const rejectBtn = document.createElement('button');
+                        rejectBtn.className = 'reject';
+                        rejectBtn.textContent = '❌';
+                        rejectBtn.title = 'Odrzuć';
+                        rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                        actions.appendChild(rejectBtn);
+                    } else {
+                        // Propozycja nowego zdarzenia – pole do wpisania punktów
+                        const pointsInput = document.createElement('input');
+                        pointsInput.type = 'number';
+                        pointsInput.className = 'points-input';
+                        pointsInput.placeholder = 'pkt';
+                        pointsInput.value = event.points || '';
+                        pointsInput.dataset.eventId = event.id;
+                        actions.appendChild(pointsInput);
+
+                        const approveBtn = document.createElement('button');
+                        approveBtn.className = 'approve';
+                        approveBtn.textContent = '✅';
+                        approveBtn.title = 'Zatwierdź i dodaj do katalogu';
+                        approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value, event.source);
+                        actions.appendChild(approveBtn);
+
+                        const rejectBtn = document.createElement('button');
+                        rejectBtn.className = 'reject';
+                        rejectBtn.textContent = '❌';
+                        rejectBtn.title = 'Odrzuć';
+                        rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                        actions.appendChild(rejectBtn);
+                    }
                 } else {
-                    // Sługa może tylko usunąć (anulować) swoją propozycję
+                    // Sługa – może tylko anulować
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete';
                     deleteBtn.textContent = '✕';
@@ -1503,8 +1542,8 @@
             });
         }
 
-        // Funkcja do dodania zdarzenia do pending (przez Sługę)
-        async function addPendingEvent(name, points = null) {
+        // Funkcja do dodania zdarzenia do pending
+        async function addPendingEvent(name, points, source = 'catalog') {
             const role = getRole();
             if (role !== 'slave') {
                 showToast('⚠️ Tylko Sługa może zgłaszać propozycje.');
@@ -1515,11 +1554,12 @@
                 const userId = getUserId();
                 await addDoc(pendingCollection, {
                     name: name,
-                    points: points, // może być null – Pani ustali
+                    points: points, // dla katalogu – znane, dla propozycji – null
                     proposedBy: userId,
                     proposedAt: serverTimestamp(),
                     status: 'waiting',
-                    type: 'proposal', // lub 'earn', 'pen', 'buy' – na razie ogólne
+                    source: source, // 'catalog' lub 'proposal'
+                    type: source === 'catalog' ? 'existing' : 'new'
                 });
                 showToast('📨 Zgłoszono do zatwierdzenia!');
             } catch (err) {
@@ -1529,7 +1569,7 @@
         }
 
         // Zatwierdzenie przez Panią
-        async function approvePendingEvent(eventId, pointsStr) {
+        async function approvePendingEvent(eventId, pointsStr, source) {
             const role = getRole();
             if (role !== 'mistress') {
                 showToast('⚠️ Tylko Pani może zatwierdzać.');
@@ -1551,9 +1591,10 @@
                 }
                 const eventData = eventSnap.data();
                 const name = eventData.name || 'Zdarzenie';
+                const proposedBy = eventData.proposedBy;
 
                 // Usuń z pending
-                await updateDoc(eventRef, { status: 'approved' });
+                await updateDoc(eventRef, { status: 'approved', resolved: true });
 
                 // Dodaj do historii i zaktualizuj bilans
                 const entry = {
@@ -1561,20 +1602,18 @@
                     name: name,
                     points: points,
                     date: activeDate,
-                    type: points > 0 ? 'earn' : (points < 0 ? 'pen' : 'earn'), // uproszczenie
+                    type: points > 0 ? 'earn' : (points < 0 ? 'pen' : 'earn'),
                 };
                 balance += points;
                 historyEntries.unshift(entry);
                 await saveDataToFirestore();
 
-                // Jeśli to nowe zdarzenie (propozycja), dodaj do katalogu
-                if (eventData.type === 'proposal') {
-                    // Sprawdź, czy nie istnieje już w katalogu
+                // Jeśli to nowa propozycja (source === 'proposal'), dodaj do katalogu
+                if (source === 'proposal') {
                     const existing = eventDictionary.some(group => 
                         group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
                     );
                     if (!existing) {
-                        // Dodaj do odpowiedniej grupy (na podstawie punktów)
                         const targetGroup = points > 0 ? 0 : (points < 0 ? 1 : 0);
                         const newItem = { name, points, basePoints: points };
                         if (targetGroup === 0 && activeReduction) {
@@ -1584,13 +1623,33 @@
                         }
                         eventDictionary[targetGroup].items.push(newItem);
                         await saveDataToFirestore();
-                        showToast(`✅ Dodano nowe zdarzenie do katalogu: ${name}`);
+                        showToast(`✅ Dodano nowe zdarzenie do katalogu: ${name} (${points} pkt)`);
+                    } else {
+                        showToast(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`);
+                    }
+                } else {
+                    showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
+                }
+
+                // Powiadomienie dla Sługi (jeśli znamy jego userId)
+                if (proposedBy) {
+                    const slaveUserId = proposedBy;
+                    // Wyślij powiadomienie wewnątrz aplikacji – toast dla Sługi
+                    // Można też wysłać push, ale na razie tylko toast
+                    // Ponieważ nie mamy bezpośredniego połączenia z innym klientem, możemy wysłać powiadomienie push
+                    // ale to wymaga znajomości tokena Sługi. Na razie tylko toast.
+                    // Dodatkowo, jeśli Sługa jest online, zobaczy toast.
+                    // Możemy też zapisać powiadomienie w Firestore.
+                    showToast(`📨 Sługa: Twoje zdarzenie "${name}" zostało zatwierdzone!`);
+                    // Wyślij push do Sługi
+                    if (getNotificationsEnabled()) {
+                        const title = '✅ Zatwierdzono zdarzenie';
+                        const body = `Twoje zdarzenie "${name}" zostało zatwierdzone (${points} pkt)`;
+                        // Wyślij do Sługi
+                        sendNotificationToUser(slaveUserId, title, body);
                     }
                 }
 
-                // Po zatwierdzeniu usuń dokument z pending (lub oznacz jako resolved)
-                await updateDoc(eventRef, { resolved: true });
-                showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
                 updateUI();
                 renderPendingEvents();
             } catch (err) {
@@ -1615,8 +1674,21 @@
                     return;
                 }
                 const eventData = eventSnap.data();
+                const name = eventData.name || 'Zdarzenie';
+                const proposedBy = eventData.proposedBy;
+
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
-                showToast(`❌ Odrzucono: ${eventData.name || 'Zdarzenie'}`);
+                showToast(`❌ Odrzucono: ${name}`);
+
+                // Powiadomienie dla Sługi
+                if (proposedBy) {
+                    if (getNotificationsEnabled()) {
+                        const title = '❌ Odrzucono zdarzenie';
+                        const body = `Twoje zdarzenie "${name}" zostało odrzucone.`;
+                        sendNotificationToUser(proposedBy, title, body);
+                    }
+                }
+
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd odrzucania:', err);
@@ -1642,6 +1714,30 @@
             } catch (err) {
                 console.error('Błąd anulowania:', err);
                 showToast('❌ Błąd anulowania');
+            }
+        }
+
+        // Funkcja do wysyłania powiadomienia push do konkretnego użytkownika
+        async function sendNotificationToUser(userId, title, body) {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (!userDoc.exists()) return;
+                const fcmToken = userDoc.data().fcmToken;
+                if (!fcmToken) return;
+
+                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
+                await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        targetUserId: userId,
+                        title: title,
+                        body: body,
+                        data: { type: 'approval' }
+                    })
+                });
+            } catch (err) {
+                console.warn('Nie udało się wysłać powiadomienia do Sługi:', err);
             }
         }
 
@@ -1819,7 +1915,7 @@
             addRow.className = `w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800/50 text-zinc-400 text-xs font-medium transition-all click-anim mt-1`;
             addRow.innerHTML = `
                 <span class="text-base font-bold">+</span>
-                <span>Dodaj nowe zdarzenie do katalogu</span>
+                <span>Zgłoś nowe zdarzenie do katalogu</span>
             `;
             addRow.onclick = () => window.openAddCatalogModal();
             listContainer.appendChild(addRow);
@@ -2294,7 +2390,7 @@
 
         window.openAddCatalogModal = function() {
             document.getElementById('catalog-item-name').value = '';
-            document.getElementById('catalog-item-points').value = '';
+            // Pole na punkty usunięte – będzie ustalane przez Panią
             document.getElementById('add-catalog-modal').classList.remove('hidden');
             document.getElementById('add-catalog-modal').classList.add('flex');
         };
@@ -2306,21 +2402,26 @@
 
         window.submitAddCatalogModal = function() {
             const name = document.getElementById('catalog-item-name').value.trim();
-            const points = parseInt(document.getElementById('catalog-item-points').value, 10);
-            if (!name || isNaN(points)) {
-                alert("Podaj poprawną nazwę oraz liczbę punktów.");
+            if (!name) {
+                alert("Podaj nazwę zdarzenia.");
                 return;
             }
-            if (points > 0 && (currentTab === 1 || currentTab === 2)) {
-                if (!confirm(
-                    `⚠️ Dodajesz dodatnie punkty (+${points}) w zakładce "${eventDictionary[currentTab].group}".\n\n` +
-                    `Zazwyczaj w tej zakładce powinny być wartości ujemne.\n` +
-                    `Czy na pewno chcesz kontynuować?`
-                )) {
-                    return;
-                }
+
+            const role = getRole();
+            if (role === 'slave') {
+                // Sługa zgłasza propozycję nowego zdarzenia (bez punktów)
+                addPendingEvent(name, null, 'proposal');
+                window.closeAddCatalogModal();
+                return;
             }
 
+            // Pani – dodaje od razu (ale to raczej nie będzie używane, bo Pani ma osobny panel)
+            // Na всякий случай – jeśli Pani chce dodać od razu, to proszę
+            const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
+            if (isNaN(points)) {
+                alert("Podaj liczbę punktów.");
+                return;
+            }
             const targetGroupIdx = currentTab;
             const newItem = { name, points, basePoints: points };
             if (targetGroupIdx === 0 && activeReduction) {
@@ -2341,11 +2442,9 @@
         // ============================================================
         window.tryExecuteEvent = function(name, points) {
             const role = getRole();
-            // Jeśli Sługa, nie wykonuj od razu, tylko dodaj do pending
+            // Jeśli Sługa, nie wykonuj od razu, tylko dodaj do pending (z katalogu)
             if (role === 'slave') {
-                // Sprawdź, czy to zdarzenie z katalogu (mamy punkty)
-                // Jeśli punkty są podane, to używamy ich jako propozycji
-                addPendingEvent(name, points);
+                addPendingEvent(name, points, 'catalog');
                 return;
             }
 
@@ -2430,7 +2529,7 @@
             const role = getRole();
             if (role === 'slave') {
                 // Sługa – zgłoś do zatwierdzenia
-                addPendingEvent(name, points);
+                addPendingEvent(name, points, 'catalog');
                 window.closeCustomModal();
                 return;
             }
