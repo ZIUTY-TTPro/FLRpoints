@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flr-slave-points-v1.1.1';
+const CACHE_NAME = 'flr-slave-points-v1.1.2';
 const urlsToCache = [
   './',
   './index.html',
