@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE (skrócone dla czytelności) ===== */
+        /* ===== STYLE (bez zmian) ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -140,15 +140,15 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== NOWY KONTENER POWIADOMIEŃ ===== */
+        /* ===== KONTENER POWIADOMIEŃ – OD DOŁU DO GÓRY ===== */
         #notification-container {
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
             padding: 0.5rem;
             display: flex;
-            flex-direction: column;
+            flex-direction: column-reverse;
             align-items: center;
             gap: 0.3rem;
             pointer-events: none;
@@ -168,7 +168,7 @@
             max-width: 90%;
             width: auto;
             white-space: nowrap;
-            animation: slideDown 0.3s ease-out;
+            animation: slideUp 0.3s ease-out;
             transition: opacity 0.3s ease, transform 0.3s ease;
             pointer-events: auto;
             text-align: center;
@@ -182,8 +182,8 @@
         .notification-item.info {
             border-left: 4px solid #fbbf24;
         }
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
@@ -444,7 +444,7 @@
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.7</span>
+                        <span class="setting-value" id="app-version-text">1.1.8</span>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
@@ -562,6 +562,8 @@
             <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
         </div>
     </div>
+
+    <div id="toast" class="hidden"></div>
 
     <!-- Import map -->
     <script type="importmap">
@@ -883,38 +885,67 @@
         let notificationsEnabled = true;
         let pendingEvents = [];
         let userId = null;
+        let notificationTimers = {};
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
         const mainContent = document.getElementById('main-content');
 
         // ============================================================
-        // NOWY SYSTEM POWIADOMIEŃ (KONTENER)
+        // SYSTEM POWIADOMIEŃ – OD DOŁU DO GÓRY, BEZ DUPLIKATÓW
         // ============================================================
         function showNotification(text, type = 'info') {
             const container = document.getElementById('notification-container');
+            
+            // Sprawdź, czy takie powiadomienie już istnieje (unikaj duplikatów)
+            const existing = container.querySelectorAll('.notification-item');
+            for (const el of existing) {
+                if (el.textContent === text) {
+                    // Odśwież timer – przedłuż wyświetlanie
+                    const timerId = el.dataset.timerId;
+                    if (timerId && notificationTimers[timerId]) {
+                        clearTimeout(notificationTimers[timerId]);
+                    }
+                    const newTimerId = Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                    el.dataset.timerId = newTimerId;
+                    notificationTimers[newTimerId] = setTimeout(() => {
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateY(10px)';
+                        setTimeout(() => {
+                            el.remove();
+                            delete notificationTimers[newTimerId];
+                        }, 300);
+                    }, 5000);
+                    return;
+                }
+            }
+
             const el = document.createElement('div');
             el.className = `notification-item ${type}`;
             el.textContent = text;
+            
+            const timerId = Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            el.dataset.timerId = timerId;
+            
             container.appendChild(el);
-
-            // Automatyczne usuwanie po 5 sekundach
-            setTimeout(() => {
+            
+            notificationTimers[timerId] = setTimeout(() => {
                 el.style.opacity = '0';
-                el.style.transform = 'translateY(-10px)';
+                el.style.transform = 'translateY(10px)';
                 setTimeout(() => {
                     el.remove();
+                    delete notificationTimers[timerId];
                 }, 300);
             }, 5000);
         }
 
-        // Zastępujemy stare showToast (jeśli używane) – zostawiamy dla kompatybilności
-        function showToast(text) {
-            showNotification(text, 'info');
+        // Cicha funkcja do operacji w tle (bez powiadomień)
+        function silentOperation() {
+            // Nic nie pokazujemy
         }
 
         // ============================================================
-        // AKTUALIZACJA BILANSU NA IKONIE (BRAKUJĄCA FUNKCJA)
+        // AKTUALIZACJA BILANSU NA IKONIE
         // ============================================================
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
@@ -1036,7 +1067,7 @@
                         updateStateFromFirestore(latestUpdate, true);
                     }
                 }
-                showNotification('Zapisano!', 'info');
+                // CICHO – bez "Zapisano!"
                 setStatusOnline();
             } catch (err) {
                 isLocalUpdate = false;
@@ -1100,7 +1131,7 @@
                 isLocalUpdate = false;
                 setPendingFlag(false);
                 updateStateFromFirestore(backup, true);
-                showNotification('Zapisano!', 'info');
+                // CICHO – bez "Zapisano!"
                 setStatusOnline();
             } catch (err) {
                 isLocalUpdate = false;
@@ -1390,6 +1421,7 @@
                     balance += points;
                     historyEntries.unshift(entry);
                     await saveDataToFirestore();
+                    // Nie wyświetlaj "Zapisano!" – tylko powiadomienie o zatwierdzeniu
                     showNotification(`✅ Zatwierdzono: ${name} (${points} pkt)`, 'approved');
                 }
 
@@ -1421,11 +1453,9 @@
 
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
 
-                // Komunikat dla Pani
                 const mistressMsg = `❌ Odrzuciłaś: ${name}`;
                 await sendNotification(getUserId(), mistressMsg);
 
-                // Komunikat dla Sługi
                 if (proposedBy) {
                     const slaveMsg = `❌ Pani odrzuciła: ${name}`;
                     await sendNotification(proposedBy, slaveMsg);
@@ -2179,7 +2209,7 @@
             saveDataToFirestore();
             renderActions();
             updateUI();
-            showNotification("Zapisano!", 'info');
+            // CICHO – bez "Zapisano!"
             incrementBadge();
 
             if (points !== 0 && getNotificationsEnabled()) {
@@ -2456,7 +2486,7 @@
         };
 
         // ============================================================
-        // FCM – POWIADOMIENIA PUSH (tylko dla dodawania przez Panią)
+        // FCM – POWIADOMIENIA PUSH
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -2629,7 +2659,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.7';
+        const APP_VERSION = '1.1.8';
 
         window.checkForUpdate = async function() {
             try {
