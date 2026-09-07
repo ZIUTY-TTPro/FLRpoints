@@ -365,6 +365,91 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px;
         }
+
+        /* ===== STYLE DLA ZDARZEŃ DO ZATWIERDZENIA ===== */
+        .pending-item {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.25);
+            border-radius: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            color: #d4d4d8;
+        }
+        .pending-item .name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+        }
+        .pending-item .actions {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .pending-item .actions button {
+            background: #27272a;
+            border: none;
+            border-radius: 12px;
+            color: #d4d4d8;
+            padding: 2px 8px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pending-item .actions button:hover {
+            background: #3f3f46;
+        }
+        .pending-item .actions button.approve {
+            background: #22c55e20;
+            color: #22c55e;
+        }
+        .pending-item .actions button.approve:hover {
+            background: #22c55e40;
+        }
+        .pending-item .actions button.reject {
+            background: #ef444420;
+            color: #ef4444;
+        }
+        .pending-item .actions button.reject:hover {
+            background: #ef444440;
+        }
+        .pending-item .actions button.delete {
+            background: none;
+            color: #71717a;
+            font-size: 0.7rem;
+            padding: 0 4px;
+        }
+        .pending-item .actions button.delete:hover {
+            color: #ef4444;
+        }
+        .pending-item .points-input {
+            width: 50px;
+            background: #09090b;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 2px 4px;
+            font-size: 0.7rem;
+            color: #e4e4e7;
+            text-align: center;
+        }
+        .pending-item .points-input:focus {
+            outline: none;
+            border-color: #71717a;
+        }
+        .pending-empty {
+            color: #71717a;
+            font-size: 0.75rem;
+            font-style: italic;
+            padding: 0.25rem 0;
+        }
+        .role-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -381,6 +466,11 @@
 
             <!-- BILANS -->
             <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
+                <!-- LEWY GÓRNY RÓG: ikona roli -->
+                <div class="absolute top-3 left-3 flex items-center gap-1">
+                    <span id="role-icon" class="role-icon">👤</span>
+                </div>
+                <!-- PRAWY GÓRNY RÓG: kropka statusu -->
                 <div class="absolute top-3 right-3 flex items-center gap-2">
                     <span id="connection-status-dot" class="status-dot connecting" title="Łączenie..."></span>
                     <span id="offline-badge" class="hidden text-[8px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Offline</span>
@@ -404,6 +494,22 @@
                     </g>
                 </svg>
             </div>
+
+            <!-- ============================================================
+                 NOWA SEKCJA: ZDARZENIA DO ZATWIERDZENIA
+                 ============================================================ -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4" id="pending-section">
+                <div class="section-header">
+                    <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
+                    <button onclick="toggleCollapse('pending')" class="collapse-btn" id="collapse-btn-pending">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-pending" class="transition-collapse mt-2">
+                    <div id="pending-list" class="flex flex-col gap-2"></div>
+                    <div id="pending-empty" class="pending-empty">Brak oczekujących zdarzeń.</div>
+                </div>
+            </section>
 
             <!-- SEKCJA: DOZWOLONE PRZYJEMNOŚCI -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
@@ -429,7 +535,7 @@
             </div>
 
             <!-- ============================================================
-                 NOWY PANEL: ZARZĄDZANIE PUNKTAMI
+                 PANEL: ZARZĄDZANIE PUNKTAMI
                  ============================================================ -->
             <section class="bg-card border border-bordercolor rounded-2xl p-4">
                 <div class="section-header">
@@ -445,81 +551,6 @@
                         <button onclick="openReduceModal()" class="bg-zinc-800/60 hover:bg-zinc-700 border border-zinc-700 p-2.5 rounded-xl text-xs font-semibold text-zinc-200 click-anim">Zredukuj zarobek %</button>
                         <button onclick="resetRegistry()" class="bg-blood/10 hover:bg-blood/20 border border-blood/30 p-2.5 rounded-xl text-xs font-bold text-blood click-anim">Wyzeruj pkt</button>
                     </div>
-                </div>
-            </section>
-
-            <!-- ============================================================
-                 NOWY PANEL: USTAWIENIA
-                 ============================================================ -->
-            <section class="bg-card border border-bordercolor rounded-2xl p-4">
-                <div class="section-header">
-                    <span class="section-title flr-ornament flr-title">Ustawienia</span>
-                    <button onclick="toggleCollapse('settings')" class="collapse-btn" id="collapse-btn-settings">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-                </div>
-                <div id="collapse-content-settings" class="transition-collapse mt-2">
-                    
-                    <!-- Wersja -->
-                    <div class="setting-row">
-                        <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text"></span>
-                    </div>
-
-                    <!-- Stan aplikacji (online/offline) -->
-                    <div class="setting-row">
-                        <span class="setting-label">📡 Stan aplikacji</span>
-                        <span class="setting-value" id="app-status-text">
-                            <span class="satatus-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
-                            Online
-                        </span>
-                    </div>
-
-                    <!-- Token FCM (skrócony) + kopiuj -->
-                    <div class="setting-row">
-                        <span class="setting-label">🔑 Token FCM</span>
-                        <div class="flex items-center gap-2">
-                            <span class="token-preview" id="fcm-token-preview">---</span>
-                            <button class="btn-copy" id="copy-token-btn" title="Kopiuj pełny token">📋</button>
-                        </div>
-                    </div>
-
-                    <!-- Rola + przycisk zmiany -->
-                    <div class="setting-row">
-                        <span class="setting-label">👤 Rola</span>
-                        <div class="flex items-center gap-2">
-                            <span class="setting-value role-badge" id="current-role-display">Nieustawiona</span>
-                            <button class="btn-sm primary" onclick="openRoleModal()">Zmień</button>
-                        </div>
-                    </div>
-
-                    <!-- Powiadomienia – przełącznik -->
-                    <div class="setting-row">
-                        <span class="setting-label">🔔 Powiadomienia</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-zinc-400" id="notif-status-label">Włączone</span>
-                            <div class="toggle-switch active" id="notif-toggle" onclick="toggleNotifications()">
-                                <div class="toggle-knob"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sprawdź aktualizacje -->
-                    <div class="setting-row">
-                        <span class="setting-label">🔄 Aktualizacje</span>
-                        <button class="btn-sm primary" onclick="checkForUpdate()">Sprawdź</button>
-                    </div>
-
-                    <!-- Dane: Eksport / Import -->
-                    <div class="setting-row" style="border-bottom: none; padding-bottom: 4px;">
-                        <span class="setting-label">💾 Dane</span>
-                        <div class="flex gap-2">
-                            <button class="btn-sm primary" onclick="exportData()">Eksport JSON</button>
-                            <button class="btn-sm primary" onclick="triggerImport()">Import JSON</button>
-                        </div>
-                    </div>
-                    <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
-
                 </div>
             </section>
 
@@ -667,6 +698,81 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <!-- ============================================================
+                 PANEL USTAWIENIA – PRZENIESIONY NA DÓŁ, DOMYŚLNIE ZWIINIĘTY
+                 ============================================================ -->
+            <section class="bg-card border border-bordercolor rounded-2xl p-4" id="settings-section">
+                <div class="section-header">
+                    <span class="section-title flr-ornament flr-title">Ustawienia</span>
+                    <button onclick="toggleCollapse('settings')" class="collapse-btn" id="collapse-btn-settings">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
+                    
+                    <!-- Wersja -->
+                    <div class="setting-row">
+                        <span class="setting-label">📱 Wersja</span>
+                        <span class="setting-value" id="app-version-text">1.1.5</span>
+                    </div>
+
+                    <!-- Stan aplikacji (online/offline) -->
+                    <div class="setting-row">
+                        <span class="setting-label">📡 Stan aplikacji</span>
+                        <span class="setting-value" id="app-status-text">
+                            <span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span>
+                            Online
+                        </span>
+                    </div>
+
+                    <!-- Token FCM (skrócony) + kopiuj -->
+                    <div class="setting-row">
+                        <span class="setting-label">🔑 Token FCM</span>
+                        <div class="flex items-center gap-2">
+                            <span class="token-preview" id="fcm-token-preview">---</span>
+                            <button class="btn-copy" id="copy-token-btn" title="Kopiuj pełny token">📋</button>
+                        </div>
+                    </div>
+
+                    <!-- Rola + przycisk zmiany -->
+                    <div class="setting-row">
+                        <span class="setting-label">👤 Rola</span>
+                        <div class="flex items-center gap-2">
+                            <span class="setting-value role-badge" id="current-role-display">Nieustawiona</span>
+                            <button class="btn-sm primary" onclick="openRoleModal()">Zmień</button>
+                        </div>
+                    </div>
+
+                    <!-- Powiadomienia – przełącznik -->
+                    <div class="setting-row">
+                        <span class="setting-label">🔔 Powiadomienia</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-zinc-400" id="notif-status-label">Włączone</span>
+                            <div class="toggle-switch active" id="notif-toggle" onclick="toggleNotifications()">
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sprawdź aktualizacje -->
+                    <div class="setting-row">
+                        <span class="setting-label">🔄 Aktualizacje</span>
+                        <button class="btn-sm primary" onclick="checkForUpdate()">Sprawdź</button>
+                    </div>
+
+                    <!-- Dane: Eksport / Import -->
+                    <div class="setting-row" style="border-bottom: none; padding-bottom: 4px;">
+                        <span class="setting-label">💾 Dane</span>
+                        <div class="flex gap-2">
+                            <button class="btn-sm primary" onclick="exportData()">Eksport JSON</button>
+                            <button class="btn-sm primary" onclick="triggerImport()">Import JSON</button>
+                        </div>
+                    </div>
+                    <input type="file" id="import-file-input" class="hidden" onchange="importData(event)" />
+
                 </div>
             </section>
 
@@ -848,7 +954,7 @@
         };
 
         function loadCollapseStates() {
-            const sections = ['rewards', 'points', 'settings', 'calendar', 'catalog', 'history', 'stats'];
+            const sections = ['pending', 'rewards', 'points', 'calendar', 'catalog', 'history', 'stats', 'settings'];
             sections.forEach(id => {
                 const content = document.getElementById(`collapse-content-${id}`);
                 const btn = document.getElementById(`collapse-btn-${id}`);
@@ -864,6 +970,15 @@
                     if (svg) svg.classList.remove('rotate-180');
                 }
             });
+            // Ustawienia domyślnie zwinięte – jeśli nie ma stanu, ustaw na collapsed
+            const settingsContent = document.getElementById('collapse-content-settings');
+            const settingsBtn = document.getElementById('collapse-btn-settings');
+            if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
+                settingsContent.classList.add('collapsed');
+                const svg = settingsBtn?.querySelector('svg');
+                if (svg) svg.classList.add('rotate-180');
+                localStorage.setItem('flr_collapse_settings', 'collapsed');
+            }
         }
 
         // ============================================================
@@ -914,7 +1029,14 @@
             persistentMultipleTabManager,
             getDocs,
             collection,
-            deleteField
+            deleteField,
+            addDoc,
+            query,
+            where,
+            orderBy,
+            updateDoc,
+            serverTimestamp,
+            onSnapshot as onFirestoreSnapshot
         } from 'firebase/firestore';
 
         const firebaseConfig = {
@@ -933,11 +1055,13 @@
             })
         });
         const docRef = doc(db, 'registry/shared');
+        const pendingCollection = collection(db, 'pending_events');
 
         // ----- UI STATUSU -----
         const statusDot = document.getElementById('connection-status-dot');
         const offlineBadge = document.getElementById('offline-badge');
         const appStatusText = document.getElementById('app-status-text');
+        const roleIcon = document.getElementById('role-icon');
 
         function setStatusOnline() {
             statusDot.className = 'status-dot online';
@@ -965,6 +1089,16 @@
             statusDot.title = 'Oczekiwanie na synchronizację';
             offlineBadge.classList.remove('hidden');
             appStatusText.innerHTML = `<span class="status-dot pending inline-block mr-1" style="width:8px;height:8px;"></span> Oczekiwanie...`;
+        }
+
+        function updateRoleIcon(role) {
+            if (role === 'mistress') {
+                roleIcon.textContent = '👠';
+            } else if (role === 'slave') {
+                roleIcon.textContent = '🔐';
+            } else {
+                roleIcon.textContent = '👤';
+            }
         }
 
         // ----- SŁOWNIK DOMYŚLNY -----
@@ -1035,6 +1169,7 @@
         let pendingUpdates = [];
         let currentFcmToken = null;
         let notificationsEnabled = true; // domyślnie
+        let pendingEvents = [];
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
@@ -1301,7 +1436,233 @@
             setStatusOnline();
         }
 
-        // ----- RENDEROWANIE KALENDARZA -----
+        // ============================================================
+        // ZDARZENIA OCZEKUJĄCE (PENDING)
+        // ============================================================
+        function renderPendingEvents() {
+            const list = document.getElementById('pending-list');
+            const empty = document.getElementById('pending-empty');
+            list.innerHTML = '';
+
+            if (!pendingEvents || pendingEvents.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            const role = getRole();
+            const isMistress = role === 'mistress';
+
+            pendingEvents.forEach(event => {
+                const div = document.createElement('div');
+                div.className = 'pending-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = event.name || 'Brak nazwy';
+
+                const actions = document.createElement('div');
+                actions.className = 'actions';
+
+                if (isMistress) {
+                    // Pani może zatwierdzić lub odrzucić
+                    const pointsInput = document.createElement('input');
+                    pointsInput.type = 'number';
+                    pointsInput.className = 'points-input';
+                    pointsInput.placeholder = 'pkt';
+                    pointsInput.value = event.points || '';
+                    pointsInput.dataset.eventId = event.id;
+                    actions.appendChild(pointsInput);
+
+                    const approveBtn = document.createElement('button');
+                    approveBtn.className = 'approve';
+                    approveBtn.textContent = '✅';
+                    approveBtn.title = 'Zatwierdź';
+                    approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value);
+                    actions.appendChild(approveBtn);
+
+                    const rejectBtn = document.createElement('button');
+                    rejectBtn.className = 'reject';
+                    rejectBtn.textContent = '❌';
+                    rejectBtn.title = 'Odrzuć';
+                    rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                    actions.appendChild(rejectBtn);
+                } else {
+                    // Sługa może tylko usunąć (anulować) swoją propozycję
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete';
+                    deleteBtn.textContent = '✕';
+                    deleteBtn.title = 'Anuluj propozycję';
+                    deleteBtn.onclick = () => deletePendingEvent(event.id);
+                    actions.appendChild(deleteBtn);
+                }
+
+                div.appendChild(nameSpan);
+                div.appendChild(actions);
+                list.appendChild(div);
+            });
+        }
+
+        // Funkcja do dodania zdarzenia do pending (przez Sługę)
+        async function addPendingEvent(name, points = null) {
+            const role = getRole();
+            if (role !== 'slave') {
+                showToast('⚠️ Tylko Sługa może zgłaszać propozycje.');
+                return;
+            }
+
+            try {
+                const userId = getUserId();
+                await addDoc(pendingCollection, {
+                    name: name,
+                    points: points, // może być null – Pani ustali
+                    proposedBy: userId,
+                    proposedAt: serverTimestamp(),
+                    status: 'waiting',
+                    type: 'proposal', // lub 'earn', 'pen', 'buy' – na razie ogólne
+                });
+                showToast('📨 Zgłoszono do zatwierdzenia!');
+            } catch (err) {
+                console.error('Błąd dodawania do pending:', err);
+                showToast('❌ Błąd zgłaszania');
+            }
+        }
+
+        // Zatwierdzenie przez Panią
+        async function approvePendingEvent(eventId, pointsStr) {
+            const role = getRole();
+            if (role !== 'mistress') {
+                showToast('⚠️ Tylko Pani może zatwierdzać.');
+                return;
+            }
+
+            const points = parseInt(pointsStr, 10);
+            if (isNaN(points)) {
+                showToast('⚠️ Podaj poprawną liczbę punktów.');
+                return;
+            }
+
+            try {
+                const eventRef = doc(db, 'pending_events', eventId);
+                const eventSnap = await getDoc(eventRef);
+                if (!eventSnap.exists()) {
+                    showToast('❌ Zdarzenie nie istnieje.');
+                    return;
+                }
+                const eventData = eventSnap.data();
+                const name = eventData.name || 'Zdarzenie';
+
+                // Usuń z pending
+                await updateDoc(eventRef, { status: 'approved' });
+
+                // Dodaj do historii i zaktualizuj bilans
+                const entry = {
+                    id: Date.now().toString(),
+                    name: name,
+                    points: points,
+                    date: activeDate,
+                    type: points > 0 ? 'earn' : (points < 0 ? 'pen' : 'earn'), // uproszczenie
+                };
+                balance += points;
+                historyEntries.unshift(entry);
+                await saveDataToFirestore();
+
+                // Jeśli to nowe zdarzenie (propozycja), dodaj do katalogu
+                if (eventData.type === 'proposal') {
+                    // Sprawdź, czy nie istnieje już w katalogu
+                    const existing = eventDictionary.some(group => 
+                        group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
+                    );
+                    if (!existing) {
+                        // Dodaj do odpowiedniej grupy (na podstawie punktów)
+                        const targetGroup = points > 0 ? 0 : (points < 0 ? 1 : 0);
+                        const newItem = { name, points, basePoints: points };
+                        if (targetGroup === 0 && activeReduction) {
+                            const percent = activeReduction.percent;
+                            const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
+                            newItem.points = reduced > 0 ? reduced : 1;
+                        }
+                        eventDictionary[targetGroup].items.push(newItem);
+                        await saveDataToFirestore();
+                        showToast(`✅ Dodano nowe zdarzenie do katalogu: ${name}`);
+                    }
+                }
+
+                // Po zatwierdzeniu usuń dokument z pending (lub oznacz jako resolved)
+                await updateDoc(eventRef, { resolved: true });
+                showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
+                updateUI();
+                renderPendingEvents();
+            } catch (err) {
+                console.error('Błąd zatwierdzania:', err);
+                showToast('❌ Błąd zatwierdzania');
+            }
+        }
+
+        // Odrzucenie przez Panią
+        async function rejectPendingEvent(eventId) {
+            const role = getRole();
+            if (role !== 'mistress') {
+                showToast('⚠️ Tylko Pani może odrzucać.');
+                return;
+            }
+
+            try {
+                const eventRef = doc(db, 'pending_events', eventId);
+                const eventSnap = await getDoc(eventRef);
+                if (!eventSnap.exists()) {
+                    showToast('❌ Zdarzenie nie istnieje.');
+                    return;
+                }
+                const eventData = eventSnap.data();
+                await updateDoc(eventRef, { status: 'rejected', resolved: true });
+                showToast(`❌ Odrzucono: ${eventData.name || 'Zdarzenie'}`);
+                renderPendingEvents();
+            } catch (err) {
+                console.error('Błąd odrzucania:', err);
+                showToast('❌ Błąd odrzucania');
+            }
+        }
+
+        // Usunięcie przez Sługę (anulowanie)
+        async function deletePendingEvent(eventId) {
+            const role = getRole();
+            if (role !== 'slave') {
+                showToast('⚠️ Tylko Sługa może anulować swoje propozycje.');
+                return;
+            }
+
+            if (!confirm('Czy na pewno chcesz anulować tę propozycję?')) return;
+
+            try {
+                const eventRef = doc(db, 'pending_events', eventId);
+                await updateDoc(eventRef, { status: 'cancelled', resolved: true });
+                showToast('🗑️ Anulowano propozycję.');
+                renderPendingEvents();
+            } catch (err) {
+                console.error('Błąd anulowania:', err);
+                showToast('❌ Błąd anulowania');
+            }
+        }
+
+        // Nasłuch na zmiany w pending_events
+        function subscribePendingEvents() {
+            const q = query(pendingCollection, where('status', '==', 'waiting'));
+            onFirestoreSnapshot(q, (snapshot) => {
+                const events = [];
+                snapshot.forEach(doc => {
+                    events.push({ id: doc.id, ...doc.data() });
+                });
+                pendingEvents = events;
+                renderPendingEvents();
+            }, (err) => {
+                console.error('Błąd nasłuchu pending:', err);
+            });
+        }
+
+        // ============================================================
+        // RENDEROWANIE KALENDARZA
+        // ============================================================
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
             const label = document.getElementById('calendar-month-year');
@@ -1705,9 +2066,10 @@
         // USTAWIENIA UI
         // ============================================================
         function updateSettingsUI() {
-            // Rola
-            const roleDisplay = document.getElementById('current-role-display');
+            // Rola + ikona
             const role = getRole();
+            updateRoleIcon(role);
+            const roleDisplay = document.getElementById('current-role-display');
             if (role === 'mistress') {
                 roleDisplay.textContent = '👠 Pani';
                 roleDisplay.style.color = '#dc2626';
@@ -1758,6 +2120,7 @@
             showToast(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`);
             await registerForNotifications();
             updateSettingsUI();
+            updateRoleIcon(role);
         };
 
         window.openRoleModal = function() {
@@ -1772,6 +2135,7 @@
                 document.getElementById('role-modal').style.display = 'none';
             }
             updateSettingsUI();
+            updateRoleIcon(role);
         }
 
         // ============================================================
@@ -1795,11 +2159,9 @@
             setNotificationsEnabled(newState);
 
             if (newState) {
-                // Włącz – zarejestruj powiadomienia
                 await registerForNotifications();
                 showToast('🔔 Powiadomienia włączone');
             } else {
-                // Wyłącz – usuń token z bazy
                 try {
                     const userId = getUserId();
                     await setDoc(doc(db, 'users', userId), { fcmToken: deleteField() }, { merge: true });
@@ -1821,7 +2183,6 @@
                 navigator.clipboard.writeText(currentFcmToken).then(() => {
                     showToast('📋 Skopiowano token!');
                 }).catch(() => {
-                    // Fallback
                     const input = document.createElement('input');
                     input.value = currentFcmToken;
                     document.body.appendChild(input);
@@ -1979,14 +2340,16 @@
         // POPRAWIONE FUNKCJE: tryExecuteEvent i submitCustomModal
         // ============================================================
         window.tryExecuteEvent = function(name, points) {
-            if (points < 0) {
-                const requiredAbs = Math.abs(points);
-                if (balance < requiredAbs) {
-                    alert(`Brak wystarczającej liczby punktów! Masz ${balance} pkt, a ten koszt wynosi ${requiredAbs} pkt.`);
-                    return;
-                }
+            const role = getRole();
+            // Jeśli Sługa, nie wykonuj od razu, tylko dodaj do pending
+            if (role === 'slave') {
+                // Sprawdź, czy to zdarzenie z katalogu (mamy punkty)
+                // Jeśli punkty są podane, to używamy ich jako propozycji
+                addPendingEvent(name, points);
+                return;
             }
 
+            // Pani dodaje od razu (bez blokady na ujemny bilans)
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2062,14 +2425,17 @@
             let points = parseInt(document.getElementById('modal-points').value, 10);
             if (!name || isNaN(points)) { alert("Wypełnij poprawne dane."); return; }
             if (currentModalType === 'add' && points < 0) points = Math.abs(points);
-            if (currentModalType === 'sub') {
-                points = -Math.abs(points);
-                if (balance < Math.abs(points)) {
-                    alert(`Brak wystarczającej liczby punktów! Masz ${balance} pkt, a chcesz odjąć ${Math.abs(points)} pkt.`);
-                    return;
-                }
+            if (currentModalType === 'sub') points = -Math.abs(points);
+
+            const role = getRole();
+            if (role === 'slave') {
+                // Sługa – zgłoś do zatwierdzenia
+                addPendingEvent(name, points);
+                window.closeCustomModal();
+                return;
             }
 
+            // Pani – dodaje od razu
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2438,8 +2804,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.4';
-document.getElementById('app-version-text').textContent = APP_VERSION;
+        const APP_VERSION = '1.1.5';
 
         window.checkForUpdate = async function() {
             try {
@@ -2448,13 +2813,11 @@ document.getElementById('app-version-text').textContent = APP_VERSION;
                     showToast('⚠️ Service Worker nie jest zarejestrowany.');
                     return;
                 }
-                // Wymuś pobranie świeżego manifestu z timestampem
                 const manifestUrl = './manifest.json?t=' + Date.now();
                 const manifestResponse = await fetch(manifestUrl, { cache: 'reload' });
                 const manifest = await manifestResponse.json();
                 const newVersion = manifest.version || '1.0.0';
                 
-                // Zapamiętaj ostatnią sprawdzoną wersję, aby nie powtarzać powiadomień
                 const lastChecked = localStorage.getItem('flr_last_version_checked');
                 if (newVersion !== APP_VERSION) {
                     if (lastChecked !== newVersion) {
@@ -2498,7 +2861,6 @@ document.getElementById('app-version-text').textContent = APP_VERSION;
             });
         }
 
-        // Sprawdź aktualizację przy starcie – tylko raz dziennie
         const lastCheckDate = localStorage.getItem('flr_last_update_check_date');
         const today = getLocalDateString(new Date());
         if (lastCheckDate !== today) {
@@ -2568,6 +2930,8 @@ document.getElementById('app-version-text').textContent = APP_VERSION;
 
                         checkRole();
                         updateSettingsUI();
+                        // Subskrypcja pending events
+                        subscribePendingEvents();
                     })
                     .catch((err) => {
                         console.error("Błąd odczytu dokumentu:", err);
@@ -2581,6 +2945,7 @@ document.getElementById('app-version-text').textContent = APP_VERSION;
                             loadCollapseStates();
                             checkRole();
                             updateSettingsUI();
+                            subscribePendingEvents();
                         } else {
                             loadingIndicator.innerText = "❌ Błąd połączenia z Firebase.\nSprawdź:";
                             loadingIndicator.innerHTML = `
