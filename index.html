@@ -494,7 +494,7 @@
         </div>
     </main>
 
-    <!-- MODALE (bez zmian) -->
+    <!-- MODALE -->
     <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
@@ -914,6 +914,24 @@
         }
 
         // ============================================================
+        // AKTUALIZACJA BILANSU NA IKONIE (BRAKUJĄCA FUNKCJA)
+        // ============================================================
+        function updateBalanceOnIcon() {
+            const balanceEl = document.getElementById('balance-on-icon');
+            const coinSvg = document.getElementById('balance-coin-svg');
+            if (balanceEl) {
+                balanceEl.textContent = balance;
+            }
+            if (coinSvg) {
+                if (balance > 0) {
+                    coinSvg.classList.add('glow-coin-positive');
+                } else {
+                    coinSvg.classList.remove('glow-coin-positive');
+                }
+            }
+        }
+
+        // ============================================================
         // ZARZĄDZANIE BACKUPEM I SYNCHRONIZACJĄ
         // ============================================================
         function saveToLocalBackup() {
@@ -1165,7 +1183,6 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.message) {
-                        // Określ typ na podstawie treści (emoji)
                         let type = 'info';
                         if (data.message.includes('✅')) type = 'approved';
                         else if (data.message.includes('❌')) type = 'rejected';
@@ -1342,7 +1359,6 @@
                 if (proposedBy) {
                     const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
                     await sendNotification(proposedBy, slaveMsg);
-                    // PUSH usuwamy – tylko powiadomienia lokalne
                 }
 
                 if (source === 'proposal') {
@@ -1413,7 +1429,6 @@
                 if (proposedBy) {
                     const slaveMsg = `❌ Pani odrzuciła: ${name}`;
                     await sendNotification(proposedBy, slaveMsg);
-                    // PUSH usuwamy
                 }
 
                 showNotification(`❌ Odrzucono: ${name}`, 'rejected');
