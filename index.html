@@ -15,7 +15,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE (bez zmian) ===== */
+        /* ===== STYLE (skrócone dla czytelności) ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -139,9 +139,59 @@
         .pending-empty { color: #71717a; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0; }
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
+
+        /* ===== NOWY KONTENER POWIADOMIEŃ ===== */
+        #notification-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            pointer-events: none;
+            z-index: 100;
+            max-height: 100vh;
+            overflow: hidden;
+        }
+        .notification-item {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #e4e4e7;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            max-width: 90%;
+            width: auto;
+            white-space: nowrap;
+            animation: slideDown 0.3s ease-out;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: auto;
+            text-align: center;
+        }
+        .notification-item.approved {
+            border-left: 4px solid #22c55e;
+        }
+        .notification-item.rejected {
+            border-left: 4px solid #ef4444;
+        }
+        .notification-item.info {
+            border-left: 4px solid #fbbf24;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
+
+    <!-- KONTENER POWIADOMIEŃ -->
+    <div id="notification-container"></div>
 
     <main class="w-full max-w-md p-4 flex flex-col gap-5">
 
@@ -394,7 +444,7 @@
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.6</span>
+                        <span class="setting-value" id="app-version-text">1.1.7</span>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
@@ -444,7 +494,7 @@
         </div>
     </main>
 
-    <!-- MODALE -->
+    <!-- MODALE (bez zmian) -->
     <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
@@ -497,7 +547,6 @@
         </div>
     </div>
 
-    <!-- MODAL ROLI -->
     <div id="role-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50" style="display: none;">
         <div class="bg-card border border-bordercolor rounded-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-center">
             <h2 class="text-xl font-bold text-zinc-200 flr-title">👑 FLR Slave Points</h2>
@@ -513,8 +562,6 @@
             <p class="text-[10px] text-zinc-500 mt-2">Wyboru można dokonać później w opcjach.</p>
         </div>
     </div>
-
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-200 text-zinc-950 px-5 py-2 rounded-full font-bold text-xs opacity-0 pointer-events-none transition-opacity duration-300 shadow-2xl z-50 transform whitespace-nowrap">Zapisano!</div>
 
     <!-- Import map -->
     <script type="importmap">
@@ -556,9 +603,9 @@
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
                     if (outcome === 'accepted') {
-                        showToast('Aplikacja zainstalowana! 🎉');
+                        showNotification('Aplikacja zainstalowana! 🎉', 'info');
                     } else {
-                        showToast('Instalacja anulowana.');
+                        showNotification('Instalacja anulowana.', 'info');
                     }
                     deferredPrompt = null;
                     banner.remove();
@@ -635,7 +682,6 @@
                     if (svg) svg.classList.remove('rotate-180');
                 }
             });
-            // Ustawienia domyślnie zwinięte
             const settingsContent = document.getElementById('collapse-content-settings');
             const settingsBtn = document.getElementById('collapse-btn-settings');
             if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
@@ -837,71 +883,39 @@
         let notificationsEnabled = true;
         let pendingEvents = [];
         let userId = null;
-        let toastQueue = [];
 
         // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
         const mainContent = document.getElementById('main-content');
 
-        // ----- POMOCNICZE -----
-        function showToast(text = "Zapisano!") {
-            const toast = document.getElementById('toast');
-            // Jeśli już jest wyświetlany, dodajemy do kolejki
-            if (toast.style.opacity === '1') {
-                toastQueue.push(text);
-                return;
-            }
-            toast.innerText = text;
-            toast.style.opacity = '1';
-            setTimeout(() => { 
-                toast.style.opacity = '0';
-                // Po zniknięciu, sprawdź kolejkę
-                setTimeout(() => {
-                    if (toastQueue.length > 0) {
-                        const next = toastQueue.shift();
-                        showToast(next);
-                    }
-                }, 300);
-            }, 3500);
-        }
+        // ============================================================
+        // NOWY SYSTEM POWIADOMIEŃ (KONTENER)
+        // ============================================================
+        function showNotification(text, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const el = document.createElement('div');
+            el.className = `notification-item ${type}`;
+            el.textContent = text;
+            container.appendChild(el);
 
-        // Nadpisz showToast dla kolejkowania
-        const originalShowToast = showToast;
-        showToast = function(text) {
-            const toast = document.getElementById('toast');
-            if (toast.style.opacity === '1') {
-                toastQueue.push(text);
-                return;
-            }
-            toast.innerText = text;
-            toast.style.opacity = '1';
+            // Automatyczne usuwanie po 5 sekundach
             setTimeout(() => {
-                toast.style.opacity = '0';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
                 setTimeout(() => {
-                    if (toastQueue.length > 0) {
-                        const next = toastQueue.shift();
-                        showToast(next);
-                    }
+                    el.remove();
                 }, 300);
-            }, 3500);
-        };
-
-        function updateBalanceOnIcon() {
-            const balanceEl = document.getElementById('balance-on-icon');
-            const coinSvg = document.getElementById('balance-coin-svg');
-            if (balanceEl) {
-                balanceEl.textContent = balance;
-            }
-            if (coinSvg) {
-                if (balance > 0) {
-                    coinSvg.classList.add('glow-coin-positive');
-                } else {
-                    coinSvg.classList.remove('glow-coin-positive');
-                }
-            }
+            }, 5000);
         }
 
-        // ----- ZARZĄDZANIE BACKUPEM I SYNCHRONIZACJĄ -----
+        // Zastępujemy stare showToast (jeśli używane) – zostawiamy dla kompatybilności
+        function showToast(text) {
+            showNotification(text, 'info');
+        }
+
+        // ============================================================
+        // ZARZĄDZANIE BACKUPEM I SYNCHRONIZACJĄ
+        // ============================================================
         function saveToLocalBackup() {
             const dataObj = {
                 balance,
@@ -977,7 +991,7 @@
 
             if (!navigator.onLine) {
                 setPendingFlag(true);
-                showToast('📡 Brak połączenia – zmiany zapisane lokalnie');
+                showNotification('📡 Brak połączenia – zmiany zapisane lokalnie', 'info');
                 return;
             }
 
@@ -1000,16 +1014,16 @@
                     pendingUpdates = [];
                     const remoteVersion = latestUpdate._version || 0;
                     if (remoteVersion > localVersion) {
-                        showToast('📥 Wczytano nowsze dane z chmury');
+                        showNotification('📥 Wczytano nowsze dane z chmury', 'info');
                         updateStateFromFirestore(latestUpdate, true);
                     }
                 }
-                showToast('Zapisano!');
+                showNotification('Zapisano!', 'info');
                 setStatusOnline();
             } catch (err) {
                 isLocalUpdate = false;
                 if (err.message && err.message.includes('Ktoś inny')) {
-                    showToast('⚠️ ' + err.message);
+                    showNotification('⚠️ ' + err.message, 'info');
                     try {
                         const snap = await getDoc(docRef);
                         if (snap.exists()) {
@@ -1021,7 +1035,7 @@
                 } else {
                     console.error("Błąd zapisu:", err);
                     setPendingFlag(true);
-                    showToast('❌ Błąd zapisu – zapisano lokalnie');
+                    showNotification('❌ Błąd zapisu – zapisano lokalnie', 'info');
                     setStatusOffline();
                 }
             }
@@ -1043,7 +1057,7 @@
                     const remoteData = snap.data();
                     const remoteVersion = remoteData._version || 0;
                     if (remoteVersion > backup._version) {
-                        showToast('⚠️ Wykryto nowsze dane w chmurze. Twoje lokalne zmiany nie zostały wysłane.');
+                        showNotification('⚠️ Wykryto nowsze dane w chmurze. Twoje lokalne zmiany nie zostały wysłane.', 'info');
                         setPendingFlag(true);
                         updateStateFromFirestore(remoteData, true);
                         return;
@@ -1068,12 +1082,12 @@
                 isLocalUpdate = false;
                 setPendingFlag(false);
                 updateStateFromFirestore(backup, true);
-                showToast('Zapisano!');
+                showNotification('Zapisano!', 'info');
                 setStatusOnline();
             } catch (err) {
                 isLocalUpdate = false;
                 if (err.message && err.message.includes('Ktoś inny')) {
-                    showToast('⚠️ ' + err.message + ' Odśwież stronę.');
+                    showNotification('⚠️ ' + err.message + ' Odśwież stronę.', 'info');
                     try {
                         const snap = await getDoc(docRef);
                         if (snap.exists()) {
@@ -1085,7 +1099,7 @@
                 } else {
                     console.error('Błąd synchronizacji:', err);
                     setStatusOffline();
-                    showToast('❌ Błąd synchronizacji – spróbuj ponownie później');
+                    showNotification('❌ Błąd synchronizacji – spróbuj ponownie później', 'info');
                 }
             }
         }
@@ -1105,7 +1119,7 @@
 
         window.addEventListener('offline', () => {
             setStatusOffline();
-            showToast('📡 Brak połączenia – zmiany będą zapisywane lokalnie');
+            showNotification('📡 Brak połączenia – zmiany będą zapisywane lokalnie', 'info');
         });
 
         // ----- AKTUALIZACJA STANU -----
@@ -1151,8 +1165,11 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.message) {
-                        showToast(data.message);
-                        // Oznacz jako przeczytane
+                        // Określ typ na podstawie treści (emoji)
+                        let type = 'info';
+                        if (data.message.includes('✅')) type = 'approved';
+                        else if (data.message.includes('❌')) type = 'rejected';
+                        showNotification(data.message, type);
                         updateDoc(doc.ref, { read: true }).catch(() => {});
                     }
                 });
@@ -1263,7 +1280,7 @@
         async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
             const role = getRole();
             if (role !== 'slave') {
-                showToast('⚠️ Tylko Sługa może zgłaszać propozycje.');
+                showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
                 return;
             }
 
@@ -1277,25 +1294,25 @@
                     status: 'waiting',
                     source: source,
                     type: source === 'catalog' ? 'existing' : 'new',
-                    tabIndex: tabIndex // 0=zarobek, 1=kary, 2=wykup
+                    tabIndex: tabIndex
                 });
-                showToast('📨 Zgłoszono do zatwierdzenia!');
+                showNotification('📨 Zgłoszono do zatwierdzenia!', 'info');
             } catch (err) {
                 console.error('Błąd dodawania do pending:', err);
-                showToast('❌ Błąd zgłaszania');
+                showNotification('❌ Błąd zgłaszania', 'info');
             }
         }
 
         async function approvePendingEvent(eventId, pointsStr, source) {
             const role = getRole();
             if (role !== 'mistress') {
-                showToast('⚠️ Tylko Pani może zatwierdzać.');
+                showNotification('⚠️ Tylko Pani może zatwierdzać.', 'info');
                 return;
             }
 
             let points = parseInt(pointsStr, 10);
             if (isNaN(points)) {
-                showToast('⚠️ Podaj poprawną liczbę punktów.');
+                showNotification('⚠️ Podaj poprawną liczbę punktów.', 'info');
                 return;
             }
 
@@ -1303,7 +1320,7 @@
                 const eventRef = doc(db, 'pending_events', eventId);
                 const eventSnap = await getDoc(eventRef);
                 if (!eventSnap.exists()) {
-                    showToast('❌ Zdarzenie nie istnieje.');
+                    showNotification('❌ Zdarzenie nie istnieje.', 'info');
                     return;
                 }
                 const eventData = eventSnap.data();
@@ -1311,20 +1328,29 @@
                 const proposedBy = eventData.proposedBy;
                 const tabIndex = eventData.tabIndex !== undefined ? eventData.tabIndex : 0;
 
-                // Jeśli to kara (tabIndex=1) lub wykup (tabIndex=2), a wartość jest dodatnia, zamień na ujemną
                 if ((tabIndex === 1 || tabIndex === 2) && points > 0) {
                     points = -Math.abs(points);
                 }
 
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
+                // Komunikat dla Pani
+                const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
+                await sendNotification(getUserId(), mistressMsg);
+
+                // Komunikat dla Sługi
+                if (proposedBy) {
+                    const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
+                    await sendNotification(proposedBy, slaveMsg);
+                    // PUSH usuwamy – tylko powiadomienia lokalne
+                }
+
                 if (source === 'proposal') {
-                    // NOWE ZDARZENIE – tylko dodaj do katalogu, NIE do historii
                     const existing = eventDictionary.some(group => 
                         group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
                     );
                     if (!existing) {
-                        const targetGroup = tabIndex; // 0,1,2
+                        const targetGroup = tabIndex;
                         const newItem = { name, points, basePoints: points };
                         if (targetGroup === 0 && activeReduction) {
                             const percent = activeReduction.percent;
@@ -1333,12 +1359,11 @@
                         }
                         eventDictionary[targetGroup].items.push(newItem);
                         await saveDataToFirestore();
-                        showToast(`✅ Dodano nowe zdarzenie do katalogu: ${name} (${points} pkt)`);
+                        showNotification(`✅ Dodano nowe zdarzenie do katalogu: ${name} (${points} pkt)`, 'approved');
                     } else {
-                        showToast(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`);
+                        showNotification(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`, 'info');
                     }
                 } else {
-                    // ZDARZENIE Z KATALOGU – wykonaj (dodaj do historii)
                     const entry = {
                         id: Date.now().toString(),
                         name: name,
@@ -1349,33 +1374,21 @@
                     balance += points;
                     historyEntries.unshift(entry);
                     await saveDataToFirestore();
-                    showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
-                }
-
-                // Powiadomienie dla Sługi (push + wewnętrzne)
-                if (proposedBy) {
-                    const slaveUserId = proposedBy;
-                    const msg = `Twoje zdarzenie "${name}" zostało zatwierdzone${source === 'proposal' ? ' i dodane do katalogu' : ''} (${points} pkt)`;
-                    await sendNotification(slaveUserId, msg);
-                    if (getNotificationsEnabled()) {
-                        const title = '✅ Zatwierdzono zdarzenie';
-                        const body = `Zdarzenie "${name}" zatwierdzone (${points} pkt)`;
-                        sendNotificationToUser(slaveUserId, title, body);
-                    }
+                    showNotification(`✅ Zatwierdzono: ${name} (${points} pkt)`, 'approved');
                 }
 
                 updateUI();
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd zatwierdzania:', err);
-                showToast('❌ Błąd zatwierdzania');
+                showNotification('❌ Błąd zatwierdzania', 'info');
             }
         }
 
         async function rejectPendingEvent(eventId) {
             const role = getRole();
             if (role !== 'mistress') {
-                showToast('⚠️ Tylko Pani może odrzucać.');
+                showNotification('⚠️ Tylko Pani może odrzucać.', 'info');
                 return;
             }
 
@@ -1383,7 +1396,7 @@
                 const eventRef = doc(db, 'pending_events', eventId);
                 const eventSnap = await getDoc(eventRef);
                 if (!eventSnap.exists()) {
-                    showToast('❌ Zdarzenie nie istnieje.');
+                    showNotification('❌ Zdarzenie nie istnieje.', 'info');
                     return;
                 }
                 const eventData = eventSnap.data();
@@ -1391,29 +1404,30 @@
                 const proposedBy = eventData.proposedBy;
 
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
-                showToast(`❌ Odrzucono: ${name}`);
 
+                // Komunikat dla Pani
+                const mistressMsg = `❌ Odrzuciłaś: ${name}`;
+                await sendNotification(getUserId(), mistressMsg);
+
+                // Komunikat dla Sługi
                 if (proposedBy) {
-                    const msg = `Twoje zdarzenie "${name}" zostało odrzucone.`;
-                    await sendNotification(proposedBy, msg);
-                    if (getNotificationsEnabled()) {
-                        const title = '❌ Odrzucono zdarzenie';
-                        const body = `Zdarzenie "${name}" zostało odrzucone.`;
-                        sendNotificationToUser(proposedBy, title, body);
-                    }
+                    const slaveMsg = `❌ Pani odrzuciła: ${name}`;
+                    await sendNotification(proposedBy, slaveMsg);
+                    // PUSH usuwamy
                 }
 
+                showNotification(`❌ Odrzucono: ${name}`, 'rejected');
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd odrzucania:', err);
-                showToast('❌ Błąd odrzucania');
+                showNotification('❌ Błąd odrzucania', 'info');
             }
         }
 
         async function deletePendingEvent(eventId) {
             const role = getRole();
             if (role !== 'slave') {
-                showToast('⚠️ Tylko Sługa może anulować swoje propozycje.');
+                showNotification('⚠️ Tylko Sługa może anulować swoje propozycje.', 'info');
                 return;
             }
 
@@ -1422,34 +1436,11 @@
             try {
                 const eventRef = doc(db, 'pending_events', eventId);
                 await updateDoc(eventRef, { status: 'cancelled', resolved: true });
-                showToast('🗑️ Anulowano propozycję.');
+                showNotification('🗑️ Anulowano propozycję.', 'info');
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd anulowania:', err);
-                showToast('❌ Błąd anulowania');
-            }
-        }
-
-        async function sendNotificationToUser(userId, title, body) {
-            try {
-                const userDoc = await getDoc(doc(db, 'users', userId));
-                if (!userDoc.exists()) return;
-                const fcmToken = userDoc.data().fcmToken;
-                if (!fcmToken) return;
-
-                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
-                await fetch(backendUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        targetUserId: userId,
-                        title: title,
-                        body: body,
-                        data: { type: 'approval' }
-                    })
-                });
-            } catch (err) {
-                console.warn('Nie udało się wysłać powiadomienia push:', err);
+                showNotification('❌ Błąd anulowania', 'info');
             }
         }
 
@@ -1920,7 +1911,7 @@
             const uid = getUserId();
             await setDoc(doc(db, 'users', uid), { role }, { merge: true });
             document.getElementById('role-modal').style.display = 'none';
-            showToast(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`);
+            showNotification(`✅ Ustawiono rolę: ${role === 'mistress' ? 'Pani' : 'Sługa'}`, 'approved');
             await registerForNotifications();
             updateSettingsUI();
             updateRoleIcon(role);
@@ -1963,16 +1954,16 @@
 
             if (newState) {
                 await registerForNotifications();
-                showToast('🔔 Powiadomienia włączone');
+                showNotification('🔔 Powiadomienia włączone', 'approved');
             } else {
                 try {
                     const uid = getUserId();
                     await setDoc(doc(db, 'users', uid), { fcmToken: deleteField() }, { merge: true });
                     currentFcmToken = null;
-                    showToast('🔕 Powiadomienia wyłączone');
+                    showNotification('🔕 Powiadomienia wyłączone', 'info');
                 } catch (err) {
                     console.error('Błąd wyłączania powiadomień:', err);
-                    showToast('❌ Nie udało się wyłączyć powiadomień');
+                    showNotification('❌ Nie udało się wyłączyć powiadomień', 'info');
                 }
             }
             updateSettingsUI();
@@ -1984,7 +1975,7 @@
         document.getElementById('copy-token-btn').addEventListener('click', () => {
             if (currentFcmToken) {
                 navigator.clipboard.writeText(currentFcmToken).then(() => {
-                    showToast('📋 Skopiowano token!');
+                    showNotification('📋 Skopiowano token!', 'info');
                 }).catch(() => {
                     const input = document.createElement('input');
                     input.value = currentFcmToken;
@@ -1992,10 +1983,10 @@
                     input.select();
                     document.execCommand('copy');
                     document.body.removeChild(input);
-                    showToast('📋 Skopiowano token!');
+                    showNotification('📋 Skopiowano token!', 'info');
                 });
             } else {
-                showToast('⚠️ Brak tokena do skopiowania');
+                showNotification('⚠️ Brak tokena do skopiowania', 'info');
             }
         });
 
@@ -2048,7 +2039,7 @@
                 eventDictionary[groupIndex].items.splice(itemIndex, 1);
                 saveDataToFirestore();
                 renderActions();
-                showToast("Usunięto zdarzenie z katalogu!");
+                showNotification("Usunięto zdarzenie z katalogu!", 'info');
             }
         };
 
@@ -2091,7 +2082,7 @@
                 saveDataToFirestore();
                 renderActions();
                 window.closeEditCatalogModal();
-                showToast("Zaktualizowano zdarzenie!");
+                showNotification("Zaktualizowano zdarzenie!", 'info');
             }
         };
 
@@ -2115,19 +2106,16 @@
 
             const role = getRole();
             if (role === 'slave') {
-                // Sługa zgłasza propozycję z bieżącą zakładką
                 addPendingEvent(name, null, 'proposal', currentTab);
                 window.closeAddCatalogModal();
                 return;
             }
 
-            // Pani – dodaje od razu (rzadko używane)
             const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
             if (isNaN(points)) {
                 alert("Podaj liczbę punktów.");
                 return;
             }
-            // Dla kar i wykupu, jeśli wartość dodatnia, zamień na ujemną
             let finalPoints = points;
             if ((currentTab === 1 || currentTab === 2) && points > 0) {
                 finalPoints = -Math.abs(points);
@@ -2143,7 +2131,7 @@
             saveDataToFirestore();
             renderActions();
             window.closeAddCatalogModal();
-            showToast(`Dodano do "${eventDictionary[targetGroupIdx].group}"`);
+            showNotification(`Dodano do "${eventDictionary[targetGroupIdx].group}"`, 'info');
             incrementBadge();
         };
 
@@ -2153,12 +2141,10 @@
         window.tryExecuteEvent = function(name, points) {
             const role = getRole();
             if (role === 'slave') {
-                // Sługa – zgłoś do zatwierdzenia z bieżącą zakładką
                 addPendingEvent(name, points, 'catalog', currentTab);
                 return;
             }
 
-            // Pani – wykonaj od razu (bez blokady na ujemny bilans)
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2178,7 +2164,7 @@
             saveDataToFirestore();
             renderActions();
             updateUI();
-            showToast("Zapisano!");
+            showNotification("Zapisano!", 'info');
             incrementBadge();
 
             if (points !== 0 && getNotificationsEnabled()) {
@@ -2237,17 +2223,11 @@
 
             const role = getRole();
             if (role === 'slave') {
-                // Sługa – zgłoś do zatwierdzenia z bieżącą zakładką (0 dla zarobku, 1 dla kary, 2 dla wykupu)
-                // Tutaj nie wiemy, czy to kara czy wykup – zakładamy, że jeśli punkty ujemne to kara/wykup?
-                // Lepiej użyć currentTab – ale w tym oknie nie ma zakładki, więc domyślnie 0.
-                // Dla bezpieczeństwa, jeśli punkty ujemne, to kara, ale niech użytkownik określi w zgłoszeniu.
-                // Najprościej: dodaj do pending z tabIndex = 0, ale użytkownik może to zmienić później.
                 addPendingEvent(name, points, 'catalog', 0);
                 window.closeCustomModal();
                 return;
             }
 
-            // Pani – dodaje od razu
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2324,12 +2304,12 @@
             renderActions();
             updateUI();
             window.closeReduceModal();
-            showToast("Zredukowano punkty zarabiania!");
+            showNotification("Zredukowano punkty zarabiania!", 'info');
         };
 
         window.cancelReduction = function(silent = false) {
             if (!activeReduction) {
-                if (!silent) showToast("Brak aktywnej redukcji.");
+                if (!silent) showNotification("Brak aktywnej redukcji.", 'info');
                 return;
             }
             activeReduction = null;
@@ -2342,7 +2322,7 @@
             saveDataToFirestore();
             renderActions();
             updateUI();
-            if (!silent) showToast("Przywrócono oryginalne punkty!");
+            if (!silent) showNotification("Przywrócono oryginalne punkty!", 'info');
         };
 
         window.resetRegistry = function() {
@@ -2359,7 +2339,7 @@
                 saveDataToFirestore();
                 renderActions();
                 updateUI();
-                showToast("Bilans wyzerowany!");
+                showNotification("Bilans wyzerowany!", 'info');
                 incrementBadge();
             }
         };
@@ -2381,7 +2361,7 @@
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            showToast("Pobrano plik JSON!");
+            showNotification("Pobrano plik JSON!", 'info');
         };
 
         window.triggerImport = function() {
@@ -2413,7 +2393,6 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         
-                        // Przywróć pendingEvents – dodaj je do Firestore
                         if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
                             for (const pe of parsed.pendingEvents) {
                                 const q = query(pendingCollection, where('id', '==', pe.id));
@@ -2448,7 +2427,7 @@
 
                         renderActions();
                         updateUI();
-                        showToast("Wczytano dane pomyślnie!");
+                        showNotification("Wczytano dane pomyślnie!", 'approved');
                         incrementBadge();
                     } else {
                         alert("Nieprawidłowy format pliku JSON.");
@@ -2462,7 +2441,7 @@
         };
 
         // ============================================================
-        // FCM – POWIADOMIENIA PUSH
+        // FCM – POWIADOMIENIA PUSH (tylko dla dodawania przez Panią)
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -2490,7 +2469,7 @@
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') {
                     console.warn('Brak zgody na powiadomienia');
-                    showToast('🔕 Powiadomienia wyłączone (brak zgody)');
+                    showNotification('🔕 Powiadomienia wyłączone (brak zgody)', 'info');
                     setNotificationsEnabled(false);
                     return;
                 }
@@ -2540,7 +2519,7 @@
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
             const body = payload.data?.body || payload.notification?.body || '';
-            showToast(`📩 ${title}: ${body}`);
+            showNotification(`📩 ${title}: ${body}`, 'info');
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
@@ -2572,7 +2551,7 @@
 
                 if (!targetUserId) {
                     console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
-                    showToast('⚠️ Brak drugiej osoby o przeciwnej roli.');
+                    showNotification('⚠️ Brak drugiej osoby o przeciwnej roli.', 'info');
                     return;
                 }
 
@@ -2600,16 +2579,16 @@
                 const result = await response.json();
                 if (response.status === 410) {
                     console.warn('⚠️ Token partnera unieważniony – ponowna rejestracja');
-                    showToast('⚠️ Token partnera wygasł – spróbuj ponownie później');
+                    showNotification('⚠️ Token partnera wygasł – spróbuj ponownie później', 'info');
                 } else if (result.success) {
                     console.log('✅ Powiadomienie wysłane do:', targetUserId);
                 } else {
                     console.warn('❌ Błąd wysyłki:', result.error);
-                    showToast('⚠️ Błąd wysyłki powiadomienia: ' + result.error);
+                    showNotification('⚠️ Błąd wysyłki powiadomienia: ' + result.error, 'info');
                 }
             } catch (error) {
                 console.error('❌ Błąd połączenia z backendem:', error);
-                showToast('❌ Nie udało się wysłać powiadomienia');
+                showNotification('❌ Nie udało się wysłać powiadomienia', 'info');
             }
         }
 
@@ -2635,13 +2614,13 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.6';
+        const APP_VERSION = '1.1.7';
 
         window.checkForUpdate = async function() {
             try {
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (!registration) {
-                    showToast('⚠️ Service Worker nie jest zarejestrowany.');
+                    showNotification('⚠️ Service Worker nie jest zarejestrowany.', 'info');
                     return;
                 }
                 const manifestUrl = './manifest.json?t=' + Date.now();
@@ -2655,15 +2634,15 @@
                         showUpdateNotification(newVersion);
                         localStorage.setItem('flr_last_version_checked', newVersion);
                     } else {
-                        showToast('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).');
+                        showNotification('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).', 'info');
                     }
                 } else {
                     localStorage.setItem('flr_last_version_checked', APP_VERSION);
-                    showToast('✅ Masz najnowszą wersję.');
+                    showNotification('✅ Masz najnowszą wersję.', 'approved');
                 }
             } catch (err) {
                 console.warn('Błąd sprawdzania aktualizacji:', err);
-                showToast('❌ Błąd sprawdzania aktualizacji.');
+                showNotification('❌ Błąd sprawdzania aktualizacji.', 'info');
             }
         };
 
@@ -2743,7 +2722,7 @@
                                 })
                                 .catch((err) => {
                                     console.error("Błąd tworzenia dokumentu:", err);
-                                    showToast("❌ Błąd inicjalizacji bazy");
+                                    showNotification("❌ Błąd inicjalizacji bazy", 'info');
                                     loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
                                     setStatusOffline();
                                 });
@@ -2770,7 +2749,7 @@
                         if (backup) {
                             updateStateFromFirestore(backup, true);
                             setPendingFlag(true);
-                            showToast('📡 Wczytano dane lokalne – synchronizacja w toku');
+                            showNotification('📡 Wczytano dane lokalne – synchronizacja w toku', 'info');
                             loadingIndicator.classList.add('hidden');
                             mainContent.classList.remove('hidden');
                             loadCollapseStates();
@@ -2789,7 +2768,7 @@
                                     <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
                                 </div>
                             `;
-                            showToast("❌ Błąd połączenia");
+                            showNotification("❌ Błąd połączenia", 'info');
                             setStatusOffline();
 
                             if (retryCount < MAX_RETRIES) {
@@ -2828,7 +2807,7 @@
                     }
                 }, (error) => {
                     console.error("Błąd nasłuchu:", error);
-                    showToast("❌ Błąd synchronizacji");
+                    showNotification("❌ Błąd synchronizacji", 'info');
                     setStatusOffline();
                 });
             }
