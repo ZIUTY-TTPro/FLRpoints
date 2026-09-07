@@ -960,7 +960,6 @@
                     if (svg) svg.classList.remove('rotate-180');
                 }
             });
-            // Ustawienia domyślnie zwinięte
             const settingsContent = document.getElementById('collapse-content-settings');
             const settingsBtn = document.getElementById('collapse-btn-settings');
             if (settingsContent && !localStorage.getItem('flr_collapse_settings')) {
@@ -1168,6 +1167,21 @@
         const mainContent = document.getElementById('main-content');
 
         // ----- POMOCNICZE -----
+        let pendingToastTimer = null;
+        let pendingToastMessage = '';
+
+        function showToastDelayed(message) {
+            pendingToastMessage = message;
+            if (pendingToastTimer) {
+                return;
+            }
+            pendingToastTimer = setTimeout(() => {
+                showToast(pendingToastMessage);
+                pendingToastTimer = null;
+                pendingToastMessage = '';
+            }, 500);
+        }
+
         function showToast(text = "Zapisano!") {
             const toast = document.getElementById('toast');
             toast.innerText = text;
@@ -1440,8 +1454,7 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     if (data.message) {
-                        showToast(data.message);
-                        // Oznacz jako przeczytane
+                        showToastDelayed(data.message);
                         updateDoc(doc.ref, { read: true }).catch(() => {});
                     }
                 });
@@ -1549,7 +1562,7 @@
             });
         }
 
-        async function addPendingEvent(name, points, source = 'catalog') {
+        async function addPendingEvent(name, points, source = 'catalog', targetGroup = 0) {
             const role = getRole();
             if (role !== 'slave') {
                 showToast('⚠️ Tylko Sługa może zgłaszać propozycje.');
@@ -1565,7 +1578,8 @@
                     proposedAt: serverTimestamp(),
                     status: 'waiting',
                     source: source,
-                    type: source === 'catalog' ? 'existing' : 'new'
+                    type: source === 'catalog' ? 'existing' : 'new',
+                    targetGroup: targetGroup
                 });
                 showToast('📨 Zgłoszono do zatwierdzenia!');
             } catch (err) {
@@ -1597,16 +1611,16 @@
                 const eventData = eventSnap.data();
                 const name = eventData.name || 'Zdarzenie';
                 const proposedBy = eventData.proposedBy;
+                const targetGroup = eventData.targetGroup ?? 0;
 
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
                 if (source === 'proposal') {
-                    // NOWE ZDARZENIE – tylko dodaj do katalogu, NIE do historii
+                    // NOWE ZDARZENIE – tylko dodaj do katalogu
                     const existing = eventDictionary.some(group => 
                         group.items.some(item => item.name.toLowerCase() === name.toLowerCase())
                     );
                     if (!existing) {
-                        const targetGroup = points > 0 ? 0 : (points < 0 ? 1 : 0);
                         const newItem = { name, points, basePoints: points };
                         if (targetGroup === 0 && activeReduction) {
                             const percent = activeReduction.percent;
@@ -1615,7 +1629,8 @@
                         }
                         eventDictionary[targetGroup].items.push(newItem);
                         await saveDataToFirestore();
-                        showToast(`✅ Dodano nowe zdarzenie do katalogu: ${name} (${points} pkt)`);
+                        const groupName = eventDictionary[targetGroup].group || 'katalogu';
+                        showToast(`✅ Dodano do ${groupName}: ${name} (${points} pkt)`);
                     } else {
                         showToast(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`);
                     }
@@ -1634,14 +1649,14 @@
                     showToast(`✅ Zatwierdzono: ${name} (${points} pkt)`);
                 }
 
-                // Powiadomienie dla Sługi (push + wewnętrzne)
+                // Powiadomienie dla Sługi
                 if (proposedBy) {
                     const slaveUserId = proposedBy;
-                    const msg = `Twoje zdarzenie "${name}" zostało zatwierdzone${source === 'proposal' ? ' i dodane do katalogu' : ''} (${points} pkt)`;
+                    const msg = `✅ ${name} (${points} pkt)`;
                     await sendNotification(slaveUserId, msg);
                     if (getNotificationsEnabled()) {
-                        const title = '✅ Zatwierdzono zdarzenie';
-                        const body = `Twoje zdarzenie "${name}" zostało zatwierdzone${source === 'proposal' ? ' i dodane do katalogu' : ''} (${points} pkt)`;
+                        const title = '✅ Zatwierdzono';
+                        const body = `${name} (${points} pkt)`;
                         sendNotificationToUser(slaveUserId, title, body);
                     }
                 }
@@ -1676,11 +1691,11 @@
                 showToast(`❌ Odrzucono: ${name}`);
 
                 if (proposedBy) {
-                    const msg = `Twoje zdarzenie "${name}" zostało odrzucone.`;
+                    const msg = `❌ ${name}`;
                     await sendNotification(proposedBy, msg);
                     if (getNotificationsEnabled()) {
-                        const title = '❌ Odrzucono zdarzenie';
-                        const body = `Twoje zdarzenie "${name}" zostało odrzucone.`;
+                        const title = '❌ Odrzucono';
+                        const body = `${name}`;
                         sendNotificationToUser(proposedBy, title, body);
                     }
                 }
@@ -1744,7 +1759,6 @@
                 });
                 pendingEvents = events;
                 renderPendingEvents();
-                // Zapisz do backupu (pendingEvents)
                 saveToLocalBackup();
             }, (err) => {
                 console.error('Błąd nasłuchu pending:', err);
@@ -2398,12 +2412,13 @@
 
             const role = getRole();
             if (role === 'slave') {
-                addPendingEvent(name, null, 'proposal');
+                const targetGroup = currentTab; // 0,1,2
+                addPendingEvent(name, null, 'proposal', targetGroup);
                 window.closeAddCatalogModal();
                 return;
             }
 
-            // Pani – dodaje od razu (rzadko używane)
+            // Pani – dodaje od razu
             const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
             if (isNaN(points)) {
                 alert("Podaj liczbę punktów.");
@@ -2682,14 +2697,11 @@
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
                         
-                        // Przywróć pendingEvents – dodaj je do Firestore
                         if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
                             for (const pe of parsed.pendingEvents) {
-                                // Sprawdź, czy już istnieje
                                 const q = query(pendingCollection, where('id', '==', pe.id));
                                 const snap = await getDocs(q);
                                 if (snap.empty) {
-                                    // Dodaj nowy
                                     await addDoc(pendingCollection, {
                                         name: pe.name,
                                         points: pe.points,
@@ -2697,7 +2709,8 @@
                                         proposedAt: pe.proposedAt || serverTimestamp(),
                                         status: 'waiting',
                                         source: pe.source || 'catalog',
-                                        type: pe.type || 'existing'
+                                        type: pe.type || 'existing',
+                                        targetGroup: pe.targetGroup || 0
                                     });
                                 }
                             }
@@ -2810,7 +2823,7 @@
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
             const body = payload.data?.body || payload.notification?.body || '';
-            showToast(`📩 ${title}: ${body}`);
+            showToastDelayed(`📩 ${title}: ${body}`);
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
