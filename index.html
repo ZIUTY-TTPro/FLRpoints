@@ -140,7 +140,7 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== KONTENER POWIADOMIEŃ – OD DOŁU DO GÓRY ===== */
+        /* ===== KONTENER POWIADOMIEŃ – OD DOŁU DO GÓRY, WYRÓWNANIE DO LEWEJ ===== */
         #notification-container {
             position: fixed;
             bottom: 0;
@@ -149,7 +149,7 @@
             padding: 0.5rem;
             display: flex;
             flex-direction: column-reverse;
-            align-items: center;
+            align-items: flex-start;   /* wyrównanie do lewej */
             gap: 0.3rem;
             pointer-events: none;
             z-index: 100;
@@ -167,11 +167,10 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             max-width: 90%;
             width: auto;
-            white-space: nowrap;
+            text-align: left;          /* wyrównanie do lewej */
             animation: slideUp 0.3s ease-out;
             transition: opacity 0.3s ease, transform 0.3s ease;
             pointer-events: auto;
-            text-align: center;
         }
         .notification-item.approved {
             border-left: 4px solid #22c55e;
@@ -444,7 +443,7 @@
                 <div id="collapse-content-settings" class="transition-collapse collapsed mt-2">
                     <div class="setting-row">
                         <span class="setting-label">📱 Wersja</span>
-                        <span class="setting-value" id="app-version-text">1.1.8</span>
+                        <span class="setting-value" id="app-version-text">1.1.9</span>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">📡 Stan aplikacji</span>
@@ -892,7 +891,7 @@
         const mainContent = document.getElementById('main-content');
 
         // ============================================================
-        // SYSTEM POWIADOMIEŃ – OD DOŁU DO GÓRY, BEZ DUPLIKATÓW
+        // SYSTEM POWIADOMIEŃ – OD DOŁU DO GÓRY, WYRÓWNANIE DO LEWEJ
         // ============================================================
         function showNotification(text, type = 'info') {
             const container = document.getElementById('notification-container');
@@ -1382,7 +1381,7 @@
 
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
-                // Komunikat dla Pani
+                // Komunikat dla Pani – tylko przez sendNotification (nie duplikujemy)
                 const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
                 await sendNotification(getUserId(), mistressMsg);
 
@@ -1421,8 +1420,7 @@
                     balance += points;
                     historyEntries.unshift(entry);
                     await saveDataToFirestore();
-                    // Nie wyświetlaj "Zapisano!" – tylko powiadomienie o zatwierdzeniu
-                    showNotification(`✅ Zatwierdzono: ${name} (${points} pkt)`, 'approved');
+                    // Nie wyświetlaj dodatkowego "Zatwierdzono" – powiadomienie z sendNotification wystarczy
                 }
 
                 updateUI();
@@ -1453,6 +1451,7 @@
 
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
 
+                // Komunikat dla Pani – tylko przez sendNotification
                 const mistressMsg = `❌ Odrzuciłaś: ${name}`;
                 await sendNotification(getUserId(), mistressMsg);
 
@@ -1461,7 +1460,6 @@
                     await sendNotification(proposedBy, slaveMsg);
                 }
 
-                showNotification(`❌ Odrzucono: ${name}`, 'rejected');
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd odrzucania:', err);
@@ -2190,6 +2188,7 @@
                 return;
             }
 
+            // Pani – wykonaj od razu (bez blokady na ujemny bilans)
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2212,6 +2211,7 @@
             // CICHO – bez "Zapisano!"
             incrementBadge();
 
+            // Wysyłka powiadomienia push do Sługi (tylko raz)
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -2273,6 +2273,7 @@
                 return;
             }
 
+            // Pani – dodaje od razu
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
@@ -2295,6 +2296,7 @@
             window.closeCustomModal();
             incrementBadge();
             
+            // Wysyłka push (tylko raz)
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -2659,7 +2661,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.8';
+        const APP_VERSION = '1.1.9';
 
         window.checkForUpdate = async function() {
             try {
