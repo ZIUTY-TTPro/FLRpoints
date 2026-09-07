@@ -1995,7 +1995,7 @@
         // ============================================================
         // 5. FCM – POWIADOMIENIA PUSH (POPRAWIONA REJESTRACJA SW)
         // ============================================================
-        import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+        import { getMessaging, getToken, onMessage, onTokenRefresh } from 'firebase/messaging';
 
         const messaging = getMessaging(app);
         const VAPID_KEY = 'BJFcSy8ljJCtz4qwjJvh2EXXquh3gxYnaHKMVLbey_gZn_zCLDoQ16iP0NcBkjk-00crP_gVkYFEs0GoZfnZ5k8';
@@ -2056,6 +2056,20 @@
                 await setDoc(doc(db, 'users', userId), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
                 showToast('✅ Powiadomienia włączone');
+
+                // 🔥 Dodaj odświeżanie tokenu
+                onTokenRefresh(async () => {
+                    try {
+                        const newToken = await getToken(messaging, { vapidKey: VAPID_KEY });
+                        console.log('🔄 Odświeżono token:', newToken);
+                        const userId = getUserId();
+                        await setDoc(doc(db, 'users', userId), { fcmToken: newToken }, { merge: true });
+                        showToast('🔄 Odświeżono token powiadomień');
+                    } catch (err) {
+                        console.error('Błąd odświeżania tokenu:', err);
+                    }
+                });
+
             } catch (error) {
                 console.error('Błąd rejestracji tokenu:', error);
                 showToast('❌ Błąd rejestracji powiadomień. Spróbuj ponownie.');
@@ -2069,8 +2083,8 @@
         // ============================================================
         onMessage(messaging, (payload) => {
             console.log('📩 Powiadomienie w pierwszym planie:', payload);
-            const title = payload.data?.title || 'Nowe powiadomienie';
-            const body = payload.data?.body || '';
+            const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
+            const body = payload.data?.body || payload.notification?.body || '';
             showToast(`📩 ${title}: ${body}`);
         });
 
@@ -2084,10 +2098,8 @@
                     return;
                 }
 
-                // Określ docelową rolę (przeciwną)
                 const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
 
-                // Pobierz wszystkich użytkowników z Firestore
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 let targetUserId = null;
                 
@@ -2104,7 +2116,6 @@
                     return;
                 }
 
-                // 🔥 KONWERSJA data na STRINGI – Firebase wymaga stringów
                 const stringData = {};
                 if (data) {
                     Object.keys(data).forEach(key => {
@@ -2127,7 +2138,12 @@
                 });
                 
                 const result = await response.json();
-                if (result.success) {
+                if (response.status === 410) {
+                    // Token unieważniony – spróbuj ponownie zarejestrować
+                    console.warn('⚠️ Token partnera unieważniony – ponowna rejestracja');
+                    showToast('⚠️ Token partnera wygasł – spróbuj ponownie później');
+                    // Możesz też wywołać registerForNotifications() dla siebie
+                } else if (result.success) {
                     console.log('✅ Powiadomienie wysłane do:', targetUserId);
                 } else {
                     console.warn('❌ Błąd wysyłki:', result.error);
@@ -2162,7 +2178,7 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.1.1';
+        const APP_VERSION = '1.1.2';
 
         // Wyświetl wersję
         document.getElementById('app-version-text').textContent = APP_VERSION;
