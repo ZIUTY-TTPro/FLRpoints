@@ -9,13 +9,11 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
 
-    <!-- Google Font: Cinzel (FLR) -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE PODSTAWOWE (bez zmian) ===== */
+        /* ===== STYLE PODSTAWOWE ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -73,7 +71,7 @@
         .z-50 { z-index: 50; }
         .whitespace-nowrap { white-space: nowrap; }
         .border-dashed { border-style: dashed; }
-        .transition-collapse { transition: max-height 0.3s ease-in-out; overflow: hidden; max-height: 2000px; }
+        .transition-collapse { transition: max-height 0.3s ease-in-out; overflow: hidden; max-height: 5000px; }
         .transition-collapse.collapsed { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; }
         .rotate-180 { transform: rotate(180deg); }
         .transition-transform { transition: transform 0.3s ease; }
@@ -96,15 +94,9 @@
         .reward-item .name { font-size: 0.75rem; font-weight: 500; flex: 1; word-break: break-word; }
         .reward-item .cost { font-size: 0.7rem; font-weight: 600; color: #34d399; white-space: nowrap; flex-shrink: 0; }
         .rewards-empty { color: #71717a; font-size: 0.75rem; font-style: italic; padding: 0.25rem 0; }
-        .bg-emerald-950\/20 { background-color: rgba(5,46,22,0.2); }
-        .border-emerald-500\/30 { border-color: rgba(16,185,129,0.3); }
         .sort-btn { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
         .history-date { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #d4d4d8; }
-        #offline-banner { transition: all 0.3s ease; }
-        #role-modal .role-btn { transition: all 0.3s ease; }
-        #role-modal .role-btn:hover { transform: scale(1.02); }
         .app-version { font-size: 0.6rem; color: #71717a; text-align: center; padding: 4px 0; border-top: 1px solid #27272a; margin-top: 4px; }
-        .app-version span { color: #a1a1aa; font-weight: 600; }
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #27272a; }
         .setting-row:last-child { border-bottom: none; }
         .setting-label { font-size: 0.7rem; color: #a1a1aa; font-weight: 500; }
@@ -121,10 +113,8 @@
         .btn-sm:hover { background: #3f3f46; }
         .btn-sm.primary { background: #3f3f46; color: #e4e4e7; }
         .btn-sm.primary:hover { background: #52525b; }
-        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .pending-item { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 0.75rem; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; color: #d4d4d8; }
         .pending-item .name { font-size: 0.75rem; font-weight: 500; flex: 1; word-break: break-word; }
-        .pending-item .points-display { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
         .pending-item .actions { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
         .pending-item .actions button { background: #27272a; border: none; border-radius: 12px; color: #d4d4d8; padding: 2px 8px; font-size: 0.6rem; cursor: pointer; transition: background 0.2s; }
         .pending-item .actions button:hover { background: #3f3f46; }
@@ -140,159 +130,72 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== POWIADOMIENIA ===== */
         #notification-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: column-reverse;
-            align-items: flex-start;
-            gap: 0.3rem;
-            pointer-events: none;
-            z-index: 100;
-            max-height: 100vh;
-            overflow: hidden;
+            position: fixed; bottom: 0; left: 0; right: 0; padding: 0.5rem;
+            display: flex; flex-direction: column-reverse; align-items: flex-start;
+            gap: 0.3rem; pointer-events: none; z-index: 100; max-height: 100vh; overflow: hidden;
         }
         .notification-item {
-            background: #18181b;
-            border: 1px solid #27272a;
-            border-radius: 12px;
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #e4e4e7;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            max-width: 90%;
-            width: auto;
-            text-align: left;
-            animation: slideUp 0.3s ease-out;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            pointer-events: auto;
+            background: #18181b; border: 1px solid #27272a; border-radius: 12px;
+            padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 500; color: #e4e4e7;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); max-width: 90%; width: auto;
+            text-align: left; animation: slideUp 0.3s ease-out;
+            transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: auto;
         }
         .notification-item.approved { border-left: 4px solid #22c55e; }
         .notification-item.rejected { border-left: 4px solid #ef4444; }
         .notification-item.info { border-left: 4px solid #fbbf24; }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ===== KOMUNIKAT DLA PANI (WEWNĄTRZ KARTY Z MONETĄ) ===== */
         #mistress-message {
-            margin-top: 0.5rem;
-            padding: 0.75rem 1rem;
-            background: rgba(220, 38, 38, 0.08);
-            border: 1px solid rgba(220, 38, 38, 0.25);
-            border-radius: 1rem;
-            text-align: center;
-            font-family: 'Cinzel', serif;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #fca5a5;
-            letter-spacing: 0.02em;
-            line-height: 1.4;
-            min-height: 3rem;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            margin-top: 0.5rem; padding: 0.75rem 1rem;
+            background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.25);
+            border-radius: 1rem; text-align: center; font-family: 'Cinzel', serif;
+            font-size: 0.8rem; font-weight: 500; color: #fca5a5;
+            letter-spacing: 0.02em; line-height: 1.4; min-height: 3rem;
+            display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.5s ease;
         }
-        #mistress-message.show {
-            display: flex;
-            opacity: 1;
-        }
-        #mistress-message .quote-mark {
-            font-size: 1.2rem;
-            color: #dc2626;
-            margin: 0 0.2rem;
-        }
-        #mistress-message .heart {
-            color: #dc2626;
-            margin: 0 0.3rem;
-        }
-        #mistress-message .message-text {
-            font-style: italic;
-        }
+        #mistress-message.show { display: flex; opacity: 1; }
+        #mistress-message .quote-mark { font-size: 1.2rem; color: #dc2626; margin: 0 0.2rem; }
+        #mistress-message .heart { color: #dc2626; margin: 0 0.3rem; }
+        #mistress-message .message-text { font-style: italic; }
 
-        /* ===== ZAKŁADKI ===== */
+        /* ===== ZAKŁADKI – 5 przycisków, większe ikony ===== */
         .tabs-nav {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.25rem;
-            background: #18181b;
-            border-radius: 1rem;
-            padding: 0.25rem;
-            margin-bottom: 0.5rem;
-            border: 1px solid #27272a;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.25rem;
+            background: #18181b; border-radius: 1rem; padding: 0.25rem;
+            margin-bottom: 0.5rem; border: 1px solid #27272a;
         }
         .tab-btn {
-            background: transparent;
-            border: none;
-            color: #a1a1aa;
-            font-size: 0.55rem;
-            font-weight: 600;
-            padding: 0.5rem 0.2rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-            line-height: 1.2;
-            white-space: nowrap;
+            background: transparent; border: none; color: #a1a1aa;
+            font-size: 0.5rem; font-weight: 600; padding: 0.5rem 0.15rem;
+            border-radius: 0.75rem; cursor: pointer; transition: all 0.2s;
+            text-align: center; line-height: 1.15; white-space: nowrap;
         }
-        .tab-btn .tab-icon {
-            display: block;
-            font-size: 1rem;
-            margin-bottom: 0.1rem;
-        }
-        .tab-btn:hover {
-            color: #d4d4d8;
-            background: rgba(255,255,255,0.05);
-        }
-        .tab-btn.active {
-            background: #27272a;
-            color: #e4e4e7;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.25s ease;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .tab-btn .tab-icon { display: block; font-size: 1.4rem; margin-bottom: 0.15rem; }
+        .tab-btn:hover { color: #d4d4d8; background: rgba(255,255,255,0.05); }
+        .tab-btn.active { background: #27272a; color: #e4e4e7; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .tab-content { display: none; animation: fadeIn 0.25s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        @media (max-width: 480px) {
-            .tabs-nav { grid-template-columns: repeat(4, 1fr); }
-            .tab-btn { font-size: 0.5rem; padding: 0.3rem 0.1rem; }
-            .tab-btn .tab-icon { font-size: 0.9rem; }
-        }
-        @media (min-width: 481px) {
-            .tab-btn { font-size: 0.6rem; }
-            .tab-btn .tab-icon { font-size: 1.1rem; }
+        @media (max-width: 380px) {
+            .tab-btn { font-size: 0.45rem; padding: 0.4rem 0.1rem; }
+            .tab-btn .tab-icon { font-size: 1.2rem; }
         }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
 
-    <!-- KONTENER POWIADOMIEŃ -->
     <div id="notification-container"></div>
 
     <main class="w-full max-w-md p-4 flex flex-col gap-3">
 
-        <!-- Stan ładowania -->
         <div id="loading-indicator" class="text-center text-zinc-400 text-sm py-10">
             ⏳ Ładowanie danych...
         </div>
 
-        <!-- Główna treść -->
         <div id="main-content" class="hidden flex flex-col gap-3">
 
             <!-- BILANS + KOMUNIKAT DLA PANI -->
@@ -322,29 +225,29 @@
                     </g>
                 </svg>
                 <div id="mistress-message">
-                    <span class="heart">♥</span>
+                    <span class="quote-mark">❝</span>
                     <span class="message-text"></span>
+                    <span class="quote-mark">❞</span>
+                    <span class="heart">♥</span>
                 </div>
             </div>
 
-            <!-- ===== PASEK ZAKŁADEK ===== -->
+            <!-- ===== PASEK ZAKŁADEK (5) ===== -->
             <div class="tabs-nav" id="tabs-nav">
-                <button class="tab-btn active" data-tab="tab-pending"><span class="tab-icon">⏳</span> Oczekujące</button>
-                <button class="tab-btn" data-tab="tab-rewards"><span class="tab-icon">🎁</span> Przyjemności</button>
-                <button class="tab-btn" data-tab="tab-points"><span class="tab-icon">📊</span> Zarządzanie</button>
-                <button class="tab-btn" data-tab="tab-calendar"><span class="tab-icon">📅</span> Kalendarz</button>
-                <button class="tab-btn" data-tab="tab-catalog"><span class="tab-icon">📋</span> Katalog</button>
-                <button class="tab-btn" data-tab="tab-history"><span class="tab-icon">📜</span> Historia</button>
-                <button class="tab-btn" data-tab="tab-stats"><span class="tab-icon">📈</span> Statystyki</button>
-                <button class="tab-btn" data-tab="tab-settings"><span class="tab-icon">⚙️</span> Ustawienia</button>
+                <button class="tab-btn active" data-tab="tab-mistress"><span class="tab-icon">👑</span>Panel Pani</button>
+                <button class="tab-btn" data-tab="tab-catalog"><span class="tab-icon">📋</span>Katalog</button>
+                <button class="tab-btn" data-tab="tab-journal"><span class="tab-icon">📅</span>Dziennik</button>
+                <button class="tab-btn" data-tab="tab-stats"><span class="tab-icon">📈</span>Statystyki</button>
+                <button class="tab-btn" data-tab="tab-settings"><span class="tab-icon">⚙️</span>Ustawienia</button>
             </div>
 
             <!-- ===== KONTENER TREŚCI ZAKŁADEK ===== -->
             <div id="tab-container">
 
-                <!-- ZDARZENIA DO ZATWIERDZENIA -->
-                <section id="tab-pending" class="tab-content active">
-                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                <!-- ========== PANEL PANI = Oczekujące + Przyjemności ========== -->
+                <section id="tab-mistress" class="tab-content active">
+                    <!-- Zdarzenia do zatwierdzenia -->
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
                             <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
                             <button onclick="toggleCollapse('pending')" class="collapse-btn" id="collapse-btn-pending">
@@ -356,10 +259,8 @@
                             <div id="pending-empty" class="pending-empty">Brak oczekujących zdarzeń.</div>
                         </div>
                     </div>
-                </section>
 
-                <!-- DOZWOLONE PRZYJEMNOŚCI -->
-                <section id="tab-rewards" class="tab-content">
+                    <!-- Dozwolone przyjemności -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
                             <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
@@ -374,9 +275,10 @@
                     </div>
                 </section>
 
-                <!-- ZARZĄDZANIE PUNKTAMI -->
-                <section id="tab-points" class="tab-content">
-                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                <!-- ========== KATALOG = Zarządzanie + Katalog ========== -->
+                <section id="tab-catalog" class="tab-content">
+                    <!-- Zarządzanie punktami -->
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
                             <span class="section-title flr-ornament flr-title">Zarządzanie punktami</span>
                             <button onclick="toggleCollapse('points')" class="collapse-btn" id="collapse-btn-points">
@@ -399,11 +301,35 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Katalog zdarzeń -->
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                        <div class="section-header">
+                            <div class="flex items-center gap-2">
+                                <h2 class="section-title flr-ornament flr-title">Katalog Zdarzeń</h2>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
+                                <button onclick="toggleCollapse('catalog')" class="collapse-btn" id="collapse-btn-catalog">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="collapse-content-catalog" class="transition-collapse mt-2">
+                            <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
+                                <button onclick="switchCatalogTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
+                                <button onclick="switchCatalogTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
+                                <button onclick="switchCatalogTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
+                            </div>
+                            <div id="action-list" class="flex flex-col gap-2"></div>
+                        </div>
+                    </div>
                 </section>
 
-                <!-- KALENDARZ -->
-                <section id="tab-calendar" class="tab-content">
-                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
+                <!-- ========== DZIENNIK = Kalendarz + Historia ========== -->
+                <section id="tab-journal" class="tab-content">
+                    <!-- Kalendarz -->
+                    <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
                             <div class="flex items-center gap-2">
                                 <span class="section-title flr-ornament flr-title">Kalendarz</span>
@@ -433,35 +359,8 @@
                             </div>
                         </div>
                     </div>
-                </section>
 
-                <!-- KATALOG ZDARZEŃ -->
-                <section id="tab-catalog" class="tab-content">
-                    <div class="bg-card border border-bordercolor rounded-2xl p-4">
-                        <div class="section-header">
-                            <div class="flex items-center gap-2">
-                                <h2 class="section-title flr-ornament flr-title">Katalog Zdarzeń</h2>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="cycleSortMode()" id="sort-mode-btn" class="sort-btn bg-card border border-bordercolor px-2.5 py-1 rounded-lg transition-all hover:text-zinc-200">Sortowanie: Domyślne</button>
-                                <button onclick="toggleCollapse('catalog')" class="collapse-btn" id="collapse-btn-catalog">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div id="collapse-content-catalog" class="transition-collapse mt-2">
-                            <div class="flex gap-1 mb-3 bg-card p-1 rounded-xl border border-bordercolor">
-                                <button onclick="switchTab(0)" id="tab-0" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all bg-zinc-700 text-white shadow">Zarobek</button>
-                                <button onclick="switchTab(1)" id="tab-1" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Kary</button>
-                                <button onclick="switchTab(2)" id="tab-2" class="flex-1 text-xs font-bold py-2 rounded-lg transition-all text-zinc-400">Wykup</button>
-                            </div>
-                            <div id="action-list" class="flex flex-col gap-2"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- HISTORIA -->
-                <section id="tab-history" class="tab-content">
+                    <!-- Historia -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
                             <div class="flex items-center gap-2">
@@ -480,7 +379,7 @@
                     </div>
                 </section>
 
-                <!-- STATYSTYKI -->
+                <!-- ========== STATYSTYKI ========== -->
                 <section id="tab-stats" class="tab-content">
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
@@ -556,7 +455,7 @@
                     </div>
                 </section>
 
-                <!-- USTAWIENIA -->
+                <!-- ========== USTAWIENIA ========== -->
                 <section id="tab-settings" class="tab-content">
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
@@ -568,7 +467,7 @@
                         <div id="collapse-content-settings" class="transition-collapse mt-2">
                             <div class="setting-row">
                                 <span class="setting-label">📱 Wersja</span>
-                                <span class="setting-value" id="app-version-text">1.2.0</span>
+                                <span class="setting-value" id="app-version-text">1.3.0</span>
                             </div>
                             <div class="setting-row">
                                 <span class="setting-label">📡 Stan aplikacji</span>
@@ -617,11 +516,10 @@
                 </section>
 
             </div><!-- koniec tab-container -->
-
         </div><!-- koniec main-content -->
     </main>
 
-    <!-- MODALE (bez zmian) -->
+    <!-- MODALE -->
     <div id="custom-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 id="modal-title" class="text-sm font-bold text-zinc-200">Wprowadź punkty</h3>
@@ -692,7 +590,6 @@
 
     <div id="toast" class="hidden"></div>
 
-    <!-- Import map -->
     <script type="importmap">
         {
             "imports": {
@@ -708,7 +605,6 @@
         // 0. beforeinstallprompt
         // ============================================================
         let deferredPrompt = null;
-
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -726,24 +622,17 @@
                 <button id="close-install-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
             `;
             document.body.appendChild(banner);
-
             document.getElementById('install-btn').addEventListener('click', async () => {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        showNotification('Aplikacja zainstalowana! 🎉', 'info');
-                    } else {
-                        showNotification('Instalacja anulowana.', 'info');
-                    }
+                    if (outcome === 'accepted') showNotification('Aplikacja zainstalowana! 🎉', 'info');
+                    else showNotification('Instalacja anulowana.', 'info');
                     deferredPrompt = null;
                     banner.remove();
                 }
             });
-
-            document.getElementById('close-install-btn').addEventListener('click', () => {
-                banner.remove();
-            });
+            document.getElementById('close-install-btn').addEventListener('click', () => banner.remove());
         }
 
         // ============================================================
@@ -751,26 +640,14 @@
         // ============================================================
         let newEventsCount = 0;
         let isFirstSnapshot = true;
-
         function updateBadge() {
             if ('setAppBadge' in navigator) {
-                if (newEventsCount > 0) {
-                    navigator.setAppBadge(newEventsCount).catch(() => {});
-                } else {
-                    navigator.clearAppBadge().catch(() => {});
-                }
+                if (newEventsCount > 0) navigator.setAppBadge(newEventsCount).catch(() => {});
+                else navigator.clearAppBadge().catch(() => {});
             }
         }
-
-        function incrementBadge() {
-            newEventsCount++;
-            updateBadge();
-        }
-
-        function resetBadge() {
-            newEventsCount = 0;
-            updateBadge();
-        }
+        function incrementBadge() { newEventsCount++; updateBadge(); }
+        function resetBadge() { newEventsCount = 0; updateBadge(); }
 
         // ============================================================
         // 2. ZWIJANIE
@@ -779,10 +656,8 @@
             const content = document.getElementById(`collapse-content-${sectionId}`);
             const btn = document.getElementById(`collapse-btn-${sectionId}`);
             if (!content || !btn) return;
-
             const isCollapsed = content.classList.contains('collapsed');
             const svg = btn.querySelector('svg');
-            
             if (isCollapsed) {
                 content.classList.remove('collapsed');
                 if (svg) svg.classList.remove('rotate-180');
@@ -790,27 +665,7 @@
                 content.classList.add('collapsed');
                 if (svg) svg.classList.add('rotate-180');
             }
-            
-            localStorage.setItem(`flr_collapse_${sectionId}`, isCollapsed ? 'open' : 'collapsed');
         };
-
-        function loadCollapseStates() {
-            const sections = ['pending', 'rewards', 'points', 'calendar', 'catalog', 'history', 'stats', 'settings'];
-            sections.forEach(id => {
-                const content = document.getElementById(`collapse-content-${id}`);
-                const btn = document.getElementById(`collapse-btn-${id}`);
-                if (!content || !btn) return;
-                const state = localStorage.getItem(`flr_collapse_${id}`);
-                const svg = btn.querySelector('svg');
-                if (state === 'collapsed') {
-                    content.classList.add('collapsed');
-                    if (svg) svg.classList.add('rotate-180');
-                } else {
-                    content.classList.remove('collapsed');
-                    if (svg) svg.classList.remove('rotate-180');
-                }
-            });
-        }
 
         // ============================================================
         // 3. POMOCNICZE FUNKCJE DAT
@@ -822,12 +677,10 @@
             const day = String(d.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-
         function formatDateText(dateStr) {
             const parts = dateStr.split('-');
             return `${parts[2]}.${parts[1]}.${parts[0]}`;
         }
-
         function getWeekBoundsFromActiveDate(dateStr) {
             const date = new Date(dateStr);
             const dayOfWeek = date.getDay();
@@ -840,33 +693,16 @@
             end.setHours(23, 59, 59, 999);
             return { start, end };
         }
-
-        function getLocalDateFromStr(dateStr) {
-            return new Date(dateStr + 'T00:00:00');
-        }
+        function getLocalDateFromStr(dateStr) { return new Date(dateStr + 'T00:00:00'); }
 
         // ============================================================
         // 4. FIREBASE
         // ============================================================
         import { initializeApp } from 'firebase/app';
         import { 
-            initializeFirestore, 
-            doc, 
-            getDoc, 
-            setDoc, 
-            onSnapshot, 
-            runTransaction,
-            persistentLocalCache,
-            persistentMultipleTabManager,
-            getDocs,
-            collection,
-            deleteField,
-            addDoc,
-            query,
-            where,
-            orderBy,
-            updateDoc,
-            serverTimestamp,
+            initializeFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction,
+            persistentLocalCache, persistentMultipleTabManager, getDocs, collection,
+            deleteField, addDoc, query, where, orderBy, updateDoc, serverTimestamp,
             onSnapshot as onFirestoreSnapshot
         } from 'firebase/firestore';
 
@@ -881,15 +717,12 @@
 
         const app = initializeApp(firebaseConfig);
         const db = initializeFirestore(app, {
-            localCache: persistentLocalCache({
-                tabManager: persistentMultipleTabManager()
-            })
+            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
         });
         const docRef = doc(db, 'registry/shared');
         const pendingCollection = collection(db, 'pending_events');
         const notificationsCollection = collection(db, 'notifications');
 
-        // ----- UI STATUSU -----
         const statusDot = document.getElementById('connection-status-dot');
         const offlineBadge = document.getElementById('offline-badge');
         const appStatusText = document.getElementById('app-status-text');
@@ -901,85 +734,65 @@
             offlineBadge.classList.add('hidden');
             appStatusText.innerHTML = `<span class="status-dot online inline-block mr-1" style="width:8px;height:8px;"></span> Online`;
         }
-
         function setStatusOffline() {
             statusDot.className = 'status-dot offline';
             statusDot.title = 'Brak połączenia';
             offlineBadge.classList.remove('hidden');
             appStatusText.innerHTML = `<span class="status-dot offline inline-block mr-1" style="width:8px;height:8px;"></span> Offline`;
         }
-
         function setStatusConnecting() {
             statusDot.className = 'status-dot connecting';
             statusDot.title = 'Łączenie...';
             offlineBadge.classList.add('hidden');
             appStatusText.innerHTML = `<span class="status-dot connecting inline-block mr-1" style="width:8px;height:8px;"></span> Łączenie...`;
         }
-
         function setStatusPending() {
             statusDot.className = 'status-dot pending';
             statusDot.title = 'Oczekiwanie na synchronizację';
             offlineBadge.classList.remove('hidden');
             appStatusText.innerHTML = `<span class="status-dot pending inline-block mr-1" style="width:8px;height:8px;"></span> Oczekiwanie...`;
         }
-
         function updateRoleIcon(role) {
-            if (role === 'mistress') {
-                roleIcon.textContent = '👠';
-            } else if (role === 'slave') {
-                roleIcon.textContent = '🔐';
-            } else {
-                roleIcon.textContent = '👤';
-            }
+            if (role === 'mistress') roleIcon.textContent = '👠';
+            else if (role === 'slave') roleIcon.textContent = '🔐';
+            else roleIcon.textContent = '👤';
         }
 
         // ----- SŁOWNIK DOMYŚLNY -----
         const originalDictionary = [
-            {
-                group: "Zarobek (+)",
-                type: "positive",
-                items: [
-                    { name: "Masaż stóp", points: 5, basePoints: 5 },
-                    { name: "Mycie naczyń", points: 5, basePoints: 5 },
-                    { name: "Dzień w pasie cnoty", points: 10, basePoints: 10 },
-                    { name: "Wywieszenie prania", points: 10, basePoints: 10 },
-                    { name: "Złożenie prania", points: 10, basePoints: 10 },
-                    { name: "Prasowanie", points: 10, basePoints: 10 },
-                    { name: "Zadanie wykonał w bieliźnie", points: 10, basePoints: 10 },
-                    { name: "Zadanie wykonał nago", points: 15, basePoints: 15 },
-                    { name: "Masaż pleców", points: 15, basePoints: 15 },
-                    { name: "Obiad", points: 25, basePoints: 25 },
-                    { name: "Sprzątanie domu", points: 25, basePoints: 25 },
-                    { name: "Zlizanie nasienia", points: 25, basePoints: 25 },
-                    { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25, basePoints: 25 },
-                    { name: "Orgazm dla żony", points: 50, basePoints: 50 }
-                ]
-            },
-            {
-                group: "Kary (-)",
-                type: "negative",
-                items: [
-                    { name: "Marudzenie", points: -20, basePoints: -20 },
-                    { name: "Złe zachowanie", points: -50, basePoints: -50 },
-                    { name: "Pyskowanie", points: -100, basePoints: -100 },
-                    { name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150, basePoints: -150 },
-                    { name: "Dojście bez pozwolenia", points: -500, basePoints: -500 }
-                ]
-            },
-            {
-                group: "Wykup (-)",
-                type: "negative",
-                items: [
-                    { name: "Masturbacja bez obecności żony bez orgazmu", points: -100, basePoints: -100 },
-                    { name: "Orgazm zrujnowany", points: -150, basePoints: -150 },
-                    { name: "Orgazm w gumce", points: -250, basePoints: -250 },
-                    { name: "Baty", points: -250, basePoints: -250 },
-                    { name: "Orgazm na stopy", points: -300, basePoints: -300 },
-                    { name: "Orgazm na dłoń", points: -300, basePoints: -300 },
-                    { name: "Masturbacja nago przed ubraną żoną", points: -350, basePoints: -350 },
-                    { name: "Lodzik", points: -500, basePoints: -500 }
-                ]
-            }
+            { group: "Zarobek (+)", type: "positive", items: [
+                { name: "Masaż stóp", points: 5, basePoints: 5 },
+                { name: "Mycie naczyń", points: 5, basePoints: 5 },
+                { name: "Dzień w pasie cnoty", points: 10, basePoints: 10 },
+                { name: "Wywieszenie prania", points: 10, basePoints: 10 },
+                { name: "Złożenie prania", points: 10, basePoints: 10 },
+                { name: "Prasowanie", points: 10, basePoints: 10 },
+                { name: "Zadanie wykonał w bieliźnie", points: 10, basePoints: 10 },
+                { name: "Zadanie wykonał nago", points: 15, basePoints: 15 },
+                { name: "Masaż pleców", points: 15, basePoints: 15 },
+                { name: "Obiad", points: 25, basePoints: 25 },
+                { name: "Sprzątanie domu", points: 25, basePoints: 25 },
+                { name: "Zlizanie nasienia", points: 25, basePoints: 25 },
+                { name: "Pieszczoty przed snem Piers/Cipka/Stopy/Dupka", points: 25, basePoints: 25 },
+                { name: "Orgazm dla żony", points: 50, basePoints: 50 }
+            ]},
+            { group: "Kary (-)", type: "negative", items: [
+                { name: "Marudzenie", points: -20, basePoints: -20 },
+                { name: "Złe zachowanie", points: -50, basePoints: -50 },
+                { name: "Pyskowanie", points: -100, basePoints: -100 },
+                { name: "Brak orgazmu dla żony w ciągu 10 dni", points: -150, basePoints: -150 },
+                { name: "Dojście bez pozwolenia", points: -500, basePoints: -500 }
+            ]},
+            { group: "Wykup (-)", type: "negative", items: [
+                { name: "Masturbacja bez obecności żony bez orgazmu", points: -100, basePoints: -100 },
+                { name: "Orgazm zrujnowany", points: -150, basePoints: -150 },
+                { name: "Orgazm w gumce", points: -250, basePoints: -250 },
+                { name: "Baty", points: -250, basePoints: -250 },
+                { name: "Orgazm na stopy", points: -300, basePoints: -300 },
+                { name: "Orgazm na dłoń", points: -300, basePoints: -300 },
+                { name: "Masturbacja nago przed ubraną żoną", points: -350, basePoints: -350 },
+                { name: "Lodzik", points: -500, basePoints: -500 }
+            ]}
         ];
 
         // ----- STAN APLIKACJI -----
@@ -1005,7 +818,6 @@
         let userId = null;
         let notificationTimers = {};
 
-        // ----- REFERENCJE DOM -----
         const loadingIndicator = document.getElementById('loading-indicator');
         const mainContent = document.getElementById('main-content');
 
@@ -1014,44 +826,31 @@
         // ============================================================
         function showNotification(text, type = 'info') {
             const container = document.getElementById('notification-container');
-            
             const existing = container.querySelectorAll('.notification-item');
             for (const el of existing) {
                 if (el.textContent === text) {
                     const timerId = el.dataset.timerId;
-                    if (timerId && notificationTimers[timerId]) {
-                        clearTimeout(notificationTimers[timerId]);
-                    }
+                    if (timerId && notificationTimers[timerId]) clearTimeout(notificationTimers[timerId]);
                     const newTimerId = Date.now() + '_' + Math.random().toString(36).substr(2, 4);
                     el.dataset.timerId = newTimerId;
                     notificationTimers[newTimerId] = setTimeout(() => {
                         el.style.opacity = '0';
                         el.style.transform = 'translateY(10px)';
-                        setTimeout(() => {
-                            el.remove();
-                            delete notificationTimers[newTimerId];
-                        }, 300);
+                        setTimeout(() => { el.remove(); delete notificationTimers[newTimerId]; }, 300);
                     }, 5000);
                     return;
                 }
             }
-
             const el = document.createElement('div');
             el.className = `notification-item ${type}`;
             el.textContent = text;
-            
             const timerId = Date.now() + '_' + Math.random().toString(36).substr(2, 4);
             el.dataset.timerId = timerId;
-            
             container.appendChild(el);
-            
             notificationTimers[timerId] = setTimeout(() => {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(10px)';
-                setTimeout(() => {
-                    el.remove();
-                    delete notificationTimers[timerId];
-                }, 300);
+                setTimeout(() => { el.remove(); delete notificationTimers[timerId]; }, 300);
             }, 5000);
         }
 
@@ -1060,20 +859,15 @@
         // ============================================================
         const mistressMessages = [
             "Pamiętaj – to Ty decydujesz, kiedy i czy Sługa zasługuje na nagrodę.",
-			"To Ty ustalasz reguły tej gry. On jest tu tylko po to, by ich przestrzegać.",
             "Sługa ma być posłuszny, a nie oczekiwać. Czas na małe otrzeźwienie.",
             "Twoja surowość czyni go lepszym – nie bój się wymagać więcej.",
             "Im trudniej, tym większa satysfakcja – zarówno Twoja, jak i jego.",
-			"Władza to brak pośpiechu. Zmuś go, by czekał na Twoją decyzję.",
             "Poniż go i nakarm jego uległość – to buduje więź.",
             "Czy piesek całował dziś Twoje stopy? Jeśli nie, czas to zmienić.",
             "Idzie weekend – penis w pas cnoty. Niech pamięta, kto rządzi.",
-			"Odmowa to najbardziej podniecająca odpowiedź. Używaj jej częściej.",
-			"Niech pragnie i czeka. Czekanie wyostrza uległość.",
             "Niech masuje, aż mu spuchną paluchy – wtedy dopiero poczuje, co to służba.",
             "Puszcz sobie film, a Sługa niech klęczy u Twoich stóp – to jego miejsce.",
             "Jego orgazm to historia – Twoja przyjemność to teraźniejszość.",
-			"Niech wie, że jego orgazm należy w 100% do Ciebie. Może za miesiąc?",
             "Idź spać, a Sługa niech prasuje – rano ma być wszystko gotowe.",
             "Nie pójdzie spać, dopóki nie skończy zadania – dyscyplina przede wszystkim.",
             "Sługa ma prawo marzyć, ale Ty masz prawo decydować, czy jego marzenia się spełnią.",
@@ -1082,10 +876,8 @@
             "Sługa od tygodnia nie dostał kary – czas na małą lekcję pokory.",
             "Zbyt długo był grzeczny – to podejrzane. Zadbaj o dyscyplinę.",
             "Kara to nie zemsta – to trening. Nie odkładaj jej na później.",
-			"Napoje, masaż, sprzątanie – co dzisiaj zrobi dla swojej Pani?",
             "Jeśli nie karzesz, to znaczy, że akceptujesz – a czy na pewno chcesz to robić?",
             "Punktów przybywa, ale czy naprawdę na nie zasłużył? Może za dużo dajesz za proste zadania.",
-			"Zauważyłaś małe potknięcie? Nie pobłażaj. Kara utrzymuje go w pionie.",
             "Ostatnie zarobki były zbyt hojne – czas na obcięcie stawki. Niech się postara!",
             "Sługa myśli, że ma łatwo? Zmień kryteria – niech każdy punkt kosztuje go wysiłek.",
             "Czy aby na pewno każda czynność zasługuje na punkty? Bądź bardziej oszczędna w nagradzaniu.",
@@ -1093,11 +885,9 @@
             "Przypomnij Słudze, że to Ty rozdajesz karty – nawet jeśli ma punkty, możesz mu odmówić.",
             "Ostatni wykup był za łatwy – następnym razem powiedz NIE. Niech poczeka i pragnie.",
             "Przyjemność to przywilej, a nie prawo. Odmawiaj częściej – doceni to bardziej.",
-			"Pobłażliwość psuje Sługę. Surowość czyni go szczęśliwym.",
             "Sługa zaczyna być zbyt pewny siebie – czas na niespodziewane utrudnienie.",
             "Spójrz na historię – czy ostatnio nie byłaś zbyt miła? Wróć do surowszego stylu.",
             "Twoja rola to nie tylko nagradzanie – to także kształtowanie charakteru. Bądź stanowcza.",
-			"Punkty to tylko cyfry – Ty decydujesz, czy pozwolisz mu je zrealizować.",
             "Sługa uwielbia, gdy jesteś nieprzewidywalna – zaskocz go odmową lub karą.",
             "Niech poczuje smak porażki – to go wzmocni.",
             "Bądź dla niego twarda, ale sprawiedliwa – wtedy będzie Ci wdzięczny.",
@@ -1124,48 +914,31 @@
             }
             const textSpan = msgContainer.querySelector('.message-text');
             if (textSpan) textSpan.textContent = msg;
-            setTimeout(() => {
-                msgContainer.classList.add('show');
-            }, 100);
+            setTimeout(() => msgContainer.classList.add('show'), 100);
         }
 
-        // ============================================================
-        // AKTUALIZACJA BILANSU
-        // ============================================================
         function updateBalanceOnIcon() {
             const balanceEl = document.getElementById('balance-on-icon');
             const coinSvg = document.getElementById('balance-coin-svg');
-            if (balanceEl) {
-                balanceEl.textContent = balance;
-            }
+            if (balanceEl) balanceEl.textContent = balance;
             if (coinSvg) {
-                if (balance > 0) {
-                    coinSvg.classList.add('glow-coin-positive');
-                } else {
-                    coinSvg.classList.remove('glow-coin-positive');
-                }
+                if (balance > 0) coinSvg.classList.add('glow-coin-positive');
+                else coinSvg.classList.remove('glow-coin-positive');
             }
         }
 
         // ============================================================
-        // ZARZĄDZANIE BACKUPEM I SYNCHRONIZACJĄ
+        // BACKUP I SYNCHRONIZACJA
         // ============================================================
         function saveToLocalBackup() {
             const dataObj = {
-                balance,
-                history: historyEntries,
-                activeReduction,
-                dictionary: eventDictionary,
-                sortModes: sortModes,
-                _version: localVersion,
-                _timestamp: Date.now(),
+                balance, history: historyEntries, activeReduction,
+                dictionary: eventDictionary, sortModes: sortModes,
+                _version: localVersion, _timestamp: Date.now(),
                 pendingEvents: pendingEvents
             };
-            try {
-                localStorage.setItem('flr_backup', JSON.stringify(dataObj));
-            } catch (e) {
-                console.warn('Nie udało się zapisać backupu lokalnego', e);
-            }
+            try { localStorage.setItem('flr_backup', JSON.stringify(dataObj)); }
+            catch (e) { console.warn('Nie udało się zapisać backupu lokalnego', e); }
         }
 
         function loadFromLocalBackup() {
@@ -1173,10 +946,7 @@
                 const raw = localStorage.getItem('flr_backup');
                 if (!raw) return null;
                 const data = JSON.parse(raw);
-                if (typeof data.balance !== 'number' || !Array.isArray(data.history) || !data.dictionary) {
-                    console.warn('Backup ma niekompletną strukturę');
-                    return null;
-                }
+                if (typeof data.balance !== 'number' || !Array.isArray(data.history) || !data.dictionary) return null;
                 data.dictionary = data.dictionary.map(group => ({
                     ...group,
                     items: group.items.map(item => ({
@@ -1185,59 +955,39 @@
                     }))
                 }));
                 return data;
-            } catch (e) {
-                console.warn('Błąd odczytu backupu', e);
-                return null;
-            }
+            } catch (e) { console.warn('Błąd odczytu backupu', e); return null; }
         }
 
         function setPendingFlag(flag) {
             pendingSync = flag;
             localStorage.setItem('flr_pending', flag ? 'true' : 'false');
-            if (flag) {
-                setStatusPending();
-            } else {
-                if (navigator.onLine) {
-                    setStatusOnline();
-                } else {
-                    setStatusOffline();
-                }
-            }
+            if (flag) setStatusPending();
+            else if (navigator.onLine) setStatusOnline();
+            else setStatusOffline();
         }
 
-        function getPendingFlag() {
-            return localStorage.getItem('flr_pending') === 'true';
-        }
+        function getPendingFlag() { return localStorage.getItem('flr_pending') === 'true'; }
 
         async function saveDataToFirestore() {
             localVersion++;
             const dataObj = {
-                balance,
-                history: historyEntries,
-                activeReduction,
-                dictionary: eventDictionary,
-                sortModes: sortModes,
-                _version: localVersion,
-                _timestamp: Date.now()
+                balance, history: historyEntries, activeReduction,
+                dictionary: eventDictionary, sortModes: sortModes,
+                _version: localVersion, _timestamp: Date.now()
             };
-
             saveToLocalBackup();
-
             if (!navigator.onLine) {
                 setPendingFlag(true);
                 showNotification('📡 Brak połączenia – zmiany zapisane lokalnie', 'info');
                 return;
             }
-
             isLocalUpdate = true;
             try {
                 await runTransaction(db, async (transaction) => {
                     const docSnap = await transaction.get(docRef);
                     if (docSnap.exists()) {
                         const remoteVersion = docSnap.data()._version || 0;
-                        if (remoteVersion > localVersion) {
-                            throw new Error('Ktoś inny zmienił dane. Odśwież stronę.');
-                        }
+                        if (remoteVersion > localVersion) throw new Error('Ktoś inny zmienił dane. Odśwież stronę.');
                     }
                     transaction.set(docRef, dataObj);
                 });
@@ -1259,12 +1009,8 @@
                     showNotification('⚠️ ' + err.message, 'info');
                     try {
                         const snap = await getDoc(docRef);
-                        if (snap.exists()) {
-                            updateStateFromFirestore(snap.data(), true);
-                        }
-                    } catch (e) {
-                        console.warn('Nie udało się odświeżyć danych', e);
-                    }
+                        if (snap.exists()) updateStateFromFirestore(snap.data(), true);
+                    } catch (e) { console.warn('Nie udało się odświeżyć danych', e); }
                 } else {
                     console.error("Błąd zapisu:", err);
                     setPendingFlag(true);
@@ -1275,15 +1021,9 @@
         }
 
         async function syncPendingChanges() {
-            if (!getPendingFlag()) return;
-            if (!navigator.onLine) return;
-
+            if (!getPendingFlag() || !navigator.onLine) return;
             const backup = loadFromLocalBackup();
-            if (!backup) {
-                setPendingFlag(false);
-                return;
-            }
-
+            if (!backup) { setPendingFlag(false); return; }
             try {
                 const snap = await getDoc(docRef);
                 if (snap.exists()) {
@@ -1296,19 +1036,14 @@
                         return;
                     }
                 }
-            } catch (err) {
-                console.warn('Nie udało się sprawdzić wersji przed synchronizacją', err);
-            }
-
+            } catch (err) { console.warn('Nie udało się sprawdzić wersji', err); }
             isLocalUpdate = true;
             try {
                 await runTransaction(db, async (transaction) => {
                     const docSnap = await transaction.get(docRef);
                     if (docSnap.exists()) {
                         const remoteVersion = docSnap.data()._version || 0;
-                        if (remoteVersion > backup._version) {
-                            throw new Error('Ktoś inny zmienił dane podczas synchronizacji.');
-                        }
+                        if (remoteVersion > backup._version) throw new Error('Ktoś inny zmienił dane podczas synchronizacji.');
                     }
                     transaction.set(docRef, backup);
                 });
@@ -1322,16 +1057,12 @@
                     showNotification('⚠️ ' + err.message + ' Odśwież stronę.', 'info');
                     try {
                         const snap = await getDoc(docRef);
-                        if (snap.exists()) {
-                            updateStateFromFirestore(snap.data(), true);
-                        }
-                    } catch (e) {
-                        console.warn('Nie udało się odświeżyć danych', e);
-                    }
+                        if (snap.exists()) updateStateFromFirestore(snap.data(), true);
+                    } catch (e) {}
                 } else {
                     console.error('Błąd synchronizacji:', err);
                     setStatusOffline();
-                    showNotification('❌ Błąd synchronizacji – spróbuj ponownie później', 'info');
+                    showNotification('❌ Błąd synchronizacji', 'info');
                 }
             }
         }
@@ -1341,27 +1072,20 @@
             syncPendingChanges().then(() => {
                 if (!getPendingFlag()) {
                     getDoc(docRef).then(snap => {
-                        if (snap.exists()) {
-                            updateStateFromFirestore(snap.data());
-                        }
+                        if (snap.exists()) updateStateFromFirestore(snap.data());
                     }).catch(() => {});
                 }
             });
         });
-
         window.addEventListener('offline', () => {
             setStatusOffline();
             showNotification('📡 Brak połączenia – zmiany będą zapisywane lokalnie', 'info');
         });
 
-        // ----- AKTUALIZACJA STANU -----
         function updateStateFromFirestore(data, force = false) {
             if (!data) return;
             const incomingVersion = data._version || 0;
-            if (!force && incomingVersion <= localVersion && localVersion > 0) {
-                return;
-            }
-
+            if (!force && incomingVersion <= localVersion && localVersion > 0) return;
             balance = data.balance ?? 0;
             historyEntries = data.history ?? [];
             activeReduction = data.activeReduction ?? null;
@@ -1379,9 +1103,7 @@
             }
             localVersion = incomingVersion;
             saveToLocalBackup();
-            if (!getPendingFlag()) {
-                setPendingFlag(false);
-            }
+            if (!getPendingFlag()) setPendingFlag(false);
             updateUI();
             setStatusOnline();
         }
@@ -1404,22 +1126,15 @@
                         updateDoc(doc.ref, { read: true }).catch(() => {});
                     }
                 });
-            }, (err) => {
-                console.warn('Błąd nasłuchu powiadomień:', err);
-            });
+            }, (err) => console.warn('Błąd nasłuchu powiadomień:', err));
         }
 
         async function sendNotification(targetUserId, message) {
             try {
                 await addDoc(notificationsCollection, {
-                    targetUserId: targetUserId,
-                    message: message,
-                    createdAt: serverTimestamp(),
-                    read: false
+                    targetUserId, message, createdAt: serverTimestamp(), read: false
                 });
-            } catch (err) {
-                console.warn('Nie udało się wysłać powiadomienia wewnętrznego:', err);
-            }
+            } catch (err) { console.warn('Nie udało się wysłać powiadomienia wewnętrznego:', err); }
         }
 
         // ============================================================
@@ -1429,41 +1144,33 @@
             const list = document.getElementById('pending-list');
             const empty = document.getElementById('pending-empty');
             list.innerHTML = '';
-
             if (!pendingEvents || pendingEvents.length === 0) {
                 empty.classList.remove('hidden');
                 return;
             }
             empty.classList.add('hidden');
-
             const role = getRole();
             const isMistress = role === 'mistress';
-
             pendingEvents.forEach(event => {
                 const div = document.createElement('div');
                 div.className = 'pending-item';
-
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'name';
                 nameSpan.textContent = event.name || 'Brak nazwy';
-
                 const actions = document.createElement('div');
                 actions.className = 'actions';
-
                 if (isMistress) {
                     if (event.source === 'catalog') {
                         const pointsDisplay = document.createElement('span');
                         pointsDisplay.className = 'points-static';
                         pointsDisplay.textContent = `${event.points || 0} pkt`;
                         actions.appendChild(pointsDisplay);
-
                         const approveBtn = document.createElement('button');
                         approveBtn.className = 'approve';
                         approveBtn.textContent = '✅';
                         approveBtn.title = 'Zatwierdź';
                         approveBtn.onclick = () => approvePendingEvent(event.id, event.points, event.source);
                         actions.appendChild(approveBtn);
-
                         const rejectBtn = document.createElement('button');
                         rejectBtn.className = 'reject';
                         rejectBtn.textContent = '❌';
@@ -1478,14 +1185,12 @@
                         pointsInput.value = event.points || '';
                         pointsInput.dataset.eventId = event.id;
                         actions.appendChild(pointsInput);
-
                         const approveBtn = document.createElement('button');
                         approveBtn.className = 'approve';
                         approveBtn.textContent = '✅';
                         approveBtn.title = 'Zatwierdź i dodaj do katalogu';
                         approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value, event.source);
                         actions.appendChild(approveBtn);
-
                         const rejectBtn = document.createElement('button');
                         rejectBtn.className = 'reject';
                         rejectBtn.textContent = '❌';
@@ -1501,20 +1206,19 @@
                     deleteBtn.onclick = () => deletePendingEvent(event.id);
                     actions.appendChild(deleteBtn);
                 }
-
                 div.appendChild(nameSpan);
                 div.appendChild(actions);
                 list.appendChild(div);
             });
         }
 
+        // ⭐ DODANO pole date – data dodania (do historii wędruje z tą datą)
         async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
             const role = getRole();
             if (role !== 'slave') {
                 showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
                 return;
             }
-
             try {
                 const uid = getUserId();
                 await addDoc(pendingCollection, {
@@ -1522,6 +1226,7 @@
                     points: points,
                     proposedBy: uid,
                     proposedAt: serverTimestamp(),
+                    date: activeDate,           // ⭐ data dodania
                     status: 'waiting',
                     source: source,
                     type: source === 'catalog' ? 'existing' : 'new',
@@ -1540,13 +1245,11 @@
                 showNotification('⚠️ Tylko Pani może zatwierdzać.', 'info');
                 return;
             }
-
             let points = parseInt(pointsStr, 10);
             if (isNaN(points)) {
                 showNotification('⚠️ Podaj poprawną liczbę punktów.', 'info');
                 return;
             }
-
             try {
                 const eventRef = doc(db, 'pending_events', eventId);
                 const eventSnap = await getDoc(eventRef);
@@ -1558,6 +1261,8 @@
                 const name = eventData.name || 'Zdarzenie';
                 const proposedBy = eventData.proposedBy;
                 const tabIndex = eventData.tabIndex !== undefined ? eventData.tabIndex : 0;
+                // ⭐ Użyj daty dodania, nie daty zatwierdzenia
+                const eventDate = eventData.date || activeDate;
 
                 if ((tabIndex === 1 || tabIndex === 2) && points > 0) {
                     points = -Math.abs(points);
@@ -1567,7 +1272,6 @@
 
                 const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
                 await sendNotification(getUserId(), mistressMsg);
-
                 if (proposedBy) {
                     const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
                     await sendNotification(proposedBy, slaveMsg);
@@ -1592,11 +1296,12 @@
                         showNotification(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`, 'info');
                     }
                 } else {
+                    // ⭐ Zapisujemy z datą DODANIA (eventDate), nie z activeDate
                     const entry = {
                         id: Date.now().toString(),
                         name: name,
                         points: points,
-                        date: activeDate,
+                        date: eventDate,
                         type: points > 0 ? 'earn' : (points < 0 ? (tabIndex === 2 ? 'buy' : 'pen') : 'earn'),
                     };
                     balance += points;
@@ -1618,7 +1323,6 @@
                 showNotification('⚠️ Tylko Pani może odrzucać.', 'info');
                 return;
             }
-
             try {
                 const eventRef = doc(db, 'pending_events', eventId);
                 const eventSnap = await getDoc(eventRef);
@@ -1629,17 +1333,13 @@
                 const eventData = eventSnap.data();
                 const name = eventData.name || 'Zdarzenie';
                 const proposedBy = eventData.proposedBy;
-
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
-
                 const mistressMsg = `❌ Odrzuciłaś: ${name}`;
                 await sendNotification(getUserId(), mistressMsg);
-
                 if (proposedBy) {
                     const slaveMsg = `❌ Pani odrzuciła: ${name}`;
                     await sendNotification(proposedBy, slaveMsg);
                 }
-
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd odrzucania:', err);
@@ -1653,9 +1353,7 @@
                 showNotification('⚠️ Tylko Sługa może anulować swoje propozycje.', 'info');
                 return;
             }
-
             if (!confirm('Czy na pewno chcesz anulować tę propozycję?')) return;
-
             try {
                 const eventRef = doc(db, 'pending_events', eventId);
                 await updateDoc(eventRef, { status: 'cancelled', resolved: true });
@@ -1671,15 +1369,11 @@
             const q = query(pendingCollection, where('status', '==', 'waiting'));
             onFirestoreSnapshot(q, (snapshot) => {
                 const events = [];
-                snapshot.forEach(doc => {
-                    events.push({ id: doc.id, ...doc.data() });
-                });
+                snapshot.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
                 pendingEvents = events;
                 renderPendingEvents();
                 saveToLocalBackup();
-            }, (err) => {
-                console.error('Błąd nasłuchu pending:', err);
-            });
+            }, (err) => console.error('Błąd nasłuchu pending:', err));
         }
 
         // ============================================================
@@ -1690,67 +1384,50 @@
             const label = document.getElementById('calendar-month-year');
             const activeText = document.getElementById('active-date-text');
             grid.innerHTML = '';
-
             const monthsNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
             label.innerText = `${monthsNames[calendarMonth]} ${calendarYear}`;
             activeText.innerText = formatDateText(activeDate);
-
             const firstDayIndex = new Date(calendarYear, calendarMonth, 1).getDay();
             const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
             const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-
-            for (let i = 0; i < adjustedFirstDay; i++) {
-                grid.appendChild(document.createElement('div'));
-            }
-
+            for (let i = 0; i < adjustedFirstDay; i++) grid.appendChild(document.createElement('div'));
             const todayStr = getLocalDateString(new Date());
-
             for (let day = 1; day <= totalDays; day++) {
                 const monthStr = String(calendarMonth + 1).padStart(2, '0');
                 const dayStr = String(day).padStart(2, '0');
                 const dateStr = `${calendarYear}-${monthStr}-${dayStr}`;
-
                 const isSelected = dateStr === activeDate;
                 const isToday = dateStr === todayStr;
-
                 const btn = document.createElement('button');
                 btn.className = `h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center click-anim ${
                     isSelected ? 'bg-zinc-100 text-zinc-950 shadow' : isToday ? 'border border-zinc-500 text-zinc-200' : 'text-zinc-400 hover:bg-zinc-800'
                 }`;
                 btn.innerText = day;
-                btn.onclick = () => {
-                    activeDate = dateStr;
-                    updateUI();
-                };
+                btn.onclick = () => { activeDate = dateStr; updateUI(); };
                 grid.appendChild(btn);
             }
         }
 
-        // ----- RENDEROWANIE KATALOGU -----
+        // ============================================================
+        // RENDEROWANIE KATALOGU
+        // ============================================================
         function createActionRow(item, renderIdx, totalItems, actionLabel, isNegative, pointColor, affordabilityClass, sortMode, tabIdx, group, balance) {
             const row = document.createElement('div');
             row.className = `flex items-center justify-between p-3 rounded-xl border transition-all relative ${affordabilityClass}`;
-
             const sign = item.points > 0 ? '+' : '';
-
             const leftDiv = document.createElement('div');
             leftDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer pr-2';
             leftDiv.onclick = () => window.tryExecuteEvent(item.name, item.points);
-
             const pointsSpan = document.createElement('span');
             pointsSpan.className = `${pointColor} font-black text-xs min-w-[36px]`;
             pointsSpan.textContent = `${sign}${item.points}`;
-
             const nameSpan = document.createElement('span');
             nameSpan.className = 'text-xs font-medium text-zinc-200';
             nameSpan.textContent = item.name;
-
             leftDiv.appendChild(pointsSpan);
             leftDiv.appendChild(nameSpan);
-
             const rightDiv = document.createElement('div');
             rightDiv.className = 'flex items-center gap-1.5';
-
             if (sortMode === 0) {
                 const upBtn = document.createElement('button');
                 upBtn.className = renderIdx === 0 ? 'text-zinc-700 cursor-not-allowed text-xs px-0.5' : 'text-zinc-400 hover:text-zinc-200 text-xs px-0.5';
@@ -1759,7 +1436,6 @@
                 upBtn.disabled = renderIdx === 0;
                 upBtn.onclick = () => window.moveItem(item.originalIndex, -1);
                 rightDiv.appendChild(upBtn);
-
                 const downBtn = document.createElement('button');
                 downBtn.className = renderIdx === totalItems - 1 ? 'text-zinc-700 cursor-not-allowed text-xs px-0.5' : 'text-zinc-400 hover:text-zinc-200 text-xs px-0.5';
                 downBtn.textContent = '▼';
@@ -1768,28 +1444,23 @@
                 downBtn.onclick = () => window.moveItem(item.originalIndex, 1);
                 rightDiv.appendChild(downBtn);
             }
-
             const actionBtn = document.createElement('button');
             actionBtn.className = 'text-[10px] bg-zinc-800 hover:bg-zinc-700 px-2.5 py-1 rounded-lg text-zinc-300 font-medium click-anim ml-1';
             actionBtn.textContent = actionLabel;
             actionBtn.onclick = () => window.tryExecuteEvent(item.name, item.points);
-
             const editBtn = document.createElement('button');
             editBtn.className = 'text-zinc-500 hover:text-zinc-300 text-xs px-1';
             editBtn.textContent = '✏️';
             editBtn.title = 'Edytuj';
             editBtn.onclick = () => window.openEditCatalogModal(tabIdx, item.originalIndex);
-
             const delBtn = document.createElement('button');
             delBtn.className = 'text-zinc-500 hover:text-red-400 text-xs px-1';
             delBtn.textContent = '✕';
             delBtn.title = 'Usuń z katalogu';
             delBtn.onclick = () => window.deleteCatalogItem(tabIdx, item.originalIndex);
-
             rightDiv.appendChild(actionBtn);
             rightDiv.appendChild(editBtn);
             rightDiv.appendChild(delBtn);
-
             row.appendChild(leftDiv);
             row.appendChild(rightDiv);
             return row;
@@ -1798,51 +1469,30 @@
         function renderActions() {
             const listContainer = document.getElementById('action-list');
             listContainer.innerHTML = '';
-
             const group = eventDictionary[currentTab];
             const isNegative = group.type === 'negative';
-
             let actionLabel = "+ Dodaj";
             if (currentTab === 1) actionLabel = "- zabierz";
             else if (currentTab === 2) actionLabel = "- kup";
-
             const sortMode = sortModes[currentTab] || 0;
             updateSortButtonLabel(sortMode);
-
             let itemsToRender = group.items.map((item, idx) => ({ ...item, originalIndex: idx }));
-
-            if (sortMode === 1) {
-                itemsToRender.sort((a, b) => a.points - b.points);
-            } else if (sortMode === 2) {
-                itemsToRender.sort((a, b) => b.points - a.points);
-            }
-
+            if (sortMode === 1) itemsToRender.sort((a, b) => a.points - b.points);
+            else if (sortMode === 2) itemsToRender.sort((a, b) => b.points - a.points);
             const totalItems = itemsToRender.length;
-
             itemsToRender.forEach((item, renderIdx) => {
                 let affordabilityClass = isNegative ? 'bg-bloodbg/15 border-blood/20 text-zinc-200' : 'bg-card border-bordercolor text-zinc-200';
                 if (currentTab === 2 && item.points < 0) {
                     const cost = Math.abs(item.points);
-                    if (balance >= cost) {
-                        affordabilityClass = 'bg-emerald-950/30 border-emerald-500/50 text-zinc-200 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
-                    }
+                    if (balance >= cost) affordabilityClass = 'bg-emerald-950/30 border-emerald-500/50 text-zinc-200 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
                 }
-
                 const pointColor = isNegative ? 'text-red-400' : (activeReduction && currentTab === 0 ? 'text-amber-400' : 'text-zinc-100');
-
-                const row = createActionRow(
-                    item, renderIdx, totalItems, actionLabel, isNegative,
-                    pointColor, affordabilityClass, sortMode, currentTab, group, balance
-                );
+                const row = createActionRow(item, renderIdx, totalItems, actionLabel, isNegative, pointColor, affordabilityClass, sortMode, currentTab, group, balance);
                 listContainer.appendChild(row);
             });
-
             const addRow = document.createElement('button');
             addRow.className = `w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 hover:bg-zinc-800/50 text-zinc-400 text-xs font-medium transition-all click-anim mt-1`;
-            addRow.innerHTML = `
-                <span class="text-base font-bold">+</span>
-                <span>Zgłoś nowe zdarzenie do katalogu</span>
-            `;
+            addRow.innerHTML = `<span class="text-base font-bold">+</span><span>Zgłoś nowe zdarzenie do katalogu</span>`;
             addRow.onclick = () => window.openAddCatalogModal();
             listContainer.appendChild(addRow);
         }
@@ -1854,21 +1504,14 @@
             else if (sortMode === 2) btn.innerText = "Sortowanie: Malejąco";
         }
 
-        // ----- RENDEROWANIE "DOZWOLONE PRZYJEMNOŚCI" -----
         function renderRewards() {
             const listContainer = document.getElementById('rewards-list');
             const emptyContainer = document.getElementById('rewards-empty');
             listContainer.innerHTML = '';
-
             const rewardsGroup = eventDictionary[2];
             const available = rewardsGroup.items.filter(item => item.points < 0 && balance >= Math.abs(item.points));
-
-            if (available.length === 0) {
-                emptyContainer.classList.remove('hidden');
-                return;
-            }
+            if (available.length === 0) { emptyContainer.classList.remove('hidden'); return; }
             emptyContainer.classList.add('hidden');
-
             available.forEach(item => {
                 const cost = Math.abs(item.points);
                 const row = document.createElement('div');
@@ -1910,15 +1553,8 @@
             return data.filter(entry => {
                 if (!entry.date) return false;
                 const entryDate = getLocalDateFromStr(entry.date);
-                if (viewType === 'year') {
-                    return entryDate.getFullYear() === target.getFullYear();
-                }
-                if (viewType === 'month') {
-                    return (
-                        entryDate.getFullYear() === target.getFullYear() &&
-                        entryDate.getMonth() === target.getMonth()
-                    );
-                }
+                if (viewType === 'year') return entryDate.getFullYear() === target.getFullYear();
+                if (viewType === 'month') return entryDate.getFullYear() === target.getFullYear() && entryDate.getMonth() === target.getMonth();
                 if (viewType === 'week') {
                     const { start, end } = getWeekBoundsFromActiveDate(referenceDateStr);
                     return entryDate >= start && entryDate <= end;
@@ -1935,24 +1571,18 @@
             for (const item of arr) {
                 if (!item) continue;
                 counts[item] = (counts[item] || 0) + 1;
-                if (counts[item] > maxCount) {
-                    maxCount = counts[item];
-                    mostFrequent = item;
-                }
+                if (counts[item] > maxCount) { maxCount = counts[item]; mostFrequent = item; }
             }
             return `${mostFrequent} (${maxCount}x)`;
         }
 
-        function filterHistoryByType(history, type) {
-            return history.filter(entry => entry.type === type);
-        }
+        function filterHistoryByType(history, type) { return history.filter(entry => entry.type === type); }
 
         function renderStats() {
             const activeD = new Date(activeDate);
             let rangeLabelStr = "";
-            if (statsRange === 'year') {
-                rangeLabelStr = `Rok ${activeD.getFullYear()}`;
-            } else if (statsRange === 'month') {
+            if (statsRange === 'year') rangeLabelStr = `Rok ${activeD.getFullYear()}`;
+            else if (statsRange === 'month') {
                 const monthsNames = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
                 rangeLabelStr = `${monthsNames[activeD.getMonth()]} ${activeD.getFullYear()}`;
             } else if (statsRange === 'week') {
@@ -1960,21 +1590,16 @@
                 rangeLabelStr = `${formatDateText(start.toISOString().split('T')[0])} - ${formatDateText(end.toISOString().split('T')[0])}`;
             }
             document.getElementById('stats-range-label').innerText = `Zakres: ${rangeLabelStr}`;
-
             const filteredHistory = filterDataByRange(historyEntries, statsRange, activeDate);
-
             const earnEntries = filterHistoryByType(filteredHistory, 'earn');
             const penEntries = filterHistoryByType(filteredHistory, 'pen');
             const buyEntries = filterHistoryByType(filteredHistory, 'buy');
-
             const sumEarn = earnEntries.reduce((acc, e) => acc + e.points, 0);
             const sumPen = penEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
             const sumBuy = buyEntries.reduce((acc, e) => acc + Math.abs(e.points), 0);
-
             document.getElementById('stats-val-earn').innerText = `+${sumEarn}`;
             document.getElementById('stats-val-pen').innerText = `-${sumPen}`;
             document.getElementById('stats-val-buy').innerText = `-${sumBuy}`;
-
             const orgasmEntry = historyEntries.find(e => e.name.toLowerCase().includes("orgazm dla żony"));
             if (orgasmEntry) {
                 const orgasmDate = getLocalDateFromStr(orgasmEntry.date);
@@ -1982,10 +1607,7 @@
                 const daysAgo = Math.floor((today - orgasmDate) / (1000 * 60 * 60 * 24));
                 let agoText = daysAgo === 0 ? "dzisiaj" : daysAgo === 1 ? "wczoraj" : `${daysAgo} dni temu`;
                 document.getElementById('stat-last-orgasm').textContent = `${formatDateText(orgasmEntry.date)} (${agoText})`;
-            } else {
-                document.getElementById('stat-last-orgasm').textContent = "Brak w historii";
-            }
-
+            } else document.getElementById('stat-last-orgasm').textContent = "Brak w historii";
             const lastEarn = historyEntries.find(e => e.points > 0);
             if (lastEarn) {
                 document.getElementById('stat-last-earn').textContent = lastEarn.name;
@@ -1994,7 +1616,6 @@
                 document.getElementById('stat-last-earn').textContent = "-";
                 document.getElementById('stat-last-earn-pts').textContent = "0 pkt";
             }
-
             const lastPen = historyEntries.find(e => e.type === 'pen');
             if (lastPen) {
                 document.getElementById('stat-last-pen').textContent = lastPen.name;
@@ -2003,7 +1624,6 @@
                 document.getElementById('stat-last-pen').textContent = "-";
                 document.getElementById('stat-last-pen-pts').textContent = "0 pkt";
             }
-
             const lastBuy = historyEntries.find(e => e.type === 'buy');
             if (lastBuy) {
                 document.getElementById('stat-last-buy').textContent = lastBuy.name;
@@ -2012,21 +1632,17 @@
                 document.getElementById('stat-last-buy').textContent = "-";
                 document.getElementById('stat-last-buy-pts').textContent = "0 pkt";
             }
-
-            const earnNames = earnEntries.map(e => e.name);
-            const penNames = penEntries.map(e => e.name);
-            const buyNames = buyEntries.map(e => e.name);
-
-            document.getElementById('stat-freq-earn').textContent = getMostFrequent(earnNames);
-            document.getElementById('stat-freq-pen').textContent = getMostFrequent(penNames);
-            document.getElementById('stat-freq-buy').textContent = getMostFrequent(buyNames);
+            document.getElementById('stat-freq-earn').textContent = getMostFrequent(earnEntries.map(e => e.name));
+            document.getElementById('stat-freq-pen').textContent = getMostFrequent(penEntries.map(e => e.name));
+            document.getElementById('stat-freq-buy').textContent = getMostFrequent(buyEntries.map(e => e.name));
         }
 
-        // ----- AKTUALIZACJA UI -----
+        // ============================================================
+        // AKTUALIZACJA UI
+        // ============================================================
         function updateUI() {
             updateBalanceOnIcon();
             loadMistressMessage();
-
             const banner = document.getElementById('reduction-banner');
             const bannerText = document.getElementById('reduction-info-text');
             if (activeReduction) {
@@ -2037,11 +1653,9 @@
                 banner.classList.remove('flex');
                 banner.classList.add('hidden');
             }
-
             document.getElementById('history-date-label').innerText = formatDateText(activeDate);
             const historyList = document.getElementById('history-list');
             historyList.innerHTML = '';
-
             const dayEntries = historyEntries.filter(e => e.date === activeDate);
             if (dayEntries.length === 0) {
                 historyList.innerHTML = '<div class="text-zinc-600 text-xs italic py-2 px-1">Brak wpisów dla wybranego dnia.</div>';
@@ -2051,31 +1665,25 @@
                     const sign = entry.points > 0 ? '+' : '';
                     const item = document.createElement('div');
                     item.className = "flex items-center justify-between bg-card border border-bordercolor px-3 py-2.5 rounded-xl flr-history-item";
-                    
                     const nameSpan = document.createElement('span');
                     nameSpan.className = 'text-xs font-medium text-zinc-200';
                     nameSpan.textContent = entry.name;
-
                     const ptsSpan = document.createElement('span');
                     ptsSpan.className = `font-black text-sm ${isNegative ? 'text-red-400' : 'text-zinc-100'}`;
                     ptsSpan.textContent = `${sign}${entry.points}`;
-
                     const delBtn = document.createElement('button');
                     delBtn.className = 'text-zinc-600 hover:text-red-500 text-xs px-1';
                     delBtn.textContent = '✕';
                     delBtn.onclick = () => window.deleteEntry(entry.id);
-
                     const rightDiv = document.createElement('div');
                     rightDiv.className = 'flex items-center gap-3';
                     rightDiv.appendChild(ptsSpan);
                     rightDiv.appendChild(delBtn);
-
                     item.appendChild(nameSpan);
                     item.appendChild(rightDiv);
                     historyList.appendChild(item);
                 });
             }
-
             renderCalendar();
             renderActions();
             renderRewards();
@@ -2083,51 +1691,29 @@
             updateSettingsUI();
         }
 
-        // ============================================================
-        // USTAWIENIA UI
-        // ============================================================
         function updateSettingsUI() {
             const role = getRole();
             updateRoleIcon(role);
             const roleDisplay = document.getElementById('current-role-display');
-            if (role === 'mistress') {
-                roleDisplay.textContent = '👠 Pani';
-                roleDisplay.style.color = '#dc2626';
-            } else if (role === 'slave') {
-                roleDisplay.textContent = '🔐 Sługa';
-                roleDisplay.style.color = '#e4e4e7';
-            } else {
-                roleDisplay.textContent = 'Nieustawiona';
-                roleDisplay.style.color = '#a1a1aa';
-            }
-
+            if (role === 'mistress') { roleDisplay.textContent = '👠 Pani'; roleDisplay.style.color = '#dc2626'; }
+            else if (role === 'slave') { roleDisplay.textContent = '🔐 Sługa'; roleDisplay.style.color = '#e4e4e7'; }
+            else { roleDisplay.textContent = 'Nieustawiona'; roleDisplay.style.color = '#a1a1aa'; }
             const tokenPreview = document.getElementById('fcm-token-preview');
             if (currentFcmToken) {
                 const short = currentFcmToken.length > 16 ? currentFcmToken.substring(0, 14) + '…' : currentFcmToken;
                 tokenPreview.textContent = short;
-            } else {
-                tokenPreview.textContent = '---';
-            }
-
+            } else tokenPreview.textContent = '---';
             const toggle = document.getElementById('notif-toggle');
             const label = document.getElementById('notif-status-label');
             const isEnabled = getNotificationsEnabled();
-            if (isEnabled) {
-                toggle.classList.add('active');
-                label.textContent = 'Włączone';
-            } else {
-                toggle.classList.remove('active');
-                label.textContent = 'Wyłączone';
-            }
+            if (isEnabled) { toggle.classList.add('active'); label.textContent = 'Włączone'; }
+            else { toggle.classList.remove('active'); label.textContent = 'Wyłączone'; }
         }
 
         // ============================================================
         // ROLA UŻYTKOWNIKA
         // ============================================================
-        function getRole() {
-            return localStorage.getItem('flr_role') || null;
-        }
-
+        function getRole() { return localStorage.getItem('flr_role') || null; }
         window.getRole = getRole;
 
         window.setRole = async function(role) {
@@ -2143,42 +1729,31 @@
             loadMistressMessage();
         };
 
-        window.openRoleModal = function() {
-            document.getElementById('role-modal').style.display = 'flex';
-        };
+        window.openRoleModal = function() { document.getElementById('role-modal').style.display = 'flex'; };
 
         function checkRole() {
             const role = getRole();
-            if (!role) {
-                document.getElementById('role-modal').style.display = 'flex';
-            } else {
-                document.getElementById('role-modal').style.display = 'none';
-            }
+            if (!role) document.getElementById('role-modal').style.display = 'flex';
+            else document.getElementById('role-modal').style.display = 'none';
             updateSettingsUI();
             updateRoleIcon(role);
             loadMistressMessage();
         }
 
-        // ============================================================
-        // POWIADOMIENIA – przełącznik
-        // ============================================================
         function getNotificationsEnabled() {
             const val = localStorage.getItem('flr_notifications_enabled');
             if (val === null) return true;
             return val === 'true';
         }
-
         function setNotificationsEnabled(enabled) {
             localStorage.setItem('flr_notifications_enabled', enabled ? 'true' : 'false');
             notificationsEnabled = enabled;
             updateSettingsUI();
         }
-
         window.toggleNotifications = async function() {
             const enabled = getNotificationsEnabled();
             const newState = !enabled;
             setNotificationsEnabled(newState);
-
             if (newState) {
                 await registerForNotifications();
                 showNotification('🔔 Powiadomienia włączone', 'approved');
@@ -2188,22 +1763,15 @@
                     await setDoc(doc(db, 'users', uid), { fcmToken: deleteField() }, { merge: true });
                     currentFcmToken = null;
                     showNotification('🔕 Powiadomienia wyłączone', 'info');
-                } catch (err) {
-                    console.error('Błąd wyłączania powiadomień:', err);
-                    showNotification('❌ Nie udało się wyłączyć powiadomień', 'info');
-                }
+                } catch (err) { showNotification('❌ Nie udało się wyłączyć powiadomień', 'info'); }
             }
             updateSettingsUI();
         };
 
-        // ============================================================
-        // KOPIOWANIE TOKENA
-        // ============================================================
         document.getElementById('copy-token-btn').addEventListener('click', () => {
             if (currentFcmToken) {
-                navigator.clipboard.writeText(currentFcmToken).then(() => {
-                    showNotification('📋 Skopiowano token!', 'info');
-                }).catch(() => {
+                navigator.clipboard.writeText(currentFcmToken).then(() => showNotification('📋 Skopiowano token!', 'info'))
+                .catch(() => {
                     const input = document.createElement('input');
                     input.value = currentFcmToken;
                     document.body.appendChild(input);
@@ -2212,9 +1780,7 @@
                     document.body.removeChild(input);
                     showNotification('📋 Skopiowano token!', 'info');
                 });
-            } else {
-                showNotification('⚠️ Brak tokena do skopiowania', 'info');
-            }
+            } else showNotification('⚠️ Brak tokena do skopiowania', 'info');
         });
 
         // ============================================================
@@ -2227,7 +1793,8 @@
             renderCalendar();
         };
 
-        window.switchTab = function(index) {
+        // Pod-zakładki w Katalogu (Zarobek/Kary/Wykup)
+        window.switchCatalogTab = function(index) {
             currentTab = index;
             [0, 1, 2].forEach(i => {
                 const tab = document.getElementById(`tab-${i}`);
@@ -2290,17 +1857,12 @@
         window.submitEditCatalogModal = function() {
             const newName = document.getElementById('edit-item-name').value.trim();
             const newPoints = parseInt(document.getElementById('edit-item-points').value, 10);
-            if (!newName || isNaN(newPoints)) {
-                alert("Podaj poprawną nazwę i wartość punktową.");
-                return;
-            }
+            if (!newName || isNaN(newPoints)) { alert("Podaj poprawną nazwę i wartość punktową."); return; }
             if (editingGroupIdx !== null && editingItemIdx !== null) {
                 const item = eventDictionary[editingGroupIdx].items[editingItemIdx];
                 item.name = newName;
                 item.points = newPoints;
-                if (item.basePoints === undefined) {
-                    item.basePoints = newPoints;
-                }
+                if (item.basePoints === undefined) item.basePoints = newPoints;
                 if (editingGroupIdx === 0 && activeReduction) {
                     const percent = activeReduction.percent;
                     const reduced = Math.round(item.basePoints * (1 - percent / 100));
@@ -2326,27 +1888,17 @@
 
         window.submitAddCatalogModal = function() {
             const name = document.getElementById('catalog-item-name').value.trim();
-            if (!name) {
-                alert("Podaj nazwę zdarzenia.");
-                return;
-            }
-
+            if (!name) { alert("Podaj nazwę zdarzenia."); return; }
             const role = getRole();
             if (role === 'slave') {
                 addPendingEvent(name, null, 'proposal', currentTab);
                 window.closeAddCatalogModal();
                 return;
             }
-
             const points = parseInt(document.getElementById('catalog-item-points')?.value, 10);
-            if (isNaN(points)) {
-                alert("Podaj liczbę punktów.");
-                return;
-            }
+            if (isNaN(points)) { alert("Podaj liczbę punktów."); return; }
             let finalPoints = points;
-            if ((currentTab === 1 || currentTab === 2) && points > 0) {
-                finalPoints = -Math.abs(points);
-            }
+            if ((currentTab === 1 || currentTab === 2) && points > 0) finalPoints = -Math.abs(points);
             const targetGroupIdx = currentTab;
             const newItem = { name, points: finalPoints, basePoints: finalPoints };
             if (targetGroupIdx === 0 && activeReduction) {
@@ -2362,37 +1914,27 @@
             incrementBadge();
         };
 
-        // ============================================================
-        // tryExecuteEvent i submitCustomModal
-        // ============================================================
         window.tryExecuteEvent = function(name, points) {
             const role = getRole();
             if (role === 'slave') {
                 addPendingEvent(name, points, 'catalog', currentTab);
                 return;
             }
-
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
                 eventType = isBuy ? 'buy' : 'pen';
             }
-
             const entry = {
                 id: Date.now().toString(),
-                name,
-                points,
-                date: activeDate,
-                type: eventType
+                name, points, date: activeDate, type: eventType
             };
-
             balance += points;
             historyEntries.unshift(entry);
             saveDataToFirestore();
             renderActions();
             updateUI();
             incrementBadge();
-
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -2405,11 +1947,8 @@
                     body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
                 } else if (eventType === 'buy') {
                     title = '🛒 Nowy wykup';
-                    if (myRole === 'mistress') {
-                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
-                    } else {
-                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
-                    }
+                    if (myRole === 'mistress') body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    else body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
                 }
                 sendNotificationToPartner(title, body, { type: eventType, points, name });
             }
@@ -2446,28 +1985,21 @@
             if (!name || isNaN(points)) { alert("Wypełnij poprawne dane."); return; }
             if (currentModalType === 'add' && points < 0) points = Math.abs(points);
             if (currentModalType === 'sub') points = -Math.abs(points);
-
             const role = getRole();
             if (role === 'slave') {
                 addPendingEvent(name, points, 'catalog', 0);
                 window.closeCustomModal();
                 return;
             }
-
             let eventType = 'earn';
             if (points < 0) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
                 eventType = isBuy ? 'buy' : 'pen';
             }
-
             const entry = {
                 id: Date.now().toString(),
-                name,
-                points,
-                date: activeDate,
-                type: eventType
+                name, points, date: activeDate, type: eventType
             };
-
             balance += points;
             historyEntries.unshift(entry);
             saveDataToFirestore();
@@ -2475,7 +2007,6 @@
             updateUI();
             window.closeCustomModal();
             incrementBadge();
-            
             if (points !== 0 && getNotificationsEnabled()) {
                 const myRole = getRole();
                 const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
@@ -2488,11 +2019,8 @@
                     body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
                 } else if (eventType === 'buy') {
                     title = '🛒 Nowy wykup';
-                    if (myRole === 'mistress') {
-                        body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
-                    } else {
-                        body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
-                    }
+                    if (myRole === 'mistress') body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    else body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
                 }
                 sendNotificationToPartner(title, body, { type: eventType, points, name });
             }
@@ -2513,16 +2041,11 @@
         window.submitReduce = function() {
             const percent = parseFloat(document.getElementById('reduce-percent').value);
             const endDate = document.getElementById('reduce-date').value;
-            if (isNaN(percent) || percent <= 0 || !endDate) {
-                alert("Podaj procent oraz wybierz datę końcową.");
-                return;
-            }
+            if (isNaN(percent) || percent <= 0 || !endDate) { alert("Podaj procent oraz wybierz datę końcową."); return; }
             activeReduction = { percent, endDate };
             const earnGroup = eventDictionary[0];
             earnGroup.items.forEach(item => {
-                if (item.basePoints === undefined) {
-                    item.basePoints = item.points;
-                }
+                if (item.basePoints === undefined) item.basePoints = item.points;
                 const reduced = Math.round(item.basePoints * (1 - percent / 100));
                 item.points = reduced > 0 ? reduced : 1;
             });
@@ -2534,17 +2057,10 @@
         };
 
         window.cancelReduction = function(silent = false) {
-            if (!activeReduction) {
-                if (!silent) showNotification("Brak aktywnej redukcji.", 'info');
-                return;
-            }
+            if (!activeReduction) { if (!silent) showNotification("Brak aktywnej redukcji.", 'info'); return; }
             activeReduction = null;
             const earnGroup = eventDictionary[0];
-            earnGroup.items.forEach(item => {
-                if (item.basePoints !== undefined) {
-                    item.points = item.basePoints;
-                }
-            });
+            earnGroup.items.forEach(item => { if (item.basePoints !== undefined) item.points = item.basePoints; });
             saveDataToFirestore();
             renderActions();
             updateUI();
@@ -2572,13 +2088,9 @@
 
         window.exportData = function() {
             const dataObj = {
-                balance,
-                history: historyEntries,
-                activeReduction,
-                dictionary: eventDictionary,
-                sortModes: sortModes,
-                _version: localVersion,
-                pendingEvents: pendingEvents
+                balance, history: historyEntries, activeReduction,
+                dictionary: eventDictionary, sortModes: sortModes,
+                _version: localVersion, pendingEvents: pendingEvents
             };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -2590,9 +2102,7 @@
             showNotification("Pobrano plik JSON!", 'info');
         };
 
-        window.triggerImport = function() {
-            document.getElementById('import-file-input').click();
-        };
+        window.triggerImport = function() { document.getElementById('import-file-input').click(); };
 
         window.importData = function(event) {
             const file = event.target.files[0];
@@ -2604,7 +2114,6 @@
                     if (parsed && typeof parsed.balance === 'number' && Array.isArray(parsed.history)) {
                         isLocalUpdate = true;
                         setPendingFlag(false);
-
                         balance = parsed.balance;
                         historyEntries = parsed.history;
                         activeReduction = parsed.activeReduction || null;
@@ -2618,17 +2127,16 @@
                             }));
                         }
                         sortModes = parsed.sortModes || { 0: 0, 1: 0, 2: 0 };
-                        
                         if (parsed.pendingEvents && Array.isArray(parsed.pendingEvents)) {
                             for (const pe of parsed.pendingEvents) {
                                 const q = query(pendingCollection, where('id', '==', pe.id));
                                 const snap = await getDocs(q);
                                 if (snap.empty) {
                                     await addDoc(pendingCollection, {
-                                        name: pe.name,
-                                        points: pe.points,
+                                        name: pe.name, points: pe.points,
                                         proposedBy: pe.proposedBy || 'unknown',
                                         proposedAt: pe.proposedAt || serverTimestamp(),
+                                        date: pe.date || activeDate,
                                         status: 'waiting',
                                         source: pe.source || 'catalog',
                                         type: pe.type || 'existing',
@@ -2637,30 +2145,20 @@
                                 }
                             }
                         }
-
                         try {
                             const snap = await getDoc(docRef);
                             const currentVersion = snap.exists() ? (snap.data()._version || 0) : 0;
                             localVersion = currentVersion + 1;
-                        } catch (err) {
-                            localVersion = Date.now();
-                        }
-
+                        } catch (err) { localVersion = Date.now(); }
                         await saveDataToFirestore();
-
                         isLocalUpdate = false;
                         setPendingFlag(false);
-
                         renderActions();
                         updateUI();
                         showNotification("Wczytano dane pomyślnie!", 'approved');
                         incrementBadge();
-                    } else {
-                        alert("Nieprawidłowy format pliku JSON.");
-                    }
-                } catch (err) {
-                    alert("Błąd podczas odczytu pliku JSON.");
-                }
+                    } else alert("Nieprawidłowy format pliku JSON.");
+                } catch (err) { alert("Błąd podczas odczytu pliku JSON."); }
                 event.target.value = '';
             };
             reader.readAsText(file);
@@ -2686,20 +2184,14 @@
         }
 
         async function registerForNotifications() {
-            if (!getNotificationsEnabled()) {
-                console.log('🔕 Powiadomienia wyłączone w ustawieniach');
-                return;
-            }
-
+            if (!getNotificationsEnabled()) return;
             try {
                 const permission = await Notification.requestPermission();
                 if (permission !== 'granted') {
-                    console.warn('Brak zgody na powiadomienia');
                     showNotification('🔕 Powiadomienia wyłączone (brak zgody)', 'info');
                     setNotificationsEnabled(false);
                     return;
                 }
-
                 let swRegistration = await navigator.serviceWorker.ready;
                 const registrations = await navigator.serviceWorker.getRegistrations();
                 let fcmReg = null;
@@ -2709,107 +2201,66 @@
                         break;
                     }
                 }
-
                 if (!fcmReg) {
-                    fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
-                        scope: './'
-                    });
+                    fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
                     await navigator.serviceWorker.ready;
                 }
-
                 const token = await getToken(messaging, {
                     vapidKey: VAPID_KEY,
                     serviceWorkerRegistration: fcmReg,
                 });
-
-                if (!token) {
-                    console.warn('Nie udało się pobrać tokenu FCM');
-                    return;
-                }
-
+                if (!token) return;
                 currentFcmToken = token;
                 const uid = getUserId();
                 const role = getRole();
                 await setDoc(doc(db, 'users', uid), { fcmToken: token, role }, { merge: true });
                 console.log('✅ Token FCM zarejestrowany:', token);
                 updateSettingsUI();
-
-            } catch (error) {
-                console.error('Błąd rejestracji tokenu:', error);
-            }
+            } catch (error) { console.error('Błąd rejestracji tokenu:', error); }
         }
 
         registerForNotifications();
 
         onMessage(messaging, (payload) => {
-            console.log('📩 Powiadomienie w pierwszym planie:', payload);
             const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
             const body = payload.data?.body || payload.notification?.body || '';
             showNotification(`📩 ${title}: ${body}`, 'info');
         });
 
         async function sendNotificationToPartner(title, body, data = {}) {
-            console.log('📤 Wysyłanie powiadomienia:', { title, body, data });
-
-            if (!getNotificationsEnabled()) {
-                console.log('🔕 Powiadomienia wyłączone – nie wysyłamy');
-                return;
-            }
-
+            if (!getNotificationsEnabled()) return;
             try {
                 const myRole = getRole();
-                if (!myRole) {
-                    console.warn('❌ Brak roli – nie można wysłać powiadomienia');
-                    return;
-                }
-
+                if (!myRole) return;
                 const targetRole = myRole === 'mistress' ? 'slave' : 'mistress';
-
                 const usersSnapshot = await getDocs(collection(db, 'users'));
                 let targetUserId = null;
-                
                 usersSnapshot.forEach(doc => {
                     const userData = doc.data();
-                    if (userData.role === targetRole && doc.id !== getUserId()) {
-                        targetUserId = doc.id;
-                    }
+                    if (userData.role === targetRole && doc.id !== getUserId()) targetUserId = doc.id;
                 });
-
                 if (!targetUserId) {
-                    console.warn('❌ Nie znaleziono użytkownika o roli:', targetRole);
                     showNotification('⚠️ Brak drugiej osoby o przeciwnej roli.', 'info');
                     return;
                 }
-
                 const stringData = {};
                 if (data) {
                     Object.keys(data).forEach(key => {
-                        if (data[key] !== undefined && data[key] !== null) {
-                            stringData[key] = String(data[key]);
-                        }
+                        if (data[key] !== undefined && data[key] !== null) stringData[key] = String(data[key]);
                     });
                 }
-
                 const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        targetUserId, 
-                        title, 
-                        body, 
-                        data: stringData
-                    }),
+                    body: JSON.stringify({ targetUserId, title, body, data: stringData }),
                 });
-                
                 const result = await response.json();
                 if (response.status === 410) {
-                    console.warn('⚠️ Token partnera unieważniony – ponowna rejestracja');
                     showNotification('⚠️ Token partnera wygasł – spróbuj ponownie później', 'info');
                 } else if (result.success) {
                     console.log('✅ Powiadomienie wysłane do:', targetUserId);
                 } else {
-                    console.warn('❌ Błąd wysyłki:', result.error);
                     showNotification('⚠️ Błąd wysyłki powiadomienia: ' + result.error, 'info');
                 }
             } catch (error) {
@@ -2826,13 +2277,10 @@
                 const isSecureContext = window.location.protocol === 'https:' ||
                                         window.location.hostname === 'localhost' ||
                                         window.location.hostname === '127.0.0.1';
-
                 if (isSecureContext) {
                     navigator.serviceWorker.register('./service-worker.js', { scope: './' })
                         .then(reg => console.log('✅ Główny SW zarejestrowany:', reg.scope))
                         .catch(err => console.error('❌ Błąd głównego SW:', err));
-                } else {
-                    console.info('ℹ️ Service Worker pominięty – aplikacja działa w trybie lokalnym (file://)');
                 }
             });
         }
@@ -2840,36 +2288,27 @@
         // ============================================================
         // WERSJA I AKTUALIZACJE
         // ============================================================
-        const APP_VERSION = '1.2.1';
+        const APP_VERSION = '1.3.0';
 
         window.checkForUpdate = async function() {
             try {
                 const registration = await navigator.serviceWorker.getRegistration();
-                if (!registration) {
-                    showNotification('⚠️ Service Worker nie jest zarejestrowany.', 'info');
-                    return;
-                }
+                if (!registration) { showNotification('⚠️ Service Worker nie jest zarejestrowany.', 'info'); return; }
                 const manifestUrl = './manifest.json?t=' + Date.now();
                 const manifestResponse = await fetch(manifestUrl, { cache: 'reload' });
                 const manifest = await manifestResponse.json();
                 const newVersion = manifest.version || '1.0.0';
-                
                 const lastChecked = localStorage.getItem('flr_last_version_checked');
                 if (newVersion !== APP_VERSION) {
                     if (lastChecked !== newVersion) {
                         showUpdateNotification(newVersion);
                         localStorage.setItem('flr_last_version_checked', newVersion);
-                    } else {
-                        showNotification('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).', 'info');
-                    }
+                    } else showNotification('📢 Nowa wersja ' + newVersion + ' jest dostępna (już powiadomiono).', 'info');
                 } else {
                     localStorage.setItem('flr_last_version_checked', APP_VERSION);
                     showNotification('✅ Masz najnowszą wersję.', 'approved');
                 }
-            } catch (err) {
-                console.warn('Błąd sprawdzania aktualizacji:', err);
-                showNotification('❌ Błąd sprawdzania aktualizacji.', 'info');
-            }
+            } catch (err) { showNotification('❌ Błąd sprawdzania aktualizacji.', 'info'); }
         };
 
         function showUpdateNotification(newVersion) {
@@ -2883,18 +2322,10 @@
                 <button id="close-update-btn" class="text-zinc-500 hover:text-zinc-300 text-sm px-1">✕</button>
             `;
             document.body.appendChild(banner);
-
             document.getElementById('update-btn').addEventListener('click', () => {
-                navigator.serviceWorker.getRegistration().then(reg => {
-                    reg.update().then(() => {
-                        window.location.reload();
-                    });
-                });
+                navigator.serviceWorker.getRegistration().then(reg => reg.update().then(() => window.location.reload()));
             });
-
-            document.getElementById('close-update-btn').addEventListener('click', () => {
-                banner.remove();
-            });
+            document.getElementById('close-update-btn').addEventListener('click', () => banner.remove());
         }
 
         const lastCheckDate = localStorage.getItem('flr_last_update_check_date');
@@ -2915,39 +2346,25 @@
         function initApp() {
             setStatusConnecting();
             loadingIndicator.innerText = "⏳ Ładowanie danych...";
-
             const pending = getPendingFlag();
             if (pending && navigator.onLine) {
-                syncPendingChanges().then(() => {
-                    loadFromFirestore();
-                }).catch(() => {
-                    loadFromFirestore();
-                });
-            } else {
-                loadFromFirestore();
-            }
+                syncPendingChanges().then(() => loadFromFirestore()).catch(() => loadFromFirestore());
+            } else loadFromFirestore();
 
             function loadFromFirestore() {
                 getDoc(docRef)
                     .then((snap) => {
                         retryCount = 0;
-                        if (snap.exists()) {
-                            updateStateFromFirestore(snap.data());
-                        } else {
+                        if (snap.exists()) updateStateFromFirestore(snap.data());
+                        else {
                             const defaultData = {
-                                balance: 0,
-                                history: [],
-                                activeReduction: null,
+                                balance: 0, history: [], activeReduction: null,
                                 dictionary: JSON.parse(JSON.stringify(originalDictionary)),
-                                sortModes: { 0: 0, 1: 0, 2: 0 },
-                                _version: 0
+                                sortModes: { 0: 0, 1: 0, 2: 0 }, _version: 0
                             };
                             setDoc(docRef, defaultData)
-                                .then(() => {
-                                    updateStateFromFirestore(defaultData);
-                                })
+                                .then(() => updateStateFromFirestore(defaultData))
                                 .catch((err) => {
-                                    console.error("Błąd tworzenia dokumentu:", err);
                                     showNotification("❌ Błąd inicjalizacji bazy", 'info');
                                     loadingIndicator.innerText = "❌ Błąd tworzenia bazy. Sprawdź konsolę.";
                                     setStatusOffline();
@@ -2955,15 +2372,10 @@
                         }
                         loadingIndicator.classList.add('hidden');
                         mainContent.classList.remove('hidden');
-                        if (getPendingFlag()) {
-                            setStatusPending();
-                        } else {
-                            setStatusOnline();
-                        }
+                        if (getPendingFlag()) setStatusPending();
+                        else setStatusOnline();
                         resetBadge();
                         isFirstSnapshot = true;
-                        loadCollapseStates();
-
                         checkRole();
                         updateSettingsUI();
                         subscribePendingEvents();
@@ -2978,7 +2390,6 @@
                             showNotification('📡 Wczytano dane lokalne – synchronizacja w toku', 'info');
                             loadingIndicator.classList.add('hidden');
                             mainContent.classList.remove('hidden');
-                            loadCollapseStates();
                             checkRole();
                             updateSettingsUI();
                             subscribePendingEvents();
@@ -2989,29 +2400,17 @@
                                 <div class="text-red-400 text-sm font-semibold">❌ Błąd połączenia z Firebase</div>
                                 <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
                                     <p>1. Czy Firestore jest włączone w Twoim projekcie Firebase?</p>
-                                    <p>2. Czy reguły Firestore pozwalają na odczyt/zapis? (ustaw na <code>allow read, write: if true;</code>)</p>
+                                    <p>2. Czy reguły Firestore pozwalają na odczyt/zapis?</p>
                                     <p>3. Czy masz połączenie z internetem?</p>
                                     <p class="mt-3 text-zinc-400">⏳ Ponawiam połączenie za 5 sekund...</p>
                                 </div>
                             `;
                             showNotification("❌ Błąd połączenia", 'info');
                             setStatusOffline();
-
                             if (retryCount < MAX_RETRIES) {
                                 retryCount++;
-                                setTimeout(() => {
-                                    initApp();
-                                }, 5000);
-                            } else {
-                                loadingIndicator.innerHTML = `
-                                    <div class="text-red-400 text-sm font-semibold">❌ Nie udało się połączyć po ${MAX_RETRIES} próbach.</div>
-                                    <div class="text-xs text-zinc-500 mt-2 max-w-xs mx-auto">
-                                        <p>Sprawdź konfigurację Firebase w konsoli.</p>
-                                        <p>Upewnij się, że adres URL projektu jest poprawny.</p>
-                                    </div>
-                                `;
-                                setStatusOffline();
-                            }
+                                setTimeout(() => initApp(), 5000);
+                            } else setStatusOffline();
                         }
                     });
 
@@ -3019,15 +2418,11 @@
                     if (isLocalUpdate) return;
                     if (getPendingFlag()) {
                         pendingUpdates.push(snapshot.data());
-                        if (pendingUpdates.length > 1) {
-                            pendingUpdates = [pendingUpdates[pendingUpdates.length - 1]];
-                        }
+                        if (pendingUpdates.length > 1) pendingUpdates = [pendingUpdates[pendingUpdates.length - 1]];
                         return;
                     }
                     if (snapshot.exists()) {
-                        if (!isFirstSnapshot) {
-                            incrementBadge();
-                        }
+                        if (!isFirstSnapshot) incrementBadge();
                         isFirstSnapshot = false;
                         updateStateFromFirestore(snapshot.data());
                     }
@@ -3046,9 +2441,9 @@
         initApp();
 
         // ============================================================
-        // ZAKŁADKI – obsługa przełączania
+        // GŁÓWNE ZAKŁADKI – obsługa przełączania
         // ============================================================
-        function switchTab(tabId) {
+        function switchMainTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             const target = document.getElementById(tabId);
             if (target) target.classList.add('active');
@@ -3060,24 +2455,14 @@
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                switchTab(btn.dataset.tab);
+                switchMainTab(btn.dataset.tab);
                 updateUI();
             });
         });
 
-        const savedTab = localStorage.getItem('flr_active_tab') || 'tab-pending';
-        if (document.getElementById(savedTab)) {
-            switchTab(savedTab);
-        } else {
-            switchTab('tab-pending');
-        }
-
-        // Nadpisz updateUI, aby po każdej aktualizacji odświeżać widok
-        const originalUpdateUI = updateUI;
-        updateUI = function() {
-            originalUpdateUI();
-            loadMistressMessage();
-        };
+        const savedTab = localStorage.getItem('flr_active_tab') || 'tab-mistress';
+        if (document.getElementById(savedTab)) switchMainTab(savedTab);
+        else switchMainTab('tab-mistress');
     </script>
 </body>
 </html>
