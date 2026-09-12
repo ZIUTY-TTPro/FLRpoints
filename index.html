@@ -13,7 +13,6 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
     <style>
-        /* ===== STYLE PODSTAWOWE ===== */
         body { background-color: #09090b; color: #e4e4e7; font-family: ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -161,7 +160,7 @@
         #mistress-message .heart { color: #dc2626; margin: 0 0.3rem; }
         #mistress-message .message-text { font-style: italic; }
 
-        /* ===== ZAKŁADKI – 5 przycisków, większe ikony ===== */
+        /* ===== ZAKŁADKI – 5 przycisków, większa czcionka ===== */
         .tabs-nav {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.25rem;
             background: #18181b; border-radius: 1rem; padding: 0.25rem;
@@ -169,11 +168,11 @@
         }
         .tab-btn {
             background: transparent; border: none; color: #a1a1aa;
-            font-size: 0.5rem; font-weight: 600; padding: 0.5rem 0.15rem;
+            font-size: 0.72rem; font-weight: 700; padding: 0.55rem 0.15rem;
             border-radius: 0.75rem; cursor: pointer; transition: all 0.2s;
-            text-align: center; line-height: 1.15; white-space: nowrap;
+            text-align: center; line-height: 1.2; white-space: nowrap;
         }
-        .tab-btn .tab-icon { display: block; font-size: 1.4rem; margin-bottom: 0.15rem; }
+        .tab-btn .tab-icon { display: block; font-size: 1.5rem; margin-bottom: 0.15rem; }
         .tab-btn:hover { color: #d4d4d8; background: rgba(255,255,255,0.05); }
         .tab-btn.active { background: #27272a; color: #e4e4e7; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .tab-content { display: none; animation: fadeIn 0.25s ease; }
@@ -181,9 +180,42 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 380px) {
-            .tab-btn { font-size: 0.45rem; padding: 0.4rem 0.1rem; }
-            .tab-btn .tab-icon { font-size: 1.2rem; }
+            .tab-btn { font-size: 0.65rem; padding: 0.5rem 0.1rem; }
+            .tab-btn .tab-icon { font-size: 1.35rem; }
         }
+
+        /* ===== KROPKI W KALENDARZU ===== */
+        .cal-day-btn {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 4px;
+            min-height: 42px;
+        }
+        .cal-day-number {
+            font-size: 0.75rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .cal-dots {
+            display: flex;
+            gap: 2px;
+            margin-top: 3px;
+            height: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+        .cal-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .cal-dot.earn { background-color: #22c55e; }
+        .cal-dot.pen { background-color: #ef4444; }
+        .cal-dot.buy { background-color: #f59e0b; }
     </style>
 </head>
 <body class="antialiased min-h-screen flex justify-center pb-24">
@@ -246,7 +278,6 @@
 
                 <!-- ========== PANEL PANI = Oczekujące + Przyjemności ========== -->
                 <section id="tab-mistress" class="tab-content active">
-                    <!-- Zdarzenia do zatwierdzenia -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
                             <span class="section-title flr-ornament flr-title">⏳ Zdarzenia do zatwierdzenia</span>
@@ -260,7 +291,6 @@
                         </div>
                     </div>
 
-                    <!-- Dozwolone przyjemności -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
                             <span class="section-title flr-ornament flr-title">Dozwolone przyjemności</span>
@@ -277,7 +307,6 @@
 
                 <!-- ========== KATALOG = Zarządzanie + Katalog ========== -->
                 <section id="tab-catalog" class="tab-content">
-                    <!-- Zarządzanie punktami -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
                             <span class="section-title flr-ornament flr-title">Zarządzanie punktami</span>
@@ -302,7 +331,6 @@
                         </div>
                     </div>
 
-                    <!-- Katalog zdarzeń -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
                             <div class="flex items-center gap-2">
@@ -328,7 +356,6 @@
 
                 <!-- ========== DZIENNIK = Kalendarz + Historia ========== -->
                 <section id="tab-journal" class="tab-content">
-                    <!-- Kalendarz -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
                             <div class="flex items-center gap-2">
@@ -354,13 +381,17 @@
                                 <span class="text-[10px] font-bold text-zinc-500">Nd</span>
                             </div>
                             <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
-                            <div class="mt-3 text-center">
+                            <div class="mt-3 text-center flex flex-wrap items-center justify-center gap-3 text-[10px] text-zinc-400">
+                                <span class="flex items-center gap-1"><span class="cal-dot earn"></span> zarobek</span>
+                                <span class="flex items-center gap-1"><span class="cal-dot pen"></span> kara</span>
+                                <span class="flex items-center gap-1"><span class="cal-dot buy"></span> wykup</span>
+                            </div>
+                            <div class="mt-2 text-center">
                                 <span class="text-[11px] text-zinc-400">Wybrany dzień: <strong id="active-date-text" class="text-white"></strong></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Historia -->
                     <div class="bg-card border border-bordercolor rounded-2xl p-4">
                         <div class="section-header">
                             <div class="flex items-center gap-2">
@@ -467,7 +498,7 @@
                         <div id="collapse-content-settings" class="transition-collapse mt-2">
                             <div class="setting-row">
                                 <span class="setting-label">📱 Wersja</span>
-                                <span class="setting-value" id="app-version-text">1.3.0</span>
+                                <span class="setting-value" id="app-version-text">1.3.1</span>
                             </div>
                             <div class="setting-row">
                                 <span class="setting-label">📡 Stan aplikacji</span>
@@ -758,7 +789,6 @@
             else roleIcon.textContent = '👤';
         }
 
-        // ----- SŁOWNIK DOMYŚLNY -----
         const originalDictionary = [
             { group: "Zarobek (+)", type: "positive", items: [
                 { name: "Masaż stóp", points: 5, basePoints: 5 },
@@ -795,7 +825,6 @@
             ]}
         ];
 
-        // ----- STAN APLIKACJI -----
         let eventDictionary = JSON.parse(JSON.stringify(originalDictionary));
         let balance = 0;
         let historyEntries = [];
@@ -822,7 +851,7 @@
         const mainContent = document.getElementById('main-content');
 
         // ============================================================
-        // SYSTEM POWIADOMIEŃ
+        // POWIADOMIENIA
         // ============================================================
         function showNotification(text, type = 'info') {
             const container = document.getElementById('notification-container');
@@ -854,9 +883,6 @@
             }, 5000);
         }
 
-        // ============================================================
-        // KOMUNIKATY DLA PANI
-        // ============================================================
         const mistressMessages = [
             "Pamiętaj – to Ty decydujesz, kiedy i czy Sługa zasługuje na nagrodę.",
             "Sługa ma być posłuszny, a nie oczekiwać. Czas na małe otrzeźwienie.",
@@ -1108,9 +1134,6 @@
             setStatusOnline();
         }
 
-        // ============================================================
-        // POWIADOMIENIA WEWNĄTRZ APLIKACJI (notifications)
-        // ============================================================
         function subscribeNotifications() {
             const uid = getUserId();
             if (!uid) return;
@@ -1138,7 +1161,7 @@
         }
 
         // ============================================================
-        // ZDARZENIA OCZEKUJĄCE (PENDING)
+        // PENDING EVENTS
         // ============================================================
         function renderPendingEvents() {
             const list = document.getElementById('pending-list');
@@ -1212,7 +1235,6 @@
             });
         }
 
-        // ⭐ DODANO pole date – data dodania (do historii wędruje z tą datą)
         async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
             const role = getRole();
             if (role !== 'slave') {
@@ -1226,7 +1248,7 @@
                     points: points,
                     proposedBy: uid,
                     proposedAt: serverTimestamp(),
-                    date: activeDate,           // ⭐ data dodania
+                    date: activeDate,
                     status: 'waiting',
                     source: source,
                     type: source === 'catalog' ? 'existing' : 'new',
@@ -1261,7 +1283,6 @@
                 const name = eventData.name || 'Zdarzenie';
                 const proposedBy = eventData.proposedBy;
                 const tabIndex = eventData.tabIndex !== undefined ? eventData.tabIndex : 0;
-                // ⭐ Użyj daty dodania, nie daty zatwierdzenia
                 const eventDate = eventData.date || activeDate;
 
                 if ((tabIndex === 1 || tabIndex === 2) && points > 0) {
@@ -1296,7 +1317,6 @@
                         showNotification(`⚠️ Zdarzenie "${name}" już istnieje w katalogu.`, 'info');
                     }
                 } else {
-                    // ⭐ Zapisujemy z datą DODANIA (eventDate), nie z activeDate
                     const entry = {
                         id: Date.now().toString(),
                         name: name,
@@ -1377,7 +1397,7 @@
         }
 
         // ============================================================
-        // RENDEROWANIE KALENDARZA
+        // KALENDARZ Z KROPKAMI
         // ============================================================
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
@@ -1392,24 +1412,67 @@
             const totalDays = new Date(calendarYear, calendarMonth + 1, 0).getDate();
             for (let i = 0; i < adjustedFirstDay; i++) grid.appendChild(document.createElement('div'));
             const todayStr = getLocalDateString(new Date());
+
             for (let day = 1; day <= totalDays; day++) {
                 const monthStr = String(calendarMonth + 1).padStart(2, '0');
                 const dayStr = String(day).padStart(2, '0');
                 const dateStr = `${calendarYear}-${monthStr}-${dayStr}`;
                 const isSelected = dateStr === activeDate;
                 const isToday = dateStr === todayStr;
+
+                // Policz wpisy w danym dniu
+                const dayEntries = historyEntries.filter(e => e.date === dateStr);
+                const counts = { earn: 0, pen: 0, buy: 0 };
+                dayEntries.forEach(e => {
+                    if (counts[e.type] !== undefined) counts[e.type]++;
+                });
+
                 const btn = document.createElement('button');
-                btn.className = `h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center click-anim ${
+                btn.className = `cal-day-btn rounded-lg text-xs font-bold transition-all click-anim ${
                     isSelected ? 'bg-zinc-100 text-zinc-950 shadow' : isToday ? 'border border-zinc-500 text-zinc-200' : 'text-zinc-400 hover:bg-zinc-800'
                 }`;
-                btn.innerText = day;
+
+                const numSpan = document.createElement('span');
+                numSpan.className = 'cal-day-number';
+                numSpan.textContent = day;
+                btn.appendChild(numSpan);
+
+                // Kropki – max 4, kolejność: earn, pen, buy
+                const totalEvents = counts.earn + counts.pen + counts.buy;
+                if (totalEvents > 0) {
+                    const dotsDiv = document.createElement('div');
+                    dotsDiv.className = 'cal-dots';
+                    const MAX_DOTS = 4;
+                    let added = 0;
+                    const addDot = (cls) => {
+                        if (added >= MAX_DOTS) return;
+                        const dot = document.createElement('span');
+                        dot.className = `cal-dot ${cls}`;
+                        dotsDiv.appendChild(dot);
+                        added++;
+                    };
+                    for (let i = 0; i < counts.earn; i++) addDot('earn');
+                    for (let i = 0; i < counts.pen; i++) addDot('pen');
+                    for (let i = 0; i < counts.buy; i++) addDot('buy');
+                    // Jeśli było więcej niż 4 zdarzeń, pokaż "+"
+                    if (totalEvents > MAX_DOTS) {
+                        const plus = document.createElement('span');
+                        plus.style.fontSize = '7px';
+                        plus.style.color = '#a1a1aa';
+                        plus.style.lineHeight = '1';
+                        plus.textContent = '+';
+                        dotsDiv.appendChild(plus);
+                    }
+                    btn.appendChild(dotsDiv);
+                }
+
                 btn.onclick = () => { activeDate = dateStr; updateUI(); };
                 grid.appendChild(btn);
             }
         }
 
         // ============================================================
-        // RENDEROWANIE KATALOGU
+        // KATALOG
         // ============================================================
         function createActionRow(item, renderIdx, totalItems, actionLabel, isNegative, pointColor, affordabilityClass, sortMode, tabIdx, group, balance) {
             const row = document.createElement('div');
@@ -1638,7 +1701,7 @@
         }
 
         // ============================================================
-        // AKTUALIZACJA UI
+        // UI
         // ============================================================
         function updateUI() {
             updateBalanceOnIcon();
@@ -1711,7 +1774,7 @@
         }
 
         // ============================================================
-        // ROLA UŻYTKOWNIKA
+        // ROLA
         // ============================================================
         function getRole() { return localStorage.getItem('flr_role') || null; }
         window.getRole = getRole;
@@ -1793,7 +1856,6 @@
             renderCalendar();
         };
 
-        // Pod-zakładki w Katalogu (Zarobek/Kary/Wykup)
         window.switchCatalogTab = function(index) {
             currentTab = index;
             [0, 1, 2].forEach(i => {
@@ -2165,7 +2227,7 @@
         };
 
         // ============================================================
-        // FCM – POWIADOMIENIA PUSH
+        // FCM
         // ============================================================
         import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -2286,9 +2348,9 @@
         }
 
         // ============================================================
-        // WERSJA I AKTUALIZACJE
+        // WERSJA
         // ============================================================
-        const APP_VERSION = '1.3.0';
+        const APP_VERSION = '1.3.1';
 
         window.checkForUpdate = async function() {
             try {
@@ -2434,14 +2496,11 @@
             }
         }
 
-        // ============================================================
-        // START
-        // ============================================================
         mainContent.classList.add('hidden');
         initApp();
 
         // ============================================================
-        // GŁÓWNE ZAKŁADKI – obsługa przełączania
+        // GŁÓWNE ZAKŁADKI
         // ============================================================
         function switchMainTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
