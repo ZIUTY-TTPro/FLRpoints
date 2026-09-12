@@ -129,6 +129,34 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
+        /* ===== NAGŁÓWKI GRUP W OCZEKUJĄCYCH ===== */
+        .pending-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.6rem;
+            margin-top: 0.5rem;
+            background: rgba(220, 38, 38, 0.06);
+            border-left: 3px solid #dc2626;
+            border-radius: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #d4d4d8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .pending-group-header:first-child {
+            margin-top: 0;
+        }
+        .pending-group-count {
+            background: #dc2626;
+            color: #ffffff;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
         #notification-container {
             position: fixed; bottom: 0; left: 0; right: 0; padding: 0.5rem;
             display: flex; flex-direction: column-reverse; align-items: flex-start;
@@ -259,8 +287,6 @@
                 <div id="mistress-message">
                     <span class="heart">♥</span>
                     <span class="message-text"></span>
-                
-        
                 </div>
             </div>
 
@@ -498,7 +524,7 @@
                         <div id="collapse-content-settings" class="transition-collapse mt-2">
                             <div class="setting-row">
                                 <span class="setting-label">📱 Wersja</span>
-                                <span class="setting-value" id="app-version-text">1.3.1</span>
+                                <span class="setting-value" id="app-version-text">1.3.2</span>
                             </div>
                             <div class="setting-row">
                                 <span class="setting-label">📡 Stan aplikacji</span>
@@ -1161,77 +1187,116 @@
         }
 
         // ============================================================
-        // PENDING EVENTS
+        // PENDING EVENTS – GRUPOWANE PO DACIE + LICZNIK
         // ============================================================
         function renderPendingEvents() {
             const list = document.getElementById('pending-list');
             const empty = document.getElementById('pending-empty');
             list.innerHTML = '';
+
             if (!pendingEvents || pendingEvents.length === 0) {
                 empty.classList.remove('hidden');
                 return;
             }
             empty.classList.add('hidden');
+
             const role = getRole();
             const isMistress = role === 'mistress';
+
+            // ⭐ Grupowanie po dacie
+            const groups = {};
             pendingEvents.forEach(event => {
-                const div = document.createElement('div');
-                div.className = 'pending-item';
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'name';
-                nameSpan.textContent = event.name || 'Brak nazwy';
-                const actions = document.createElement('div');
-                actions.className = 'actions';
-                if (isMistress) {
-                    if (event.source === 'catalog') {
-                        const pointsDisplay = document.createElement('span');
-                        pointsDisplay.className = 'points-static';
-                        pointsDisplay.textContent = `${event.points || 0} pkt`;
-                        actions.appendChild(pointsDisplay);
-                        const approveBtn = document.createElement('button');
-                        approveBtn.className = 'approve';
-                        approveBtn.textContent = '✅';
-                        approveBtn.title = 'Zatwierdź';
-                        approveBtn.onclick = () => approvePendingEvent(event.id, event.points, event.source);
-                        actions.appendChild(approveBtn);
-                        const rejectBtn = document.createElement('button');
-                        rejectBtn.className = 'reject';
-                        rejectBtn.textContent = '❌';
-                        rejectBtn.title = 'Odrzuć';
-                        rejectBtn.onclick = () => rejectPendingEvent(event.id);
-                        actions.appendChild(rejectBtn);
+                const d = event.date || activeDate;
+                if (!groups[d]) groups[d] = [];
+                groups[d].push(event);
+            });
+
+            // ⭐ Sortowanie: najnowsze daty na górze
+            const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+            sortedDates.forEach(dateStr => {
+                const events = groups[dateStr];
+
+                // ⭐ Nagłówek grupy z datą i licznikiem
+                const header = document.createElement('div');
+                header.className = 'pending-group-header';
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = `📅 ${formatDateText(dateStr)}`;
+                const countSpan = document.createElement('span');
+                countSpan.className = 'pending-group-count';
+                countSpan.textContent = events.length;
+                header.appendChild(dateSpan);
+                header.appendChild(countSpan);
+                list.appendChild(header);
+
+                // Zdarzenia w grupie
+                events.forEach(event => {
+                    const div = document.createElement('div');
+                    div.className = 'pending-item';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'name';
+                    nameSpan.textContent = event.name || 'Brak nazwy';
+
+                    const actions = document.createElement('div');
+                    actions.className = 'actions';
+
+                    if (isMistress) {
+                        if (event.source === 'catalog') {
+                            const pointsDisplay = document.createElement('span');
+                            pointsDisplay.className = 'points-static';
+                            pointsDisplay.textContent = `${event.points || 0} pkt`;
+                            actions.appendChild(pointsDisplay);
+
+                            const approveBtn = document.createElement('button');
+                            approveBtn.className = 'approve';
+                            approveBtn.textContent = '✅';
+                            approveBtn.title = 'Zatwierdź';
+                            approveBtn.onclick = () => approvePendingEvent(event.id, event.points, event.source);
+                            actions.appendChild(approveBtn);
+
+                            const rejectBtn = document.createElement('button');
+                            rejectBtn.className = 'reject';
+                            rejectBtn.textContent = '❌';
+                            rejectBtn.title = 'Odrzuć';
+                            rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                            actions.appendChild(rejectBtn);
+                        } else {
+                            const pointsInput = document.createElement('input');
+                            pointsInput.type = 'number';
+                            pointsInput.className = 'points-input';
+                            pointsInput.placeholder = 'pkt';
+                            pointsInput.value = event.points || '';
+                            pointsInput.dataset.eventId = event.id;
+                            actions.appendChild(pointsInput);
+
+                            const approveBtn = document.createElement('button');
+                            approveBtn.className = 'approve';
+                            approveBtn.textContent = '✅';
+                            approveBtn.title = 'Zatwierdź i dodaj do katalogu';
+                            approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value, event.source);
+                            actions.appendChild(approveBtn);
+
+                            const rejectBtn = document.createElement('button');
+                            rejectBtn.className = 'reject';
+                            rejectBtn.textContent = '❌';
+                            rejectBtn.title = 'Odrzuć';
+                            rejectBtn.onclick = () => rejectPendingEvent(event.id);
+                            actions.appendChild(rejectBtn);
+                        }
                     } else {
-                        const pointsInput = document.createElement('input');
-                        pointsInput.type = 'number';
-                        pointsInput.className = 'points-input';
-                        pointsInput.placeholder = 'pkt';
-                        pointsInput.value = event.points || '';
-                        pointsInput.dataset.eventId = event.id;
-                        actions.appendChild(pointsInput);
-                        const approveBtn = document.createElement('button');
-                        approveBtn.className = 'approve';
-                        approveBtn.textContent = '✅';
-                        approveBtn.title = 'Zatwierdź i dodaj do katalogu';
-                        approveBtn.onclick = () => approvePendingEvent(event.id, pointsInput.value, event.source);
-                        actions.appendChild(approveBtn);
-                        const rejectBtn = document.createElement('button');
-                        rejectBtn.className = 'reject';
-                        rejectBtn.textContent = '❌';
-                        rejectBtn.title = 'Odrzuć';
-                        rejectBtn.onclick = () => rejectPendingEvent(event.id);
-                        actions.appendChild(rejectBtn);
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete';
+                        deleteBtn.textContent = '✕';
+                        deleteBtn.title = 'Anuluj propozycję';
+                        deleteBtn.onclick = () => deletePendingEvent(event.id);
+                        actions.appendChild(deleteBtn);
                     }
-                } else {
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'delete';
-                    deleteBtn.textContent = '✕';
-                    deleteBtn.title = 'Anuluj propozycję';
-                    deleteBtn.onclick = () => deletePendingEvent(event.id);
-                    actions.appendChild(deleteBtn);
-                }
-                div.appendChild(nameSpan);
-                div.appendChild(actions);
-                list.appendChild(div);
+
+                    div.appendChild(nameSpan);
+                    div.appendChild(actions);
+                    list.appendChild(div);
+                });
             });
         }
 
@@ -1420,7 +1485,6 @@
                 const isSelected = dateStr === activeDate;
                 const isToday = dateStr === todayStr;
 
-                // Policz wpisy w danym dniu
                 const dayEntries = historyEntries.filter(e => e.date === dateStr);
                 const counts = { earn: 0, pen: 0, buy: 0 };
                 dayEntries.forEach(e => {
@@ -1437,7 +1501,6 @@
                 numSpan.textContent = day;
                 btn.appendChild(numSpan);
 
-                // Kropki – max 4, kolejność: earn, pen, buy
                 const totalEvents = counts.earn + counts.pen + counts.buy;
                 if (totalEvents > 0) {
                     const dotsDiv = document.createElement('div');
@@ -1454,7 +1517,6 @@
                     for (let i = 0; i < counts.earn; i++) addDot('earn');
                     for (let i = 0; i < counts.pen; i++) addDot('pen');
                     for (let i = 0; i < counts.buy; i++) addDot('buy');
-                    // Jeśli było więcej niż 4 zdarzeń, pokaż "+"
                     if (totalEvents > MAX_DOTS) {
                         const plus = document.createElement('span');
                         plus.style.fontSize = '7px';
@@ -2350,7 +2412,7 @@
         // ============================================================
         // WERSJA
         // ============================================================
-        const APP_VERSION = '1.3.1';
+        const APP_VERSION = '1.3.2';
 
         window.checkForUpdate = async function() {
             try {
