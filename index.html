@@ -2090,13 +2090,27 @@
         };
 
         window.openCustomModal = function(type) {
-            currentModalType = type;
-            document.getElementById('modal-title').innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
-            document.getElementById('modal-name').value = '';
-            document.getElementById('modal-points').value = '';
-            document.getElementById('custom-modal').classList.remove('hidden');
-            document.getElementById('custom-modal').classList.add('flex');
-        };
+    currentModalType = type;
+    const role = getRole();
+    const pointsInput = document.getElementById('modal-points');
+    const title = document.getElementById('modal-title');
+
+    if (role === 'slave') {
+        // Sługa – tylko nazwa, Pani przydzieli punkty
+        title.innerText = type === 'add' ? '➕ Zgłoś nowe zdarzenie (zarobek)' : '➖ Zgłoś nowe zdarzenie (kara)';
+        pointsInput.style.display = 'none';
+        pointsInput.value = '';
+    } else {
+        // Pani – może od razu wpisać punkty
+        title.innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
+        pointsInput.style.display = 'block';
+        pointsInput.value = '';
+    }
+
+    document.getElementById('modal-name').value = '';
+    document.getElementById('custom-modal').classList.remove('hidden');
+    document.getElementById('custom-modal').classList.add('flex');
+};
 
         window.closeCustomModal = function() {
             document.getElementById('custom-modal').classList.remove('flex');
@@ -2104,51 +2118,61 @@
         };
 
         window.submitCustomModal = function() {
-            const name = document.getElementById('modal-name').value.trim();
-            let points = parseInt(document.getElementById('modal-points').value, 10);
-            if (!name || isNaN(points)) { alert("Wypełnij poprawne dane."); return; }
-            if (currentModalType === 'add' && points < 0) points = Math.abs(points);
-            if (currentModalType === 'sub') points = -Math.abs(points);
-            const role = getRole();
-            if (role === 'slave') {
-                addPendingEvent(name, points, 'catalog', 0);
-                window.closeCustomModal();
-                return;
-            }
-            let eventType = 'earn';
-            if (points < 0) {
-                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
-                eventType = isBuy ? 'buy' : 'pen';
-            }
-            const entry = {
-                id: Date.now().toString(),
-                name, points, date: activeDate, type: eventType
-            };
-            balance += points;
-            historyEntries.unshift(entry);
-            saveDataToFirestore();
-            renderActions();
-            updateUI();
-            window.closeCustomModal();
-            incrementBadge();
-            if (points !== 0 && getNotificationsEnabled()) {
-                const myRole = getRole();
-                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
-                let title, body;
-                if (eventType === 'earn') {
-                    title = '➕ Nowy zarobek';
-                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
-                } else if (eventType === 'pen') {
-                    title = '❌ Nowa kara';
-                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
-                } else if (eventType === 'buy') {
-                    title = '🛒 Nowy wykup';
-                    if (myRole === 'mistress') body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
-                    else body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
-                }
-                sendNotificationToPartner(title, body, { type: eventType, points, name });
-            }
-        };
+    const name = document.getElementById('modal-name').value.trim();
+    if (!name) { alert("Podaj nazwę zdarzenia."); return; }
+
+    const role = getRole();
+
+    // ⭐ SŁUGA – tylko nazwa, Pani przydzieli punkty w Panelu Pani
+    if (role === 'slave') {
+        const tabIdx = currentModalType === 'add' ? 0 : 1; // add = zarobek, sub = kara
+        addPendingEvent(name, null, 'proposal', tabIdx);
+        window.closeCustomModal();
+        return;
+    }
+
+    // ⭐ PANI – wpisuje punkty od razu
+    let points = parseInt(document.getElementById('modal-points').value, 10);
+    if (isNaN(points)) { alert("Wpisz poprawną liczbę punktów."); return; }
+    if (currentModalType === 'add' && points < 0) points = Math.abs(points);
+    if (currentModalType === 'sub') points = -Math.abs(points);
+
+    let eventType = 'earn';
+    if (points < 0) {
+        const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+        eventType = isBuy ? 'buy' : 'pen';
+    }
+
+    const entry = {
+        id: Date.now().toString(),
+        name, points, date: activeDate, type: eventType
+    };
+    balance += points;
+    historyEntries.unshift(entry);
+    saveDataToFirestore();
+    renderActions();
+    updateUI();
+    window.closeCustomModal();
+    incrementBadge();
+
+    if (points !== 0 && getNotificationsEnabled()) {
+        const myRole = getRole();
+        const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+        let title, body;
+        if (eventType === 'earn') {
+            title = '➕ Nowy zarobek';
+            body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+        } else if (eventType === 'pen') {
+            title = '❌ Nowa kara';
+            body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+        } else if (eventType === 'buy') {
+            title = '🛒 Nowy wykup';
+            if (myRole === 'mistress') body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+            else body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+        }
+        sendNotificationToPartner(title, body, { type: eventType, points, name });
+    }
+};
 
         window.openReduceModal = function() {
             document.getElementById('reduce-percent').value = '';
