@@ -2126,7 +2126,7 @@
     // ⭐ SŁUGA – tylko nazwa, Pani przydzieli punkty w Panelu Pani
     if (role === 'slave') {
         const tabIdx = currentModalType === 'add' ? 0 : 1; // add = zarobek, sub = kara
-        addPendingEvent(name, null, 'proposal', tabIdx);
+        addPendingEvent(name, null, 'custom', tabIdx);
         window.closeCustomModal();
         return;
     }
