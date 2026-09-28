@@ -590,16 +590,17 @@
     </div>
 
     <div id="add-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
-            <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
-            <p class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
-            <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
-            <div class="flex gap-2 mt-1">
-                <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
-                <button onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
-            </div>
+    <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
+        <p id="add-catalog-hint" class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
+        <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+        <input type="number" id="catalog-item-points" placeholder="Wartość punktowa (np. 10 lub -50)..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+        <div class="flex gap-2 mt-1">
+            <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+            <button id="add-catalog-submit-btn" onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
         </div>
     </div>
+</div>
 
     <div id="edit-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
@@ -2000,10 +2001,29 @@
         };
 
         window.openAddCatalogModal = function() {
-            document.getElementById('catalog-item-name').value = '';
-            document.getElementById('add-catalog-modal').classList.remove('hidden');
-            document.getElementById('add-catalog-modal').classList.add('flex');
-        };
+    const role = getRole();
+    document.getElementById('catalog-item-name').value = '';
+    document.getElementById('catalog-item-points').value = '';
+
+    const hint = document.getElementById('add-catalog-hint');
+    const pointsInput = document.getElementById('catalog-item-points');
+    const submitBtn = document.getElementById('add-catalog-submit-btn');
+
+    if (role === 'slave') {
+        // Sługa – tylko nazwa
+        hint.textContent = 'Jako Sługa – proponujesz nazwę, Pani ustali punkty.';
+        pointsInput.style.display = 'none';
+        submitBtn.textContent = 'Zgłoś';
+    } else {
+        // Pani – może od razu wpisać punkty
+        hint.textContent = 'Jako Pani – wpisujesz nazwę i wartość punktową.';
+        pointsInput.style.display = 'block';
+        submitBtn.textContent = 'Dodaj';
+    }
+
+    document.getElementById('add-catalog-modal').classList.remove('hidden');
+    document.getElementById('add-catalog-modal').classList.add('flex');
+};
 
         window.closeAddCatalogModal = function() {
             document.getElementById('add-catalog-modal').classList.remove('flex');
