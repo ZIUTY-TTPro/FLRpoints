@@ -1375,11 +1375,20 @@
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
                 const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
-                await sendNotification(getUserId(), mistressMsg);
-                if (proposedBy) {
-                    const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
-                    await sendNotification(proposedBy, slaveMsg);
-                }
+await sendNotification(getUserId(), mistressMsg);
+if (proposedBy) {
+    const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
+    await sendNotification(proposedBy, slaveMsg);
+
+    // ⭐ Push FCM do Sługi
+    if (getNotificationsEnabled()) {
+        sendNotificationToPartner('✅ Zatwierdzono zdarzenie', `Pani zatwierdziła: ${name} (${points} pkt)`, {
+            type: 'approval',
+            name: name,
+            points: String(points)
+        });
+    }
+}
 
                 if (source === 'proposal') {
                     const existing = eventDictionary.some(group => 
@@ -1438,11 +1447,19 @@
                 const proposedBy = eventData.proposedBy;
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
                 const mistressMsg = `❌ Odrzuciłaś: ${name}`;
-                await sendNotification(getUserId(), mistressMsg);
-                if (proposedBy) {
-                    const slaveMsg = `❌ Pani odrzuciła: ${name}`;
-                    await sendNotification(proposedBy, slaveMsg);
-                }
+await sendNotification(getUserId(), mistressMsg);
+if (proposedBy) {
+    const slaveMsg = `❌ Pani odrzuciła: ${name}`;
+    await sendNotification(proposedBy, slaveMsg);
+
+    // ⭐ Push FCM do Sługi
+    if (getNotificationsEnabled()) {
+        sendNotificationToPartner('❌ Odrzucono zdarzenie', `Pani odrzuciła: ${name}`, {
+            type: 'rejection',
+            name: name
+        });
+    }
+}
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd odrzucania:', err);
