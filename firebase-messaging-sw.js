@@ -15,14 +15,23 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log('?? [SW] Powiadomienie w tle:', payload);
-    const notificationTitle = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
+
+    // ? Jeśli system Android już wyświetlił natywne powiadomienie (notification field) 
+    // – NIE duplikujemy go z Service Workera
+    if (payload.notification) {
+        console.log('?? [SW] Natywne powiadomienie – system już je wyświetlił');
+        return;
+    }
+
+    // Fallback dla data-only (starsze wersje, brak notification field)
+    const notificationTitle = payload.data?.title || 'Nowe powiadomienie';
     const notificationOptions = {
-        body: payload.data?.body || payload.notification?.body || '',
+        body: payload.data?.body || '',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
-        tag: 'flr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),  // ? unikalny tag
-        renotify: true,   // ? zawsze pokazuj, nawet jeśli poprzednie jest widoczne
+        tag: 'flr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+        renotify: true,
         requireInteraction: false,
         data: payload.data || {}
     };
