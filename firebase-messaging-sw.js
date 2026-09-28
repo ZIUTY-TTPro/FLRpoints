@@ -15,18 +15,9 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
     console.log('?? [SW] Powiadomienie w tle:', payload);
-
-    // ? Jeśli system Android już wyświetlił natywne powiadomienie (notification field) 
-    // – NIE duplikujemy go z Service Workera
-    if (payload.notification) {
-        console.log('?? [SW] Natywne powiadomienie – system już je wyświetlił');
-        return;
-    }
-
-    // Fallback dla data-only (starsze wersje, brak notification field)
-    const notificationTitle = payload.data?.title || 'Nowe powiadomienie';
+    const notificationTitle = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
     const notificationOptions = {
-        body: payload.data?.body || '',
+        body: payload.data?.body || payload.notification?.body || '',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
