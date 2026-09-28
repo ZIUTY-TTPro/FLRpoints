@@ -2421,9 +2421,7 @@ const token = await getToken(messaging, {
     const body = payload.notification?.body || payload.data?.body || '';
 
     // ⭐ Tylko toast – bez showNotification, żeby nie dublować
-    if (typeof showToast === 'function') {
-        showToast(`📩 ${title}: ${body}`);
-    }
+    showNotification(`📩 ${title}: ${body}`, 'info');
 });
 
         async function sendNotificationToPartner(title, body, data = {}) {
