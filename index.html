@@ -1302,30 +1302,47 @@
         }
 
         async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
-            const role = getRole();
-            if (role !== 'slave') {
-                showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
-                return;
+    const role = getRole();
+    if (role !== 'slave') {
+        showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
+        return;
+    }
+    try {
+        const uid = getUserId();
+        await addDoc(pendingCollection, {
+            name: name,
+            points: points,
+            proposedBy: uid,
+            proposedAt: serverTimestamp(),
+            date: activeDate,
+            status: 'waiting',
+            source: source,
+            type: source === 'catalog' ? 'existing' : 'new',
+            tabIndex: tabIndex
+        });
+        showNotification('📨 Zgłoszono do zatwierdzenia!', 'info');
+
+        // ⭐ Push do Pani – że Sługa coś zgłosił
+        if (getNotificationsEnabled()) {
+            const kindLabel = tabIndex === 0 ? 'zarobek' : (tabIndex === 1 ? 'karę' : 'wykup');
+            let title = '📨 Nowa propozycja od Sługi';
+            let body = `Sługa proponuje: ${name}`;
+            if (source === 'catalog' && points !== null && points !== undefined) {
+                body = `Sługa proponuje ${kindLabel}: ${name} (${points} pkt)`;
+            } else {
+                body = `Sługa proponuje nowe zdarzenie: ${name}`;
             }
-            try {
-                const uid = getUserId();
-                await addDoc(pendingCollection, {
-                    name: name,
-                    points: points,
-                    proposedBy: uid,
-                    proposedAt: serverTimestamp(),
-                    date: activeDate,
-                    status: 'waiting',
-                    source: source,
-                    type: source === 'catalog' ? 'existing' : 'new',
-                    tabIndex: tabIndex
-                });
-                showNotification('📨 Zgłoszono do zatwierdzenia!', 'info');
-            } catch (err) {
-                console.error('Błąd dodawania do pending:', err);
-                showNotification('❌ Błąd zgłaszania', 'info');
-            }
+            sendNotificationToPartner(title, body, {
+                type: 'pending',
+                name: name,
+                tabIndex: String(tabIndex)
+            });
         }
+    } catch (err) {
+        console.error('Błąd dodawania do pending:', err);
+        showNotification('❌ Błąd zgłaszania', 'info');
+    }
+}
 
         async function approvePendingEvent(eventId, pointsStr, source) {
             const role = getRole();
