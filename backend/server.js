@@ -67,6 +67,10 @@ app.post('/send-notification', async (req, res) => {
 
         // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH
         const message = {
+    notification: {
+        title: title,
+        body: body
+    },
     data: stringData,
     token: fcmToken,
     android: {
@@ -76,6 +80,13 @@ app.post('/send-notification', async (req, res) => {
     webpush: {
         headers: {
             Urgency: 'high'
+        },
+        notification: {
+            title: title,
+            body: body,
+            icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+            badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+            vibrate: [200, 100, 200]
         }
     }
 };
