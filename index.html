@@ -2417,7 +2417,7 @@
                         if (data[key] !== undefined && data[key] !== null) stringData[key] = String(data[key]);
                     });
                 }
-                const backendUrl = 'https://flrpoints-production.up.railway.app/send-notification';
+                const backendUrl = 'https://flrpoints-push.onrender.com/send-notification';
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
