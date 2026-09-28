@@ -2395,22 +2395,13 @@ if (proposedBy) {
                     return;
                 }
                 let swRegistration = await navigator.serviceWorker.ready;
-                const registrations = await navigator.serviceWorker.getRegistrations();
-                let fcmReg = null;
-                for (const reg of registrations) {
-                    if (reg.active && reg.active.scriptURL.includes('firebase-messaging-sw.js')) {
-                        fcmReg = reg;
-                        break;
-                    }
-                }
-                if (!fcmReg) {
-                    fcmReg = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
-                    await navigator.serviceWorker.ready;
-                }
-                const token = await getToken(messaging, {
-                    vapidKey: VAPID_KEY,
-                    serviceWorkerRegistration: fcmReg,
-                });
+                // ⭐ Używamy JEDNEGO Service Workera (service-worker.js)
+const swRegistration = await navigator.serviceWorker.ready;
+
+const token = await getToken(messaging, {
+    vapidKey: VAPID_KEY,
+    serviceWorkerRegistration: swRegistration,
+});
                 if (!token) return;
                 currentFcmToken = token;
                 const uid = getUserId();
@@ -2425,26 +2416,13 @@ if (proposedBy) {
 
      onMessage(messaging, (payload) => {
     console.log('📩 Powiadomienie w pierwszym planie:', payload);
-    
+
     const title = payload.notification?.title || payload.data?.title || 'Nowe powiadomienie';
     const body = payload.notification?.body || payload.data?.body || '';
 
-    // 1. Wyświetl powiadomienie systemowe (WYMAGANE przez Chrome, by nie zablokować pushy)
-    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(title, {
-                body: body,
-                icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-                badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-                vibrate: [200, 100, 200],
-                tag: 'flr-' + Date.now()
-            });
-        });
-    }
-
-    // 2. Dodatkowo toast wewnątrz aplikacji
+    // ⭐ Tylko toast – bez showNotification, żeby nie dublować
     if (typeof showToast === 'function') {
-        showToast(`📩 \({title}:\){body}`);
+        showToast(`📩 ${title}: ${body}`);
     }
 });
 
