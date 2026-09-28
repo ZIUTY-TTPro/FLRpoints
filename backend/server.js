@@ -65,22 +65,33 @@ app.post('/send-notification', async (req, res) => {
             });
         }
 
-        // 🔥 POPRAWIONE: BEZ notification – tylko data.
-        // Powiadomienie wyświetla Service Worker (firebase-messaging-sw.js),
-        // dzięki temu nie ma duplikatów.
+        // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH
         const message = {
-            data: stringData,
-            token: fcmToken,
-            android: {
-                priority: 'high',
-                ttl: 3600 * 1000, // 1 godzina
-            },
-            webpush: {
-                headers: {
-                    Urgency: 'high',
-                },
-            },
-        };
+    notification: {
+        title: title,
+        body: body
+    },
+    data: stringData,
+    token: fcmToken,
+    android: {
+        priority: 'high',
+        ttl: 3600 * 1000,
+        notification: {
+            sound: 'default',
+            channelId: 'default'
+        }
+    },
+    webpush: {
+        headers: {
+            Urgency: 'high',
+        },
+        notification: {
+            icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+            badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+            vibrate: [200, 100, 200]
+        }
+    },
+};
 
         console.log('📤 Wysyłam powiadomienie (priorytet HIGH) do:', targetUserId);
         const response = await admin.messaging().send(message);
@@ -90,14 +101,6 @@ app.post('/send-notification', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Błąd wysyłki powiadomienia:', error);
-
-        // Obsługa nieprawidłowego tokenu
-        if (error.code === 'messaging/registration-token-not-registered') {
-            await db.collection('users').doc(targetUserId).update({ fcmToken: null });
-            console.warn(`⚠️ Usunięto nieprawidłowy token dla ${targetUserId}`);
-            return res.status(410).json({ error: 'Token unieważniony – usunięto' });
-        }
-
         res.status(500).json({ error: error.message });
     }
 });
