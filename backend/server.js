@@ -93,7 +93,16 @@ app.post('/send-notification', async (req, res) => {
 
         console.log('📤 Wysyłam powiadomienie (priorytet HIGH) do:', targetUserId);
         const response = await admin.messaging().send(message);
-        console.log('✅ Powiadomienie wysłane:', response);
+console.log('✅ FCM przyjął wiadomość:', response);
+console.log('   → Token:', fcmToken.substring(0, 30) + '...');
+
+// Sprawdź też błędy wiadomości (jeśli są)
+try {
+    const dryRun = await admin.messaging().send({ ...message, dryRun: true });
+    console.log('   → Dry-run OK:', dryRun);
+} catch (err) {
+    console.error('   → Dry-run BŁĄD:', err.code, err.message);
+}
 
         res.json({ success: true, messageId: response });
 
