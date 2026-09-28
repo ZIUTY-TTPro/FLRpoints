@@ -2424,27 +2424,28 @@ if (proposedBy) {
         registerForNotifications();
 
        onMessage(messaging, (payload) => {
-    console.log('📩 Powiadomienie w pierwszym planie lub tle:', payload);
-    const title = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
-    const body = payload.data?.body || payload.notification?.body || '';
+    console.log('📩 Powiadomienie odebrane (Foreground / Zminimalizowana):', payload);
 
-    // ⭐ Wyświetl natywne powiadomienie systemowe
-    if ('serviceWorker' in navigator) {
+    const title = payload.notification?.title || payload.data?.title || 'Nowe powiadomienie';
+    const body = payload.notification?.body || payload.data?.body || '';
+
+    // ⭐ Wyświetl natywne powiadomienie systemowe (gdy apka zminimalizowana lub otwarta)
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then(reg => {
             reg.showNotification(title, {
                 body: body,
-                icon: '/icon-192.png',
-                badge: '/icon-192.png',
+                icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
                 vibrate: [200, 100, 200],
-                tag: 'flr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
-                renotify: true,
-                data: payload.data || {}
+                tag: 'flr-' + Date.now()
             });
         });
     }
 
-    // Dodatkowo toast w apce
-    showToast(`📩 ${title}: ${body}`);
+    // ⭐ Toast w apce (gdy otwarta)
+    if (typeof showToast === 'function') {
+        showToast(`📩 ${title}: ${body}`);
+    }
 });
 
         async function sendNotificationToPartner(title, body, data = {}) {
@@ -2508,7 +2509,7 @@ if (proposedBy) {
         // ============================================================
         // WERSJA
         // ============================================================
-        const APP_VERSION = '1.3.3';
+        const APP_VERSION = '1.3.4';
 document.getElementById('app-version-text').textContent = APP_VERSION;
 
         window.checkForUpdate = async function() {
