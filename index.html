@@ -2420,7 +2420,21 @@ const token = await getToken(messaging, {
     const title = payload.notification?.title || payload.data?.title || 'Nowe powiadomienie';
     const body = payload.notification?.body || payload.data?.body || '';
 
-    // ⭐ Tylko toast – bez showNotification, żeby nie dublować
+    // ⭐ Systemowe powiadomienie (widoczne w pasku, nawet gdy apka otwarta)
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(title, {
+                body: body,
+                icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                vibrate: [200, 100, 200],
+                tag: 'flr-' + Date.now(),
+                renotify: true
+            });
+        });
+    }
+
+    // ⭐ Toast w apce (widoczny od razu gdy patrzysz na ekran)
     showNotification(`📩 ${title}: ${body}`, 'info');
 });
 
