@@ -2423,13 +2423,13 @@ if (proposedBy) {
 
         registerForNotifications();
 
-       onMessage(messaging, (payload) => {
-    console.log('📩 Powiadomienie odebrane (Foreground / Zminimalizowana):', payload);
-
+     onMessage(messaging, (payload) => {
+    console.log('📩 Powiadomienie w pierwszym planie:', payload);
+    
     const title = payload.notification?.title || payload.data?.title || 'Nowe powiadomienie';
     const body = payload.notification?.body || payload.data?.body || '';
 
-    // ⭐ Wyświetl natywne powiadomienie systemowe (gdy apka zminimalizowana lub otwarta)
+    // 1. Wyświetl powiadomienie systemowe (WYMAGANE przez Chrome, by nie zablokować pushy)
     if ('serviceWorker' in navigator && Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then(reg => {
             reg.showNotification(title, {
@@ -2442,9 +2442,9 @@ if (proposedBy) {
         });
     }
 
-    // ⭐ Toast w apce (gdy otwarta)
+    // 2. Dodatkowo toast wewnątrz aplikacji
     if (typeof showToast === 'function') {
-        showToast(`📩 ${title}: ${body}`);
+        showToast(`📩 \({title}:\){body}`);
     }
 });
 
