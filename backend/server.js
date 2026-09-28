@@ -96,13 +96,7 @@ app.post('/send-notification', async (req, res) => {
 console.log('✅ FCM przyjął wiadomość:', response);
 console.log('   → Token:', fcmToken.substring(0, 30) + '...');
 
-// Sprawdź też błędy wiadomości (jeśli są)
-try {
-    const dryRun = await admin.messaging().send({ ...message, dryRun: true });
-    console.log('   → Dry-run OK:', dryRun);
-} catch (err) {
-    console.error('   → Dry-run BŁĄD:', err.code, err.message);
-}
+
 
         res.json({ success: true, messageId: response });
 
