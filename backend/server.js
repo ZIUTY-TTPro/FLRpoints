@@ -67,30 +67,17 @@ app.post('/send-notification', async (req, res) => {
 
         // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH
         const message = {
-    notification: {
-        title: title,
-        body: body
-    },
     data: stringData,
     token: fcmToken,
     android: {
         priority: 'high',
-        ttl: 3600 * 1000,
-        notification: {
-            sound: 'default',
-            channelId: 'default'
-        }
+        ttl: 3600 * 1000
     },
     webpush: {
         headers: {
-            Urgency: 'high',
-        },
-        notification: {
-            icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-            badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-            vibrate: [200, 100, 200]
+            Urgency: 'high'
         }
-    },
+    }
 };
 
         console.log('📤 Wysyłam powiadomienie (priorytet HIGH) do:', targetUserId);
