@@ -14,13 +14,16 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    console.log('[SW] Powiadomienie w tle:', payload);
+    console.log('?? [SW] Powiadomienie w tle:', payload);
     const notificationTitle = payload.data?.title || payload.notification?.title || 'Nowe powiadomienie';
     const notificationOptions = {
         body: payload.data?.body || payload.notification?.body || '',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         vibrate: [200, 100, 200],
+        tag: 'flr-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),  // ? unikalny tag
+        renotify: true,   // ? zawsze pokazuj, nawet jeśli poprzednie jest widoczne
+        requireInteraction: false,
         data: payload.data || {}
     };
     self.registration.showNotification(notificationTitle, notificationOptions);
