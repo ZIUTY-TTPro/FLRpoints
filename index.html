@@ -129,7 +129,6 @@
         .role-icon { font-size: 1.2rem; line-height: 1; }
         .pending-item .points-static { font-size: 0.7rem; font-weight: 600; color: #fbbf24; margin-right: 0.5rem; white-space: nowrap; }
 
-        /* ===== NAGŁÓWKI GRUP W OCZEKUJĄCYCH ===== */
         .pending-group-header {
             display: flex;
             justify-content: space-between;
@@ -145,9 +144,7 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .pending-group-header:first-child {
-            margin-top: 0;
-        }
+        .pending-group-header:first-child { margin-top: 0; }
         .pending-group-count {
             background: #dc2626;
             color: #ffffff;
@@ -188,7 +185,6 @@
         #mistress-message .heart { color: #dc2626; margin: 0 0.3rem; }
         #mistress-message .message-text { font-style: italic; }
 
-        /* ===== ZAKŁADKI – 5 przycisków, większa czcionka ===== */
         .tabs-nav {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.25rem;
             background: #18181b; border-radius: 1rem; padding: 0.25rem;
@@ -212,7 +208,6 @@
             .tab-btn .tab-icon { font-size: 1.35rem; }
         }
 
-        /* ===== KROPKI W KALENDARZU ===== */
         .cal-day-btn {
             position: relative;
             display: flex;
@@ -222,25 +217,9 @@
             padding-top: 4px;
             min-height: 42px;
         }
-        .cal-day-number {
-            font-size: 0.75rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-        .cal-dots {
-            display: flex;
-            gap: 2px;
-            margin-top: 3px;
-            height: 5px;
-            align-items: center;
-            justify-content: center;
-        }
-        .cal-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        .cal-day-number { font-size: 0.75rem; font-weight: 700; line-height: 1; }
+        .cal-dots { display: flex; gap: 2px; margin-top: 3px; height: 5px; align-items: center; justify-content: center; }
+        .cal-dot { width: 5px; height: 5px; border-radius: 50%; display: inline-block; }
         .cal-dot.earn { background-color: #22c55e; }
         .cal-dot.pen { background-color: #ef4444; }
         .cal-dot.buy { background-color: #f59e0b; }
@@ -258,7 +237,7 @@
 
         <div id="main-content" class="hidden flex flex-col gap-3">
 
-            <!-- BILANS + KOMUNIKAT DLA PANI -->
+            <!-- BILANS + KOMUNIKAT DLA PANI + LICZNIKI ORGAZMÓW -->
             <div class="bg-card border border-bordercolor rounded-2xl p-3 text-center relative overflow-hidden flex flex-col items-center shadow-xl">
                 <div class="absolute top-3 left-3 flex items-center gap-1">
                     <span id="role-icon" class="role-icon">👤</span>
@@ -284,11 +263,24 @@
                         <text id="balance-on-icon" x="0" y="0" font-family="'Arial Black', 'Impact', sans-serif" font-size="80" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="central">0</text>
                     </g>
                 </svg>
+              
+
                 <div id="mistress-message">
                     <span class="heart">♥</span>
                     <span class="message-text"></span>
                 </div>
-            </div>
+				                                              <!-- ⭐ LICZNIKI ORGAZMÓW – lewo/prawo -->
+                <div class="w-full flex justify-between items-center mt-3 pt-2 border-t border-bordercolor">
+                    <div style="text-align:left;">
+                        <span style="font-size:12px; color:#a1a1aa; font-weight:400;">👑 Orgazm Pani: </span>
+                        <span id="counter-pani-orgasm" style="font-size:11px; font-weight:600; color:#22c55e;">-</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="font-size:12px; color:#a1a1aa; font-weight:400;">🔐 Orgazm sługi: </span>
+                        <span id="counter-slave-orgasm" style="font-size:11px; font-weight:600; color:#ef4444;">-</span>
+                    </div>
+                </div>
+				</div>
 
             <!-- ===== PASEK ZAKŁADEK (5) ===== -->
             <div class="tabs-nav" id="tabs-nav">
@@ -302,7 +294,7 @@
             <!-- ===== KONTENER TREŚCI ZAKŁADEK ===== -->
             <div id="tab-container">
 
-                <!-- ========== PANEL PANI = Oczekujące + Przyjemności ========== -->
+                <!-- ========== PANEL PANI ========== -->
                 <section id="tab-mistress" class="tab-content active">
                     <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
@@ -331,7 +323,7 @@
                     </div>
                 </section>
 
-                <!-- ========== KATALOG = Zarządzanie + Katalog ========== -->
+                <!-- ========== KATALOG ========== -->
                 <section id="tab-catalog" class="tab-content">
                     <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
@@ -380,7 +372,7 @@
                     </div>
                 </section>
 
-                <!-- ========== DZIENNIK = Kalendarz + Historia ========== -->
+                <!-- ========== DZIENNIK ========== -->
                 <section id="tab-journal" class="tab-content">
                     <div class="bg-card border border-bordercolor rounded-2xl p-4 mb-3">
                         <div class="section-header">
@@ -572,8 +564,8 @@
                     </div>
                 </section>
 
-            </div><!-- koniec tab-container -->
-        </div><!-- koniec main-content -->
+            </div>
+        </div>
     </main>
 
     <!-- MODALE -->
@@ -590,23 +582,31 @@
     </div>
 
     <div id="add-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
-        <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
-        <p id="add-catalog-hint" class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
-        <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
-        <input type="number" id="catalog-item-points" placeholder="Wartość punktowa (np. 10 lub -50)..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
-        <div class="flex gap-2 mt-1">
-            <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
-            <button id="add-catalog-submit-btn" onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
+        <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
+            <h3 class="text-sm font-bold text-zinc-200">Dodaj nowe zdarzenie do katalogu</h3>
+            <p id="add-catalog-hint" class="text-xs text-zinc-400">Jako Sługa – proponujesz nazwę, Pani ustali punkty.</p>
+            <input type="text" id="catalog-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <input type="number" id="catalog-item-points" placeholder="Wartość punktowa (np. 10 lub -50)..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <label id="add-catalog-orgasm-row" class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer" style="display:none;">
+                <input type="checkbox" id="catalog-item-is-orgasm" class="w-4 h-4 accent-red-600" />
+                <span>💦 Zliczaj jako orgazm sługi</span>
+            </label>
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeAddCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
+                <button id="add-catalog-submit-btn" onclick="submitAddCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zgłoś</button>
+            </div>
         </div>
     </div>
-</div>
 
     <div id="edit-catalog-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-card border border-bordercolor rounded-2xl p-5 w-full max-w-xs flex flex-col gap-4">
             <h3 class="text-sm font-bold text-zinc-200">Edytuj zdarzenie</h3>
             <input type="text" id="edit-item-name" placeholder="Nazwa zdarzenia..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
             <input type="number" id="edit-item-points" placeholder="Wartość punktowa..." class="w-full bg-app border border-bordercolor rounded-xl p-3 text-sm text-zinc-200 focus:outline-none focus:border-zinc-500" />
+            <label id="edit-item-orgasm-row" class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer" style="display:none;">
+                <input type="checkbox" id="edit-item-is-orgasm" class="w-4 h-4 accent-red-600" />
+                <span>💦 Zliczaj jako orgazm sługi</span>
+            </label>
             <div class="flex gap-2 mt-1">
                 <button onclick="closeEditCatalogModal()" class="flex-1 bg-zinc-800 py-2.5 rounded-xl text-xs font-semibold text-zinc-300">Anuluj</button>
                 <button onclick="submitEditCatalogModal()" class="flex-1 bg-zinc-100 text-zinc-950 py-2.5 rounded-xl text-xs font-bold">Zapisz</button>
@@ -980,6 +980,66 @@
             }
         }
 
+        // ⭐ LICZNIKI ORGAZMÓW
+        function getDaysAgo(dateStr) {
+            if (!dateStr) return null;
+            const entryDate = new Date(dateStr + 'T00:00:00');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return Math.round((today - entryDate) / (1000 * 60 * 60 * 24));
+        }
+
+        function updateOrgasmCounters() {
+            function isSlaveOrgasm(entry) {
+                if (entry.isOrgasm === true) return true;
+                if (entry.isOrgasm === false) return false;
+                if (!eventDictionary || !eventDictionary[2]) return false;
+                const found = eventDictionary[2].items.find(
+                    i => i.name.toLowerCase() === entry.name.toLowerCase() && i.isOrgasm === true
+                );
+                return !!found;
+            }
+
+            function formatDays(days) {
+                if (days === 0) return 'dzisiaj';
+                if (days === 1) return 'wczoraj';
+                return `${days} dni temu`;
+            }
+
+            // 👑 Orgazm Pani
+            const paniOrgasm = historyEntries.find(e => 
+                e.name.toLowerCase().includes("orgazm dla żony")
+            );
+            const paniEl = document.getElementById('counter-pani-orgasm');
+            if (paniEl) {
+                if (paniOrgasm) {
+                    const days = getDaysAgo(paniOrgasm.date);
+                    paniEl.style.color = (days <= 10) ? '#22c55e' : '#ef4444';
+                    paniEl.innerText = formatDays(days);
+                } else {
+                    paniEl.style.color = '#71717a';
+                    paniEl.innerText = 'brak wpisu';
+                }
+            }
+
+            // 🔐 Orgazm Sługi
+            const slaveOrgasm = historyEntries.find(e => isSlaveOrgasm(e));
+            const slaveEl = document.getElementById('counter-slave-orgasm');
+            if (slaveEl) {
+                if (slaveOrgasm) {
+                    const days = getDaysAgo(slaveOrgasm.date);
+                    let color = '#ef4444';
+                    if (days >= 21) color = '#22c55e';
+                    else if (days >= 11) color = '#f59e0b';
+                    slaveEl.style.color = color;
+                    slaveEl.innerText = formatDays(days);
+                } else {
+                    slaveEl.style.color = '#71717a';
+                    slaveEl.innerText = 'brak wpisu';
+                }
+            }
+        }
+
         // ============================================================
         // BACKUP I SYNCHRONIZACJA
         // ============================================================
@@ -1188,7 +1248,7 @@
         }
 
         // ============================================================
-        // PENDING EVENTS – GRUPOWANE PO DACIE + LICZNIK
+        // PENDING EVENTS
         // ============================================================
         function renderPendingEvents() {
             const list = document.getElementById('pending-list');
@@ -1204,7 +1264,6 @@
             const role = getRole();
             const isMistress = role === 'mistress';
 
-            // ⭐ Grupowanie po dacie
             const groups = {};
             pendingEvents.forEach(event => {
                 const d = event.date || activeDate;
@@ -1212,13 +1271,11 @@
                 groups[d].push(event);
             });
 
-            // ⭐ Sortowanie: najnowsze daty na górze
             const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
 
             sortedDates.forEach(dateStr => {
                 const events = groups[dateStr];
 
-                // ⭐ Nagłówek grupy z datą i licznikiem
                 const header = document.createElement('div');
                 header.className = 'pending-group-header';
                 const dateSpan = document.createElement('span');
@@ -1230,7 +1287,6 @@
                 header.appendChild(countSpan);
                 list.appendChild(header);
 
-                // Zdarzenia w grupie
                 events.forEach(event => {
                     const div = document.createElement('div');
                     div.className = 'pending-item';
@@ -1302,47 +1358,46 @@
         }
 
         async function addPendingEvent(name, points, source = 'catalog', tabIndex = currentTab) {
-    const role = getRole();
-    if (role !== 'slave') {
-        showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
-        return;
-    }
-    try {
-        const uid = getUserId();
-        await addDoc(pendingCollection, {
-            name: name,
-            points: points,
-            proposedBy: uid,
-            proposedAt: serverTimestamp(),
-            date: activeDate,
-            status: 'waiting',
-            source: source,
-            type: source === 'catalog' ? 'existing' : 'new',
-            tabIndex: tabIndex
-        });
-        showNotification('📨 Zgłoszono do zatwierdzenia!', 'info');
-
-        // ⭐ Push do Pani – że Sługa coś zgłosił
-        if (getNotificationsEnabled()) {
-            const kindLabel = tabIndex === 0 ? 'zarobek' : (tabIndex === 1 ? 'karę' : 'wykup');
-            let title = '📨 Nowa propozycja od Sługi';
-            let body = `Sługa proponuje: ${name}`;
-            if (source === 'catalog' && points !== null && points !== undefined) {
-                body = `Sługa proponuje ${kindLabel}: ${name} (${points} pkt)`;
-            } else {
-                body = `Sługa proponuje nowe zdarzenie: ${name}`;
+            const role = getRole();
+            if (role !== 'slave') {
+                showNotification('⚠️ Tylko Sługa może zgłaszać propozycje.', 'info');
+                return;
             }
-            sendNotificationToPartner(title, body, {
-                type: 'pending',
-                name: name,
-                tabIndex: String(tabIndex)
-            });
+            try {
+                const uid = getUserId();
+                await addDoc(pendingCollection, {
+                    name: name,
+                    points: points,
+                    proposedBy: uid,
+                    proposedAt: serverTimestamp(),
+                    date: activeDate,
+                    status: 'waiting',
+                    source: source,
+                    type: source === 'catalog' ? 'existing' : 'new',
+                    tabIndex: tabIndex
+                });
+                showNotification('📨 Zgłoszono do zatwierdzenia!', 'info');
+
+                if (getNotificationsEnabled()) {
+                    const kindLabel = tabIndex === 0 ? 'zarobek' : (tabIndex === 1 ? 'karę' : 'wykup');
+                    let title = '📨 Nowa propozycja od Sługi';
+                    let body = `Sługa proponuje: ${name}`;
+                    if (source === 'catalog' && points !== null && points !== undefined) {
+                        body = `Sługa proponuje ${kindLabel}: ${name} (${points} pkt)`;
+                    } else {
+                        body = `Sługa proponuje nowe zdarzenie: ${name}`;
+                    }
+                    sendNotificationToPartner(title, body, {
+                        type: 'pending',
+                        name: name,
+                        tabIndex: String(tabIndex)
+                    });
+                }
+            } catch (err) {
+                console.error('Błąd dodawania do pending:', err);
+                showNotification('❌ Błąd zgłaszania', 'info');
+            }
         }
-    } catch (err) {
-        console.error('Błąd dodawania do pending:', err);
-        showNotification('❌ Błąd zgłaszania', 'info');
-    }
-}
 
         async function approvePendingEvent(eventId, pointsStr, source) {
             const role = getRole();
@@ -1375,20 +1430,19 @@
                 await updateDoc(eventRef, { status: 'approved', resolved: true });
 
                 const mistressMsg = `✅ Zatwierdziłaś: ${name} (${points} pkt)`;
-await sendNotification(getUserId(), mistressMsg);
-if (proposedBy) {
-    const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
-    await sendNotification(proposedBy, slaveMsg);
+                await sendNotification(getUserId(), mistressMsg);
+                if (proposedBy) {
+                    const slaveMsg = `✅ Pani zatwierdziła: ${name} (${points} pkt)`;
+                    await sendNotification(proposedBy, slaveMsg);
 
-    // ⭐ Push FCM do Sługi
-    if (getNotificationsEnabled()) {
-        sendNotificationToPartner('✅ Zatwierdzono zdarzenie', `Pani zatwierdziła: ${name} (${points} pkt)`, {
-            type: 'approval',
-            name: name,
-            points: String(points)
-        });
-    }
-}
+                    if (getNotificationsEnabled()) {
+                        sendNotificationToPartner('✅ Zatwierdzono zdarzenie', `Pani zatwierdziła: ${name} (${points} pkt)`, {
+                            type: 'approval',
+                            name: name,
+                            points: String(points)
+                        });
+                    }
+                }
 
                 if (source === 'proposal') {
                     const existing = eventDictionary.some(group => 
@@ -1447,19 +1501,18 @@ if (proposedBy) {
                 const proposedBy = eventData.proposedBy;
                 await updateDoc(eventRef, { status: 'rejected', resolved: true });
                 const mistressMsg = `❌ Odrzuciłaś: ${name}`;
-await sendNotification(getUserId(), mistressMsg);
-if (proposedBy) {
-    const slaveMsg = `❌ Pani odrzuciła: ${name}`;
-    await sendNotification(proposedBy, slaveMsg);
+                await sendNotification(getUserId(), mistressMsg);
+                if (proposedBy) {
+                    const slaveMsg = `❌ Pani odrzuciła: ${name}`;
+                    await sendNotification(proposedBy, slaveMsg);
 
-    // ⭐ Push FCM do Sługi
-    if (getNotificationsEnabled()) {
-        sendNotificationToPartner('❌ Odrzucono zdarzenie', `Pani odrzuciła: ${name}`, {
-            type: 'rejection',
-            name: name
-        });
-    }
-}
+                    if (getNotificationsEnabled()) {
+                        sendNotificationToPartner('❌ Odrzucono zdarzenie', `Pani odrzuciła: ${name}`, {
+                            type: 'rejection',
+                            name: name
+                        });
+                    }
+                }
                 renderPendingEvents();
             } catch (err) {
                 console.error('Błąd odrzucania:', err);
@@ -1497,7 +1550,7 @@ if (proposedBy) {
         }
 
         // ============================================================
-        // KALENDARZ Z KROPKAMI
+        // KALENDARZ
         // ============================================================
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
@@ -1802,6 +1855,7 @@ if (proposedBy) {
         // ============================================================
         function updateUI() {
             updateBalanceOnIcon();
+            updateOrgasmCounters();
             loadMistressMessage();
             const banner = document.getElementById('reduction-banner');
             const bannerText = document.getElementById('reduction-info-text');
@@ -2002,6 +2056,18 @@ if (proposedBy) {
             const item = eventDictionary[groupIndex].items[itemIndex];
             document.getElementById('edit-item-name').value = item.name;
             document.getElementById('edit-item-points').value = item.points;
+
+            // ⭐ Checkbox orgazmu – tylko dla wykupu (grupa 2)
+            const orgasmRow = document.getElementById('edit-item-orgasm-row');
+            const orgasmCheck = document.getElementById('edit-item-is-orgasm');
+            if (groupIndex === 2) {
+                orgasmRow.style.display = 'flex';
+                orgasmCheck.checked = item.isOrgasm === true;
+            } else {
+                orgasmRow.style.display = 'none';
+                orgasmCheck.checked = false;
+            }
+
             document.getElementById('edit-catalog-modal').classList.remove('hidden');
             document.getElementById('edit-catalog-modal').classList.add('flex');
         };
@@ -2022,6 +2088,8 @@ if (proposedBy) {
                 item.name = newName;
                 item.points = newPoints;
                 if (item.basePoints === undefined) item.basePoints = newPoints;
+                // ⭐ Zapisz flagę orgazmu
+                item.isOrgasm = document.getElementById('edit-item-is-orgasm').checked === true;
                 if (editingGroupIdx === 0 && activeReduction) {
                     const percent = activeReduction.percent;
                     const reduced = Math.round(item.basePoints * (1 - percent / 100));
@@ -2035,29 +2103,32 @@ if (proposedBy) {
         };
 
         window.openAddCatalogModal = function() {
-    const role = getRole();
-    document.getElementById('catalog-item-name').value = '';
-    document.getElementById('catalog-item-points').value = '';
+            const role = getRole();
+            document.getElementById('catalog-item-name').value = '';
+            document.getElementById('catalog-item-points').value = '';
 
-    const hint = document.getElementById('add-catalog-hint');
-    const pointsInput = document.getElementById('catalog-item-points');
-    const submitBtn = document.getElementById('add-catalog-submit-btn');
+            const hint = document.getElementById('add-catalog-hint');
+            const pointsInput = document.getElementById('catalog-item-points');
+            const submitBtn = document.getElementById('add-catalog-submit-btn');
+            const orgasmRow = document.getElementById('add-catalog-orgasm-row');
+            const orgasmCheck = document.getElementById('catalog-item-is-orgasm');
+            orgasmCheck.checked = false;
 
-    if (role === 'slave') {
-        // Sługa – tylko nazwa
-        hint.textContent = 'Jako Sługa – proponujesz nazwę, Pani ustali punkty.';
-        pointsInput.style.display = 'none';
-        submitBtn.textContent = 'Zgłoś';
-    } else {
-        // Pani – może od razu wpisać punkty
-        hint.textContent = 'Jako Pani – wpisujesz nazwę i wartość punktową.';
-        pointsInput.style.display = 'block';
-        submitBtn.textContent = 'Dodaj';
-    }
+            if (role === 'slave') {
+                hint.textContent = 'Jako Sługa – proponujesz nazwę, Pani ustali punkty.';
+                pointsInput.style.display = 'none';
+                orgasmRow.style.display = 'none';
+                submitBtn.textContent = 'Zgłoś';
+            } else {
+                hint.textContent = 'Jako Pani – wpisujesz nazwę i wartość punktową.';
+                pointsInput.style.display = 'block';
+                orgasmRow.style.display = (currentTab === 2) ? 'flex' : 'none';
+                submitBtn.textContent = 'Dodaj';
+            }
 
-    document.getElementById('add-catalog-modal').classList.remove('hidden');
-    document.getElementById('add-catalog-modal').classList.add('flex');
-};
+            document.getElementById('add-catalog-modal').classList.remove('hidden');
+            document.getElementById('add-catalog-modal').classList.add('flex');
+        };
 
         window.closeAddCatalogModal = function() {
             document.getElementById('add-catalog-modal').classList.remove('flex');
@@ -2078,7 +2149,8 @@ if (proposedBy) {
             let finalPoints = points;
             if ((currentTab === 1 || currentTab === 2) && points > 0) finalPoints = -Math.abs(points);
             const targetGroupIdx = currentTab;
-            const newItem = { name, points: finalPoints, basePoints: finalPoints };
+            const isOrgasm = (targetGroupIdx === 2) ? document.getElementById('catalog-item-is-orgasm').checked === true : false;
+            const newItem = { name, points: finalPoints, basePoints: finalPoints, isOrgasm: isOrgasm };
             if (targetGroupIdx === 0 && activeReduction) {
                 const percent = activeReduction.percent;
                 const reduced = Math.round(newItem.basePoints * (1 - percent / 100));
@@ -2103,9 +2175,21 @@ if (proposedBy) {
                 const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
                 eventType = isBuy ? 'buy' : 'pen';
             }
+
+            // ⭐ Sprawdź, czy zdarzenie ma flagę orgazmu
+            let isOrgasm = false;
+            for (const group of eventDictionary) {
+                const found = group.items.find(i => i.name === name);
+                if (found && found.isOrgasm === true) {
+                    isOrgasm = true;
+                    break;
+                }
+            }
+
             const entry = {
                 id: Date.now().toString(),
-                name, points, date: activeDate, type: eventType
+                name, points, date: activeDate, type: eventType,
+                isOrgasm: isOrgasm
             };
             balance += points;
             historyEntries.unshift(entry);
@@ -2144,27 +2228,25 @@ if (proposedBy) {
         };
 
         window.openCustomModal = function(type) {
-    currentModalType = type;
-    const role = getRole();
-    const pointsInput = document.getElementById('modal-points');
-    const title = document.getElementById('modal-title');
+            currentModalType = type;
+            const role = getRole();
+            const pointsInput = document.getElementById('modal-points');
+            const title = document.getElementById('modal-title');
 
-    if (role === 'slave') {
-        // Sługa – tylko nazwa, Pani przydzieli punkty
-        title.innerText = type === 'add' ? '➕ Zgłoś nowe zdarzenie (zarobek)' : '➖ Zgłoś nowe zdarzenie (kara)';
-        pointsInput.style.display = 'none';
-        pointsInput.value = '';
-    } else {
-        // Pani – może od razu wpisać punkty
-        title.innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
-        pointsInput.style.display = 'block';
-        pointsInput.value = '';
-    }
+            if (role === 'slave') {
+                title.innerText = type === 'add' ? '➕ Zgłoś nowe zdarzenie (zarobek)' : '➖ Zgłoś nowe zdarzenie (kara)';
+                pointsInput.style.display = 'none';
+                pointsInput.value = '';
+            } else {
+                title.innerText = type === 'add' ? 'Ręczne dodanie punktów' : 'Ręczne odjęcie punktów';
+                pointsInput.style.display = 'block';
+                pointsInput.value = '';
+            }
 
-    document.getElementById('modal-name').value = '';
-    document.getElementById('custom-modal').classList.remove('hidden');
-    document.getElementById('custom-modal').classList.add('flex');
-};
+            document.getElementById('modal-name').value = '';
+            document.getElementById('custom-modal').classList.remove('hidden');
+            document.getElementById('custom-modal').classList.add('flex');
+        };
 
         window.closeCustomModal = function() {
             document.getElementById('custom-modal').classList.remove('flex');
@@ -2172,61 +2254,59 @@ if (proposedBy) {
         };
 
         window.submitCustomModal = function() {
-    const name = document.getElementById('modal-name').value.trim();
-    if (!name) { alert("Podaj nazwę zdarzenia."); return; }
+            const name = document.getElementById('modal-name').value.trim();
+            if (!name) { alert("Podaj nazwę zdarzenia."); return; }
 
-    const role = getRole();
+            const role = getRole();
 
-    // ⭐ SŁUGA – tylko nazwa, Pani przydzieli punkty w Panelu Pani
-    if (role === 'slave') {
-        const tabIdx = currentModalType === 'add' ? 0 : 1; // add = zarobek, sub = kara
-        addPendingEvent(name, null, 'custom', tabIdx);
-        window.closeCustomModal();
-        return;
-    }
+            if (role === 'slave') {
+                const tabIdx = currentModalType === 'add' ? 0 : 1;
+                addPendingEvent(name, null, 'custom', tabIdx);
+                window.closeCustomModal();
+                return;
+            }
 
-    // ⭐ PANI – wpisuje punkty od razu
-    let points = parseInt(document.getElementById('modal-points').value, 10);
-    if (isNaN(points)) { alert("Wpisz poprawną liczbę punktów."); return; }
-    if (currentModalType === 'add' && points < 0) points = Math.abs(points);
-    if (currentModalType === 'sub') points = -Math.abs(points);
+            let points = parseInt(document.getElementById('modal-points').value, 10);
+            if (isNaN(points)) { alert("Wpisz poprawną liczbę punktów."); return; }
+            if (currentModalType === 'add' && points < 0) points = Math.abs(points);
+            if (currentModalType === 'sub') points = -Math.abs(points);
 
-    let eventType = 'earn';
-    if (points < 0) {
-        const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
-        eventType = isBuy ? 'buy' : 'pen';
-    }
+            let eventType = 'earn';
+            if (points < 0) {
+                const isBuy = eventDictionary[2].items.some(i => i.name.toLowerCase() === name.toLowerCase());
+                eventType = isBuy ? 'buy' : 'pen';
+            }
 
-    const entry = {
-        id: Date.now().toString(),
-        name, points, date: activeDate, type: eventType
-    };
-    balance += points;
-    historyEntries.unshift(entry);
-    saveDataToFirestore();
-    renderActions();
-    updateUI();
-    window.closeCustomModal();
-    incrementBadge();
+            const entry = {
+                id: Date.now().toString(),
+                name, points, date: activeDate, type: eventType
+            };
+            balance += points;
+            historyEntries.unshift(entry);
+            saveDataToFirestore();
+            renderActions();
+            updateUI();
+            window.closeCustomModal();
+            incrementBadge();
 
-    if (points !== 0 && getNotificationsEnabled()) {
-        const myRole = getRole();
-        const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
-        let title, body;
-        if (eventType === 'earn') {
-            title = '➕ Nowy zarobek';
-            body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
-        } else if (eventType === 'pen') {
-            title = '❌ Nowa kara';
-            body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
-        } else if (eventType === 'buy') {
-            title = '🛒 Nowy wykup';
-            if (myRole === 'mistress') body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
-            else body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
-        }
-        sendNotificationToPartner(title, body, { type: eventType, points, name });
-    }
-};
+            if (points !== 0 && getNotificationsEnabled()) {
+                const myRole = getRole();
+                const kto = myRole === 'mistress' ? 'Pani' : 'Sługa';
+                let title, body;
+                if (eventType === 'earn') {
+                    title = '➕ Nowy zarobek';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nowy zarobek: ${name} (+${points} pkt)`;
+                } else if (eventType === 'pen') {
+                    title = '❌ Nowa kara';
+                    body = `${kto} doda${myRole === 'mistress' ? 'ła' : 'ł'} nową karę: ${name} (${points} pkt)`;
+                } else if (eventType === 'buy') {
+                    title = '🛒 Nowy wykup';
+                    if (myRole === 'mistress') body = `Pani pozwoliła na nową przyjemność: ${name} (${points} pkt)`;
+                    else body = `Sługa wykupił nową przyjemność: ${name} (${points} pkt)`;
+                }
+                sendNotificationToPartner(title, body, { type: eventType, points, name });
+            }
+        };
 
         window.openReduceModal = function() {
             document.getElementById('reduce-percent').value = '';
@@ -2394,14 +2474,12 @@ if (proposedBy) {
                     setNotificationsEnabled(false);
                     return;
                 }
-                
-                // ⭐ Używamy JEDNEGO Service Workera (service-worker.js)
-const swRegistration = await navigator.serviceWorker.ready;
+                const swRegistration = await navigator.serviceWorker.ready;
 
-const token = await getToken(messaging, {
-    vapidKey: VAPID_KEY,
-    serviceWorkerRegistration: swRegistration,
-});
+                const token = await getToken(messaging, {
+                    vapidKey: VAPID_KEY,
+                    serviceWorkerRegistration: swRegistration,
+                });
                 if (!token) return;
                 currentFcmToken = token;
                 const uid = getUserId();
@@ -2414,29 +2492,29 @@ const token = await getToken(messaging, {
 
         registerForNotifications();
 
-     onMessage(messaging, (payload) => {
-    console.log('📩 Powiadomienie w pierwszym planie:', payload);
+        onMessage(messaging, (payload) => {
+            console.log('📩 Powiadomienie w pierwszym planie:', payload);
 
-    const title = payload.notification?.title || payload.data?.title || 'Nowe powiadomienie';
-    const body = payload.notification?.body || payload.data?.body || '';
+            const title = payload.notification?.title || payload.data?.title || 'Nowe powiadomienie';
+            const body = payload.notification?.body || payload.data?.body || '';
 
-    // ⭐ Systemowe powiadomienie (widoczne w pasku, nawet gdy apka otwarta)
-    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-        navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(title, {
-                body: body,
-                icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-                badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-                vibrate: [200, 100, 200],
-                tag: 'flr-' + Date.now(),
-                renotify: true
-            });
+            // ⭐ Systemowe powiadomienie (widoczne w pasku, nawet gdy apka otwarta)
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification(title, {
+                        body: body,
+                        icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                        badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                        vibrate: [200, 100, 200],
+                        tag: 'flr-' + Date.now(),
+                        renotify: true
+                    });
+                });
+            }
+
+            // ⭐ Toast w apce (widoczny od razu gdy patrzysz na ekran)
+            showNotification(`📩 ${title}: ${body}`, 'info');
         });
-    }
-
-    // ⭐ Toast w apce (widoczny od razu gdy patrzysz na ekran)
-    showNotification(`📩 ${title}: ${body}`, 'info');
-});
 
         async function sendNotificationToPartner(title, body, data = {}) {
             if (!getNotificationsEnabled()) return;
@@ -2499,8 +2577,8 @@ const token = await getToken(messaging, {
         // ============================================================
         // WERSJA
         // ============================================================
-        const APP_VERSION = '1.3.4';
-document.getElementById('app-version-text').textContent = APP_VERSION;
+        const APP_VERSION = '1.3.5';
+        document.getElementById('app-version-text').textContent = APP_VERSION;
 
         window.checkForUpdate = async function() {
             try {
