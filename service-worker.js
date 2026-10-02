@@ -48,7 +48,7 @@ messaging.onBackgroundMessage((payload) => {
 // ============================================================
 // CACHE – offline
 // ============================================================
-const CACHE_NAME = 'flr-slave-points-v1.3.4';
+const CACHE_NAME = 'flr-slave-points-v1.3.5';
 const urlsToCache = [
   './',
   './index.html',
