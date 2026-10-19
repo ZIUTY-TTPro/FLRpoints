@@ -67,38 +67,63 @@ app.post('/send-notification', async (req, res) => {
 
         // 🔥 ULEPSZONA WIADOMOŚĆ – priorytet HIGH
         const message = {
-    notification: {
-        title: title,
-        body: body
-    },
-    data: stringData,
-    token: fcmToken,
-    android: {
-        priority: 'high',
-        ttl: 3600 * 1000
-    },
-    webpush: {
-        headers: {
-            Urgency: 'high'
-        },
-        notification: {
-            title: title,
-            body: body,
-            icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-            badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
-            vibrate: [200, 100, 200]
-        }
-    }
-};
+            notification: {
+                title: title,
+                body: body
+            },
+            data: stringData,
+            token: fcmToken,
+            android: {
+                priority: 'high',
+                ttl: 3600 * 1000
+            },
+            webpush: {
+                headers: {
+                    Urgency: 'high'
+                },
+                notification: {
+                    title: title,
+                    body: body,
+                    icon: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                    badge: 'https://ziuty-ttpro.github.io/FLRpoints/icon-192.png',
+                    vibrate: [200, 100, 200]
+                }
+            }
+        };
 
         console.log('📤 Wysyłam powiadomienie (priorytet HIGH) do:', targetUserId);
-        const response = await admin.messaging().send(message);
-console.log('✅ FCM przyjął wiadomość:', response);
-console.log('   → Token:', fcmToken.substring(0, 30) + '...');
 
+        try {
+            const response = await admin.messaging().send(message);
+            console.log('✅ FCM przyjął wiadomość:', response);
+            console.log('   → Token:', fcmToken.substring(0, 30) + '...');
+            return res.json({ success: true, messageId: response });
+        } catch (err) {
+            // 🛑 TU JEST NASZ BEZPIECZNIK
+            // Sprawdzamy, czy błąd oznacza, że token jest martwy (apka odinstalowana, dane wyczyszczone, rotacja)
+            if (
+                err.code === 'messaging/registration-token-not-registered' ||
+                err.code === 'messaging/invalid-registration-token' ||
+                err.code === 'messaging/invalid-argument'
+            ) {
+                console.warn(`⚠️ Martwy token dla ${targetUserId} (${err.code}). Usuwam z bazy.`);
+                
+                // Usuwamy token i jego timestamp z Firestore, żeby baza była czysta
+                await db.collection('users').doc(targetUserId).update({
+                    fcmToken: admin.firestore.FieldValue.delete(),
+                    fcmTokenUpdatedAt: admin.firestore.FieldValue.delete()
+                });
 
-
-        res.json({ success: true, messageId: response });
+                // Zwracamy 410 (Gone) – twój front w index.html już to obsługuje i pokaże ładny komunikat
+                return res.status(410).json({
+                    success: false,
+                    error: 'Token wygasł lub urządzenie zostało wyrejestrowane',
+                    code: err.code
+                });
+            }
+            // Inne błędy (np. sieć, limit) lecą dalej do głównego catch
+            throw err;
+        }
 
     } catch (error) {
         console.error('❌ Błąd wysyłki powiadomienia:', error);
